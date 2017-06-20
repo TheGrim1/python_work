@@ -1,0 +1,16 @@
+fig, ax1 = plt.subplots()
+
+range = np.arange(len(xbics))
+ax1.plot(range, xbics, 'b-')
+ax1.set_xlabel('map no -> energy')
+
+ax1.set_ylabel('XBIC signal', color='b')
+ax1.tick_params('y', colors='b')
+
+ax2 = ax1.twinx()
+ax2.plot(range, gakas, 'r-')
+ax2.set_ylabel('GaKa Sum', color='r')
+ax2.tick_params('y', colors='r')
+
+fig.tight_layout()
+plt.show()

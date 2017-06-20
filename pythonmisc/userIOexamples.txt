@@ -1,0 +1,28 @@
+
+def getinput(prompt,typ):
+# Forces user to raw_input an int or float (specify in typ) after <prompt>
+# works
+    while True:
+        try:
+            totalpartno   =raw_input(prompt)
+            if typ=='float':
+                userinput =float(userinput)
+            else:
+                userinput =int(userinput)
+            break
+        except ValueError:
+            print "That is not a valid %s input, try again " %typ
+            
+    return userinput
+
+def usersetup():
+    totalpartno=getinput('Number of parts that will be used: ','int')
+    filters=[]
+
+    for i in range(totalpartno):
+        new_filter               = part()
+        new_filter.partno        = i
+        new_filter.allocatedsize = getinput(('Size of part%d : ' % i),'float')
+        filters.append(new_filter)
+    return filters
+   

@@ -1,0 +1,106 @@
+
+import h5py
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+e0 = 10.367
+fname200 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_200ms_Ga/MG154_fluoXAS_1.replace.h5'
+fname400 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_400ms_Ga/MG154_fluoXAS_1.replace.h5'
+
+h5f200 = h5py.File(fname200,'r')
+
+stepg200 = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_step'])
+edgeg200 = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_edge'])
+edgegdiff200 = edgeg200 - 10.367
+ga200    = np.asarray(h5f200['/detectorsum/Ga-K_norm/data'])
+ni200    = np.asarray(h5f200['/detectorsum/Ni-K/data'])
+xbic200  = np.asarray(h5f200['/counters/zap_p201_Xbic_norm/data'])
+samp200  = [np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/sampz']),np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/sampy'])]
+samp200[0] = samp200[0] - min(samp200[0])
+samp200[1] = samp200[1] - min(samp200[1])
+
+
+
+stepx200 = np.asarray(h5f200['/counters/zap_p201_Xbic_norm_stan/xanes_step'])
+edgex200 = np.asarray(h5f200['/counters/zap_p201_Xbic_norm_stan/xanes_edge'])
+edgexdiff200 = edgex200 - 10.367
+
+h5f200.close()
+h5f400 = h5py.File(fname400,'r')
+
+stepg400 = np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/xanes_step'])
+edgeg400 = np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/xanes_edge'])
+edgegdiff400 = edgeg400 - 10.367
+ga400    = np.asarray(h5f400['/detectorsum/Ga-K_norm/data'])
+ni400    = np.asarray(h5f400['/detectorsum/Ni-K/data'])
+
+h5f400.close()
+
+fname2015 = '/tmp_14_days/johannes1/results/mg01_5_4_3/mg01_5_4_3.replace.h5'
+h5f2015 = h5py.File(fname2015,'r')
+
+xbic2015 = np.asarray(h5f2015['counters/zap_p201_IC/data'])[::-1,::-1,:]
+ga2015 = np.asarray(h5f2015['detectorsum/Ga-K/data'])[::-1,::-1,:]
+ni2015 = np.asarray(h5f2015['detectorsum/Ni-K/data'])[::-1,::-1,:]
+
+h5f2015.close()
+
+### masking
+
+from matplotlib.colors import ListedColormap
+import matplotlib.pylab as pl
+cmap = pl.cm.hot_r
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+my_cmap = cmap(np.arange(cmap.N))
+
+# Set alpha
+my_cmap[:,-1] = np.linspace(0, 1, cmap.N)
+
+# Create new colormap
+my_cmap = ListedColormap(my_cmap)
+
+
+## plotting
+
+image1 = np.where(edgexdiff200 > 0 ,np.where(mask200,edgexdiff200*1000,0),0)
+image2 = np.where(edgegdiff200 > 0 ,np.where(mask200,edgegdiff200*1000,0),0)
+
+cmax = max(np.max(image1),np.max(image2))
+cmin = min(np.min(image2),np.min(image1))
+
+fig, (ax1, ax2) = plt.subplots(1,2, sharey=True)
+
+### image
+im1 = ax1.matshow(image1, vmin = cmin, vmax = cmax)
+ax1.matshow(np.where(edgexdiff200 == 0 ,np.where(mask200,1,0),0),cmap = my_cmap)
+ax1.set_title('XBIC - absorption edge shift')
+
+### colorbar
+divider1 = make_axes_locatable(ax1)
+cax1 = divider1.append_axes("bottom", size="1%", pad=0.05)
+cbar1 = plt.colorbar(im1, cax=cax1, orientation = 'horizontal')
+
+### ticklabels
+newticks = [],[]
+for tick in list(ax1.get_xticks()):
+    try:
+	if tick >= 0:
+           newticks[0].append(tick)
+           newticks[1].append(samp200[0][tick])
+    except IndexError:
+        pass
+
+
+
+### image
+im2 = ax2.matshow(image2, vmin = cmin, vmax = cmax)
+ax2.set_title('XBIC - absorption edge shift')
+
+divider2 = make_axes_locatable(ax2)
+cax2 = divider2.append_axes("bottom", size="1%", pad=0.05)
+cbar1 = plt.colorbar(im2, cax=cax2, orientation = 'horizontal')
+
+
+
+

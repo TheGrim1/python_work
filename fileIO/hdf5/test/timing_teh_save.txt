@@ -1,0 +1,9 @@
+cristal:skript/fileIO/hdf5 % python save_h5.py /mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/AUTO-TRANSFER/eiger1/r1_w3_test_75_data_000001.h5
+
+found shape = 
+(1066, 2167, 2070)
+time to open 11.6672830582
+creating group entry/data
+saving dataset as data
+hoorray
+time to save 71.995306015

@@ -1,0 +1,13 @@
+
+# global imports
+
+import sys, os
+import matplotlib.pyplot as plt
+
+# local imports
+
+def save_plot(fig, savename):
+    
+    if savename.endswith('.png'):
+        print "saving plot as: \n%s" %savename
+        plt.savefig(savename, transparent = True, bbox_incens = "tight")

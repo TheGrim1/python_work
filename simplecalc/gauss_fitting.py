@@ -1,0 +1,388 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.ndimage
+from scipy.optimize import leastsq
+import math
+
+from scipy.signal import find_peaks_cwt as find_peaks
+from simplecalc.calc import subtract_c_bkg
+from scipy.ndimage import gaussian_filter1d as gauss1d
+
+def peak_finder_1d(data,filterwidth = 1):
+    '''
+    my own attempt, replaced with
+    from scipy.signal import find_peaks_cwt as find_peaks
+    finds peaks in 2xn data, sorted according to data[peakpos]
+    '''
+
+    plt.plot(data[0],data[1],color = 'red')
+    print(data.shape)
+    print(data[0].shape)
+    narrowfilter = gauss1d(data[1],sigma = filterwidth*0.8, mode = 'constant')
+    print(narrowfilter.shape)
+    plt.plot(data[0],narrowfilter,color = 'blue')
+
+    widefilter   = gauss1d(data[1],sigma = filterwidth * 1.1,mode = 'constant')
+    plt.plot(data[0],widefilter,color = 'darkblue')
+
+    
+    positive = narrowfilter - widefilter
+    positive = np.where(positive >= 0, positive, -1)
+    plt.plot(data[0],positive,color = 'green')
+    
+    peaks = []
+    i     = 0
+    flag  = False
+    for point,i in enumerate(positive):
+        if (flag and not point) or (point and not flag):
+            peaks.append(i)
+            plt.axvline(i,color='r') # edges of peakareas
+     
+
+    plt.show()
+    return peakpos
+
+
+
+def peak_guess(data, nopeaks = 2, verbose = False):
+    '''
+    trying to find good starting positions for the gauss fitting, returns nopeaks number of peaks
+    print("p[0], a1: ", v[0])
+    print("p[1], mu1: ", v[1])
+    print("p[2], sigma1: ", v[2])
+    print("p[3], a2: ", v[3])
+    print("p[4], mu2: ", v[4])
+    print("p[5], sigma2: ", v[5])
+    '''
+
+    width  = len(data[0])/10.0
+    widths = []
+    peaks  = []
+
+    
+    while len(peaks) < nopeaks:
+        width *= 0.5
+        widths.append(width)
+        peaks = find_peaks(data[1],widths = np.asarray(widths))
+        if verbose:
+            if len(peaks) >=1:
+                print('with width = %s, guess found peaks at :'%width)
+                print(data[0][peaks])
+
+    peakheight = data[1][peaks]
+    peakpos    = data[0][peaks]
+    peaks      = np.asarray([peakheight,peakpos])
+    peaks      = peaks[:,peaks[0,:].argsort()[::-1]]
+
+
+    guess      = []
+    sigmaguess = 5*np.absolute(data[0,0]-data[0,1])
+     
+    peakheight = data[1][peaks]
+    peakpos    = data[0][peaks]
+    if verbose:
+        print(peakpos)
+        print(peakheight)
+    guess     = []
+
+    for i in range(nopeaks):
+        guess.extend([peaks[0,i]*sigmaguess,peaks[1,i],sigmaguess])    
+#    guess.extend([peakheight[i],peakpos[i],width])
+
+    if verbose and nopeaks == 2:
+        print('guessing possitions with')
+        print("p[0], a1: ", guess[0])
+        print("p[1], mu1: ", guess[1])
+        print("p[2], sigma1: ", guess[2])
+        print("p[3], a2: ", guess[3])
+        print("p[4], mu2: ", guess[4])
+        print("p[5], sigma2: ", guess[5])
+        
+    return guess
+
+def conservative_peak_guess(data,
+                            nopeaks = 2,
+                            verbose = False,
+                            plot = False,
+                            threshold = 10,
+                            minwidth = 2,
+                            maxwidth = None):
+    '''
+    trying to find good starting positions for the gauss fitting:
+    print("p[0], a1: ", v[0])
+    print("p[1], mu1: ", v[1])
+    print("p[2], sigma1: ", v[2])
+    print("p[3], a2: ", v[3])
+    print("p[4], mu2: ", v[4])
+    print("p[5], sigma2: ", v[5])
+    '''
+    if maxwidth == None:
+        width  = len(data[0])/10.0
+    else:
+        width = maxwidth
+    widths = []
+    peaks  = []
+
+    
+    while len(peaks) < nopeaks and width > minwidth:
+        widths.append(width)
+        peaks = find_peaks(data[1],widths = np.asarray(widths))
+        width *= 0.5
+
+    if verbose:
+        print('with minwidth = %s, guess found peaks at :'%width)
+        print([peaks])
+
+    if plot:
+        plt.clf()
+        plt.plot(range(len(data[1])),data[1])
+        for x in peaks:
+            plt.axvline(x,color='r') # found peaks
+            
+    peakheight = data[1][peaks]
+    peakpos    = data[0][peaks]
+    peaks      = np.asarray([peakheight,peakpos])
+    peaks      = peaks[:,peaks[0,:].argsort()[::-1]]
+
+
+    guess      = []
+    sigmaguess = 5*np.absolute(data[0,0]-data[0,1])
+    
+    for i in range(min(len(peaks[0]),nopeaks)):
+        guess.extend([peaks[0,i]*sigmaguess,peaks[1,i],sigmaguess])
+
+    if verbose:
+        print('sorted into:')
+        print(guess)
+        
+    if verbose and nopeaks == 2:
+        print('guessing possitions with')
+        print("p[0], a1: ", guess[0])
+        print("p[1], mu1: ", guess[1])
+        print("p[2], sigma1: ", guess[2])
+        print("p[3], a2: ", guess[3])
+        print("p[4], mu2: ", guess[4])
+        print("p[5], sigma2: ", guess[5])
+        
+    return guess
+
+
+
+def gauss_func(p, t):
+    '''
+    p0 = a
+    p1 = mu
+    p2 = sigma
+    '''
+    return p[0]*(1/math.sqrt(2*math.pi*(p[2]**2)))*math.e**(-(t-p[1])**2/(2*p[2]**2))
+
+def two_gauss_func(p, t):
+    return  gauss_func(p[0:3],t) + gauss_func(p[3:6],t)
+
+def two_gauss_residual(p, x, y):
+    return (two_gauss_func(p,x) - y)
+#    e_gauss_fit = lambda p, x, y: (two_gauss_func(p,x) -y) #1d residual
+
+def multi_gauss_func(p,t,nopeaks):
+    function = np.zeros(shape = (len(t)))
+    for i in range(nopeaks):
+        function += gauss_func(p[range(i*3,(i+1)*3)],t)
+    return function
+
+
+def multi_gauss_residual(p,x,y,nopeaks):
+    return multi_gauss_func(p,x,nopeaks = nopeaks) - y
+
+
+def do_variable_gauss_fit(data, v0= None, plot = False, verbose = False, minwidth = 2, maxwidth = None):
+    '''
+    Fits with nopeaks = len(v0)/ number of gauss functions, if v==None, fits 3 peaks.
+    Returns list(np.array(3,nopeaks)) containing sequence  of aX, muX, sigmaX at most nopeaks times.
+    Also returns the residual of the least squares fit.
+    v0 are the starting values for aX, muX, sigmaX etc.
+    '''
+    
+    if v0 == None:
+        v0      = conservative_peak_guess(data,
+                                          nopeaks = 3,
+                                          verbose = verbose,
+                                          minwidth = minwidth,
+                                          maxwidth = maxwidth)
+
+    nopeaks = len(v0)/3
+
+    def optfunction(p,x,y):
+        return multi_gauss_residual(p = p, x = x, y = y, nopeaks=nopeaks)
+    out = leastsq(optfunction, v0[:], args=(data[0], data[1]), maxfev=100000, full_output=1) #Gauss Fit
+    v = out[0] #fit parameters out
+    covar = out[1] #covariance matrix output
+    xxx = np.arange(min(data[0]),max(data[0]),data[0][1]-data[0][0])
+    ccc = multi_gauss_func(v,xxx,nopeaks = nopeaks) # this will only work if the units are pixel and not wavelength
+
+    residual = sum(optfunction(v,data[0],data[1]))
+    if plot == True:
+        fig = plt.figure(figsize=(9, 9)) #make a plot
+        ax1 = fig.add_subplot(111)
+        ax1.plot(data[0],data[1],'gs') #spectrum
+        ax1.plot(xxx,ccc,'b') #fitted spectrum
+
+    if verbose == True:
+        print('found peaks at')
+        l = 1
+        for i, value in enumerate(v):
+            if i%3 ==0:
+                print("p[%s], a%s: %s" % (i,l,value))
+            elif i%3 ==1:
+                print("p[%s], mu%s: %s" % (i,l,value))
+                if plot == True:
+                    if value < max(xxx) and value > min(xxx):
+                        plt.axvline(x = value,color = 'red')
+            elif i%3 ==2:
+                print("p[%s], sigma%s: %s" % (i,l,value))
+                l +=1
+
+    if plot == True:            
+        plt.show()
+
+
+
+            
+    v = np.hstack([v,np.zeros(3*nopeaks -len(v))])
+    return v.reshape((nopeaks,3)), residual
+
+
+    
+def do_multi_gauss_fit(data, nopeaks = 3, verbose = False):
+    '''
+    returns list containing sequence  of aX, muX, sigmaX nopeaks times
+    '''
+    v0 = peak_guess(data,nopeaks = nopeaks,verbose = verbose)
+    def optfunction(p,x,y):
+        return multi_gauss_residual(p = p, x = x, y = y, nopeaks=nopeaks)
+    out = leastsq(optfunction, v0[:], args=(data[0], data[1]), maxfev=100000, full_output=1) #Gauss Fit
+    v = out[0] #fit parameters out
+    covar = out[1] #covariance matrix output
+    xxx = np.arange(min(data[0]),max(data[0]),data[0][1]-data[0][0])
+    ccc = multi_gauss_func(v,xxx,nopeaks = nopeaks) # this will only work if the units are pixel and not wavelength
+
+    if verbose == True:
+        fig = plt.figure(figsize=(9, 9)) #make a plot
+        ax1 = fig.add_subplot(111)
+        ax1.plot(data[0],data[1],'gs') #spectrum
+        ax1.plot(xxx,ccc,'b') #fitted spectrum
+        print('found peaks at')
+        l = 1
+        for i, value in enumerate(v):
+            if i%3 ==0:
+                print("p[%s], a%s: %s" % (i,l,value))
+            elif i%3 ==1:
+                print("p[%s], mu%s: %s" % (i,l,value))
+                if value < max(xxx) and value > min(xxx):
+                    plt.axvline(x = value,color = 'red')
+            elif i%3 ==2:
+                print("p[%s], sigma%s: %s" % (i,l,value))
+                l +=1
+        plt.show()
+
+    return v.reshape((3,nopeaks))
+
+def do_two_gauss_fit(data, verbose = False):
+    '''
+    old ->
+    dev version before multi_gauss_fit
+    '''
+    v0 = peak_guess(data,nopeaks = 2,verbose = verbose)
+    out = leastsq(two_gauss_residual, v0[:], args=(data[0], data[1]), maxfev=100000, full_output=1) #Gauss Fit
+    v = out[0] #fit parameters out
+    covar = out[1] #covariance matrix output
+    xxx = np.arange(min(data[0]),max(data[0]),data[0][1]-data[0][0])
+    ccc = two_gauss_func(v,xxx) # this will only work if the units are pixel and not wavelength
+
+    if verbose == True:
+        fig = plt.figure(figsize=(9, 9)) #make a plot
+        ax1 = fig.add_subplot(111)
+        ax1.plot(data[0],data[1],'gs') #spectrum
+        ax1.plot(xxx,ccc,'b') #fitted spectrum
+        plt.show()
+        print('found peaks at')
+        print("p[0], a1: ", v[0])
+        print("p[1], mu1: ", v[1])
+        print("p[2], sigma1: ", v[2])
+        print("p[3], a2: ", v[3])
+        print("p[4], mu2: ", v[4])
+        print("p[5], sigma2: ", v[5])
+
+    return v.reshape((3,2))
+
+
+
+def do_variable_gaussbkg_pipeline(data,
+                                  nopeaks =3,
+                                  plot = False,
+                                  verbose = False,
+                                  threshold = 10,
+                                  minwidth = 20,
+                                  maxwidth = None):
+
+    initial_v0 = conservative_peak_guess(data=data,
+                                         nopeaks=nopeaks,
+                                         verbose=verbose,
+                                         plot=plot,
+                                         threshold=threshold,
+                                         minwidth=minwidth,
+                                         maxwidth=maxwidth)
+
+    v0 = []
+    
+    for i in range(len(initial_v0)/3):
+        peakindex = np.searchsorted(data[0], initial_v0[i*3+1])
+        peakheight = data[1][peakindex]
+        if peakheight > threshold:
+            v0.extend([initial_v0[i*3],initial_v0[i*3+1],initial_v0[i*3+2]])
+
+    if verbose>2:
+        print('initial peaks guessed was:')
+        print(initial_v0)
+        print('after thresholding at %s' % threshold)
+        print(v0)
+
+
+    data = subtract_c_bkg(data, percentile = 20)
+    
+    if not len(v0) == 0:
+        peaks, residual = do_variable_gauss_fit(data=data,
+                                                v0=v0,
+                                                plot=plot,
+                                                verbose=verbose)
+
+        peaks = np.hstack([peaks.flat,np.zeros(3*nopeaks -len(peaks.flat))])
+        peaks = peaks.reshape((nopeaks,3))
+
+    else:
+        peaks = np.zeros(shape = (nopeaks,3))
+        residual = sum(data[1])
+        
+        if verbose > 2:
+            print('No peaks found in this frame')
+    
+    
+    return peaks, residual
+
+
+
+def main():
+
+    # generate some data
+    # change the parameters as you see fit
+    y = two_gauss_func([20,20,3,60,50,4],np.arange(50)/.5)
+    x = np.arange(50)/.5
+    data = np.asarray([x,y])
+    do_two_gauss_fit(data,verbose = True)
+    
+    do_multi_gauss_fit(data,nopeaks = 2,verbose = True)
+    
+
+    
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,26 @@
+import numpy as np
+import scipy.ndimage as nd
+from silx.image import sift
+
+# setup a stack of arrays to test alignment
+x         = np.atleast_2d(np.arange(100))
+y         = np.atleast_2d(np.arange(100)).T
+shift     = (5,15)
+reference = ((x-50))**2 * ((y-50))**2
+reference[50:55,50:55] = 500000
+align1    = nd.shift(reference,shift)
+align2    = nd.shift(align1,shift)
+# stacking produces shape (100,100,3)
+align	  = np.dstack((reference, align1, align2))
+    
+# initialize sift according to mail from Pierre Paleo
+alignplan = sift.LinearAlign(np.ascontiguousarray(align[:,:,0]), devicetype="GPU")
+
+# From then on all goes well and as expected:
+result1  = alignplan.align(align[:,:,1],shift_only = True, return_all=True)
+shift1   = np.round(result1['offset'])
+# returns [5.,15.] , as expected
+
+result2  = alignplan.align(align[:,:,2],shift_only = True, return_all=True)
+shift2   = np.round(result2['offset'])
+# returns [10.,30.] , as expected

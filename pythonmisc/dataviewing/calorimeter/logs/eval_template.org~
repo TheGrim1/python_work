@@ -1,0 +1,9 @@
+* eval tmplate for calorimeter data
+
+repeat steps [[#1][1]] and [[#2][2]] with respective paths in the shell find command.
+
+** #1
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*empty* | python calorimeter_170105.py
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*w2* | python calorimeter_170105.py

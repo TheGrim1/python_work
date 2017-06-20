@@ -1,0 +1,64 @@
+import h5py
+group   ="entry/data/data"
+fname   = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AUTO-TRANSFER/eiger1/AJ2c_after_T2_yzth_1580_393_data_000001.h5'
+f       = h5py.File(fname, "r")
+test    = f[group][0][slice(100, 300, 1), slice(200, 400, 1)]
+
+
+print(h5py.version.info)
+- works on "cristal":
+h5py    2.4.0
+HDF5    1.8.13
+Python  2.7.3 (default, Mar 13 2014, 11:03:55) 
+[GCC 4.7.2]
+sys.platform    linux2
+sys.maxsize     9223372036854775807
+numpy   1.6.2
+
+- works on scisoft13:
+h5py    2.6.0
+HDF5    1.8.13
+Python  2.7.9 (default, Jun 29 2016, 13:08:31) 
+[GCC 4.9.2]
+sys.platform    linux2
+sys.maxsize     9223372036854775807
+numpy   1.8.2
+
+- doesn't work on new debian 8 distribution on "nanofocus":
+h5py    2.5.0
+HDF5    1.8.13
+Python  2.7.9 (default, Jun 29 2016, 13:08:31) 
+[GCC 4.9.2]
+sys.platform    linux2
+sys.maxsize     9223372036854775807
+numpy   1.8.2
+
+The Traceback is:
+
+---------------------------------------------------------------------------
+IOError                                   Traceback (most recent call last)
+<ipython-input-21-19dde98c4415> in <module>()
+----> 1 test    = f[group][0][slice(100, 300, 1), slice(200, 400, 1)]
+
+/usr/lib/python2.7/dist-packages/h5py/_objects.x86_64-linux-gnu.so in h5py._objects.with_phil.wrapper (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_objects.c:2405)()
+
+/usr/lib/python2.7/dist-packages/h5py/_objects.x86_64-linux-gnu.so in h5py._objects.with_phil.wrapper (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_objects.c:2362)()
+
+/usr/lib/python2.7/dist-packages/h5py/_hl/dataset.pyc in __getitem__(self, args)
+    449         mspace = h5s.create_simple(mshape)
+    450         fspace = selection._id
+--> 451         self.id.read(mspace, fspace, arr, mtype)
+    452 
+    453         # Patch up the output for NumPy
+
+/usr/lib/python2.7/dist-packages/h5py/_objects.x86_64-linux-gnu.so in h5py._objects.with_phil.wrapper (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_objects.c:2405)()
+
+/usr/lib/python2.7/dist-packages/h5py/_objects.x86_64-linux-gnu.so in h5py._objects.with_phil.wrapper (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_objects.c:2362)()
+
+/usr/lib/python2.7/dist-packages/h5py/h5d.x86_64-linux-gnu.so in h5py.h5d.DatasetID.read (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/h5d.c:3004)()
+
+/usr/lib/python2.7/dist-packages/h5py/_proxy.x86_64-linux-gnu.so in h5py._proxy.dset_rw (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_proxy.c:1618)()
+
+/usr/lib/python2.7/dist-packages/h5py/_proxy.x86_64-linux-gnu.so in h5py._proxy.H5PY_H5Dread (/mntdirect/_scisoft/users/kieffer/debian8/h5py-2.5.0/h5py/_proxy.c:1284)()
+
+IOError: Can't read data (Can't open directory)

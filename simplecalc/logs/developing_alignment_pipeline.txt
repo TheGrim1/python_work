@@ -1,0 +1,44 @@
+import numpy as np
+import sys,os
+import ast
+import matplotlib.pyplot as plt
+
+# local imports
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from simplecalc.image_align import real_from_rel
+from simplecalc.image_align import image_align
+from fileIO.spec.open_scan import open_scan
+
+
+# required input
+fname    = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2c_after/AJ2c_after.dat'
+scanlist = range(136,160)
+allstacked = open_scan(fname = fname, scanlist = scanlist, counter = 'ball01')
+
+mode     = {'mode':'mask','alignment':(-1,0),'threshold':np.percentile(allstacked,60)}
+
+
+# do alignment
+(allstacked, shift) = image_align(np.float32(allstacked),mode)
+
+# view data
+data       = np.reshape(allstacked.T,(allstacked.shape[1]*allstacked.shape[2],allstacked.shape[0]))
+
+plt.imshow(data.T, vmin = data.min(), vmax= data.max())
+plt.show()
+
+
+# setup saving:
+savespec = {}
+for i, specno in enumerate(shift):
+    savespec.update({scanlist[i]:{'shift':shift[i]}})
+
+savefile = '/tmp_14_days/johannes2/dev/saveshift.txt'
+f = open(savefile, 'w')
+f.writelines(savespec)
+f.writelines(str(savespec))
+
+# to read: 
+# saveshift = ast.literal_eval(inl[0])
+
+# basically the same as plot_specscans.py

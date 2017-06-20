@@ -1,0 +1,93 @@
+with
+* /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/calorimeter_160918.py
+saved as /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/calorimeter_160918.bckp
+
+** plots all empty runs
+def main(filelist):
+	header,data1 = read_calorimeter_datafiles(filelist)   
+	plotmany(header,data1)
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*empty* | python calorimeter_160918.py
+
+- plots all empty runs
+
+
+** plot and save avg:
+
+def main(filelist):
+    savepath     = os.path.sep.join([os.path.dirname(filelist[0]),'eval'])
+    header,data1 = read_calorimeter_datafiles(filelist)
+
+    avgheader, avg = avg_data(header,data1)
+    save_data(avgheader,avg, title="average", path=savepath )
+    plotmany(avgheader, avg)
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*empty* | python calorimeter_160918.py
+
+- plots avg of all empty runs and saves it in
+/data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/eval/avg_over10AJ2a_empty_000.txt
+
+
+** test variance of empty data by subtracting the average from them and plottingdef main(filelist):
+def main(filelist):
+    savepath     = os.path.sep.join([os.path.dirname(filelist[0]),'eval'])
+    header,data1 = read_calorimeter_datafiles(filelist)
+    
+    emptyheader,emptyavg= read_own_datafile(["/data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/eval/avg_over10AJ2a_empty_000.txt"])
+
+    vartest = subtract_empty(header, data1, emptyavg)
+    plotmany(vartest[0],vartest[1])
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*empty* | python calorimeter_160918.py
+
+- looks like [[file:/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/avg_subtracted_from_empty.png]]
+
+** find dT for real data
+
+def main(filelist):
+
+    savepath     = os.path.sep.join([os.path.dirname(filelist[0]),'eval'])
+    header,data1 = read_calorimeter_datafiles(filelist)
+    
+    emptyheader,emptyavg = read_own_datafile(["/data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/eval/avg_over10AJ2a_empty_000.txt"])
+
+    dT           = subtract_empty(header, data1, emptyavg)
+    save_data(dT[0],dT[1],path=savepath)
+    plotmany(dT[0],dT[1])
+
+    
+all measurements:
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*w2* | python calorimeter_160918.py
+
+looks like [[file:/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/dT_all.png]]
+
+
+** change time axes to temp axes (also does previous steps)
+
+
+def main(filelist):
+
+    savepath     = os.path.sep.join([os.path.dirname(filelist[0]),'eval'])
+    header,data1 = read_calorimeter_datafiles(filelist)
+    
+    emptyheader,emptyavg = read_own_datafile(["/data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/eval/avg_over10AJ2a_empty_000.txt"])
+
+#    plotmany(emptyheader,emptyavg) # to check datarange in function 
+    
+    dT           = subtract_empty(header, data1, emptyavg)
+    save_data(dT[0],dT[1],path=savepath)
+    plotmany(dT[0],dT[1])
+
+    up_over_T = change_time_to_temp(emptyavg, dT[0], dT[1], 'up')
+    save_data(up_over_T[0],up_over_T[1],path=savepath)
+    plotmany(up_over_T[0],up_over_T[1])
+    
+    down_over_T = change_time_to_temp(emptyavg, dT[0], dT[1], 'down')
+    save_data(down_over_T[0],down_over_T[1],path=savepath)
+    plotmany(down_over_T[0],down_over_T[1])
+    
+all measurements:
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*w2* | python calorimeter_160918.py
+
+looks like [[file:/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/dT_overT_cooling.png]] 
+and [[file:/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/dT_overT_heating.png]]

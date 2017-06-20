@@ -1,0 +1,93 @@
+
+from os import path
+import numpy as np
+from o8x3.compute import compute7 as compu
+from o8qq.qqudo1.api import ptiapi
+from o8qq.qqudo1.api import imageapi as ima
+
+
+from o8x3.infra.paraminfra import ParamInfra
+from o8x3.io import extio1
+from o8x3.io import eigerdata1
+from o8x3.io import eigerdata3
+from o8x3.compomatrix import compoflow 
+from o8x3.compomatrix.compoflow import Element, Repository, error, StopCompoFlow
+
+# local import
+from limited_compute7_aj import cog_var
+
+class Hit_and_more(Element):
+
+    _PARS = dict()
+    _PARS.update(Element._PARS)
+    _PARS.update(
+        dict(
+            thd_low = None,
+            thd_high = None,
+            repo_keys = "r_index r_arr r_prep_arr".split()
+        )
+    )
+
+    def __init__(self, *po, **params):
+        self._po = po
+        Element.__init__(self, **params)
+
+    def preprocess(self):
+        repo = self.repo
+        arr = self.retrieve('r_prep_arr')
+        repo.prep_ori_arr = arr
+        if self.thd_high == "auto":
+            if arr.dtype in (np.uint16, np.int16):
+                self.apply_thd_high = float(65530)
+            else:
+                self.apply_thd_high = float(5000000)
+        else:
+                self.apply_thd_high = float(self.thd_high)
+        self.apply_thd_low = float(self.thd_low)
+        repo.apply_thd_low = self.apply_thd_low
+        repo.apply_thd_high = self.apply_thd_high
+
+        repo.prep_nph_arr  = nph_rr  = np.zeros((1,1), dtype=np.float64)
+        repo.prep_sumh_arr = sumh_rr = np.zeros((1,1), dtype=np.float64)
+
+        repo.prep_nph_shape  = repo.nph_shape  = nph_rr.shape
+        repo.prep_sumh_shape = repo.sumh_shape = sumh_rr.shape
+
+        repo.prep_nph_dtype  =  repo.nph_dtype  = nph_rr.dtype
+        repo.prep_sumh_dtype =  repo.sumh_dtype = sumh_rr.dtype
+        
+        repo.prep_cogrow_arr = cogrow_rr = np.zeros((1,1), dtype=np.float64)
+        repo.prep_cogcol_arr = cogcol_rr = np.zeros((1,1), dtype=np.float64)
+        repo.prep_var_arr    = var_rr    = np.zeros((1,1), dtype=np.float64)
+
+        repo.prep_cogrow_shape =  repo.cogrow_shape = cogrow_rr.shape
+        repo.prep_cogcol_shape =  repo.cogcol_shape = cogcol_rr.shape
+        repo.prep_var_shape    =  repo.var_shape    = var_rr.shape
+
+        repo.prep_cogrow_dtype =  repo.cogrow_dtype = cogrow_rr.dtype
+        repo.prep_cogcol_dtype =  repo.cogcol_dtype = cogcol_rr.dtype
+        repo.prep_var_dtype    =  repo.var_dtype    = var_rr.dtype
+
+
+    def process(self):
+        repo = self.repo
+        arr = self.retrieve('r_arr')
+        (sumh, nph) = compu.hit_process_001(arr,
+            self.apply_thd_low, self.apply_thd_high)
+        repo.nph_arr  = nh = np.zeros((1,1), dtype = repo.nph_dtype)
+        repo.sumh_arr = sh = np.zeros((1,1), dtype = repo.sumh_dtype)
+        nh[0] = nph
+        sh[0] = sumh
+
+        (cogrow, cogcol, var) = cog_var(arr)
+
+        repo.cogrow_arr = rcogrow = np.zeros((1,1), dtype = repo.cogrow_dtype)
+        repo.cogcol_arr = rcogcol = np.zeros((1,1), dtype = repo.cogcol_dtype)
+        repo.var_arr    = rvar    = np.zeros((1,1), dtype = repo.var_dtype)
+        
+        rcogrow[0] = cogrow
+        rcogcol[0] = cogcol
+        rvar[0]    = var
+        
+        i = self.retrieve('r_index')
+        repo.index = i

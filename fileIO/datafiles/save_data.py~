@@ -1,0 +1,10 @@
+import os,sys
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from fileIO.datafiles.open_data import open_data
+
+
+test
+
+if __name__ == '__main__':
+    test()

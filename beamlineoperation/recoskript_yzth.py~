@@ -1,0 +1,22 @@
+import os
+from commands import getstatusoutput
+
+TPL              = "python convert16.py sin001f_yzth_%1d %1d"
+start            = 0
+stop             = 100
+eigerno          = 290
+waittime         = 0
+
+
+def reco_no():
+    for j in xrange(start,stop):
+        internalnum = j
+        eigerscannum = j + eigerno
+        print "cycle:", j
+        cmd = TPL % (internalnum,eigerscannum)
+        print cmd
+        #raw_input("...")
+        print getstatusoutput(cmd)
+
+if __name__ == '__main__':
+    reco_no()

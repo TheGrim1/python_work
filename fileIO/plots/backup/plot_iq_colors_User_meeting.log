@@ -1,0 +1,35 @@
+# local directory 
+import fileIO.hdf5.h5_scan as h5
+import fileIO.hdf5.h5_tools as tools
+import matplotlib.pyplot as plt
+import numpy as np
+import copy
+
+
+# get data:
+fname = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/SESSION23/integrated/AJ2c_af/AJ2c_after_T1byzth_156_225_integrated.h5'
+
+iq = tools.open_full_dataset(fname, 'i_over_q')
+
+bluerange=[i for i,x in enumerate(maxid[0]) if (x < 1.605) and (x > 1.59)]
+greenrange=[i for i,x in enumerate(maxid[0]) if (x < 1.615) and (x > 1.605)]
+redrange=[i for i,x in enumerate(maxid[0]) if (x < 1.63) and (x > 1.615)]
+iqred = np.sum(iq[:,1,redrange,:])
+iqred.shape
+iqred = np.sum(iq[:,1,redrange,:],axis = 2)
+iqred.shape
+iq.shape
+iqred = np.sum(iq[:,1,redrange,:],axis = 1)
+iqred.shape
+iqred = iqred.reshape(24,241,13)
+plt.imshow(np.hstack(iqred))
+plt.show()
+iqblue = np.sum(iq[:,1,bluerange,:],axis = 1)
+iqblue = iqblue.reshape(24,241,13)
+iqgreen = np.sum(iq[:,1,greenrange,:],axis = 1)
+iqgreen = iqgreen.reshape(24,241,13)
+plt.imshow(np.hstack(iqblue))
+plt.show()
+plt.imshow(np.hstack(iqgreen))
+plt.show()
+

@@ -1,0 +1,106 @@
+# |||||||| FORMAT:SPACEINDENT0
+project
+    script
+        inputpti           = '<self>'
+        outputpti          = '<self>'
+        program
+            name               = 'execlocalapp'
+            app                = 'many_cumu'
+            app_func           = 'run_meta'
+            load_first         = 'mode1'
+            infiles
+                dname              = '/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/AUTO-TRANSFER/eiger1'
+                fname              = 'r1_w3_xzth__167_5_data_000001.h5'
+                numbers            = '1-99'
+                troi               = None
+            infi_mode          = 'seiger2'
+            backfiles
+                dname              = None
+                fname              = None
+                numbers            = None
+                troi               = None
+            outfiles
+                dname              = '/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/AVG'
+                fname              = 'r1_w3_xzth__167_5_optavg_000001.edf'
+                numbers            = '0-999'
+                troi               = None
+            regrouped_outfiles
+                dname              = '/gz/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-11_user_sc4406_koester/PROCESS/SESSION25/OUT_TEST'
+                fname              = 't1_r_0000.edf'
+                numbers            = '0-1000000'
+                troi               = None
+            output
+                mode               = 'hdf5'
+                hdf5file           = '/gz/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-11_user_sc4406_koester/PROCESS/SESSION25/OUT_TEST/t1_b_0000.hdf5'
+            trois
+                table              = @t
+                === Table_A headerini
+                iid:6:i key:10:s ptype:10:s mode:10:s troi:35:tr
+                === Table_A headerline
+                iid         key       ptype        mode                                 troi
+                === Table_A body
+                0       saxs1        saxs        base              ((1320,1812),(637,141))
+                1       waxs2        waxs        base                ((1328,1312),(37,14))
+                2       saxs1        saxs        base                ((1338,1712),(37,14))
+                3       saxs1        saxs        base                ((1358,1912),(37,15))
+                4       saxs1        saxs        base                ((1388,1062),(37,15))
+                5       saxs1        saxs        cake                ((1304,1018),(47,15))
+                @-
+            outindex           = 0
+            outoffset          = 0
+            skip               = 200
+            azim_mode          = False
+            o_reg_flg          = False
+            upd_numbers        = True
+            use_numbers        = '0-10126'
+            def_base_scale_flg = True
+            def_cake_scale_flg = True
+            base_imgscale      = (0, 2)
+            cake_imgscale      = (0, 0.35)
+            experiment
+                mode               = 'exp1'
+                settings
+                    beam
+                        energy             = 13.0
+                        wavelength         = 0.95
+                        polarization       = 0.98
+                        divergence         = (None, None)
+                        size_fwhm          = (None, None)
+                        prefocus           = ('wb', 3)
+                        typical_flux       = 10000000000.0
+                    detector
+                        type               = 'EIGER 4M'
+                        ident              = 'EIGER_4M_ID13_2'
+                        revision           = '1.0.0'
+                        flatfile           = None
+                        splinefile         = None
+                        maskfile           = '/gz/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-11_user_sc4406_koester/PROCESS/SESSION25/calib2/m.edf'
+                        pixellayout
+                            rows               = 2167
+                            cols               = 2070
+                            rowbin             = 1
+                            colbin             = 1
+                        darkfiles
+                            dname              = None
+                            fname              = None
+                            numbers            = None
+                            troi               = None
+                    calibrations
+                        calibration_1
+                            nominal_dist       = None
+                            calibmode          = 'PyFAI'
+                            ponifile           = '/gz/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-11_user_sc4406_koester/PROCESS/SESSION25/calib2/poni.poni'
+                            fit2d_params       = None
+                            fit2dfile          = None
+            binning            = 1
+            threshold          = 'auto'
+            hit_threshold      = 0
+            scan
+                specfile           = '/data/id13/inhouse2/THEDATA_I2_1/d_2015-10-10_inh_ihmi1162_nanocal/DATA/cund0/cund0.dat'
+                scannmb            = 11
+                meshshape          = (51, 25)
+            cake
+                np_rad             = 720
+                np_azi             = 720
+                method             = 'lut'
+                cake_troi          = ((0, 403), (720, 19))

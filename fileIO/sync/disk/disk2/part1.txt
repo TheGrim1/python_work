@@ -1,0 +1,17 @@
+part_path: 
+/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/sync/disk/disk2 
+part_no: 
+1 
+source_path: 
+/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/test 
+allocated_size: 
+300 
+write_size: 
+224 
+keywords: 
+{'eg. path with reserved size': 100} 
+folders: 
+{'path': '/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/test', 'flag': 'partial', 'foldersize': 16, 'timestamp': 1476799093, 'branchsize': 512} 
+{'path': '/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/test/folder2', 'flag': 'full', 'foldersize': 0, 'timestamp': 1476798644, 'branchsize': 0} 
+{'path': '/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/test/folder3', 'flag': 'full', 'foldersize': 16, 'timestamp': 1476798676, 'branchsize': 16} 
+{'path': '/mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/test/folder1', 'flag': 'partial', 'foldersize': 256, 'timestamp': 1476798882, 'branchsize': 384} 

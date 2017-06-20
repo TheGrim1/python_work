@@ -1,0 +1,1 @@
+rsync -avnF --progress --include "/testrsync/" --include "/testrsync/dir1/" --exclude "*" /mntdirect/_data_id13_inhouse2/AJ/skript/fileIO/testrsync .

@@ -1,0 +1,351 @@
+# |||||||| FORMAT:SPACEINDENT0
+project
+    script
+        inputpti           = '<self>'
+        outputpti          = '<self>'
+        program
+            name               = 'execlocalapp'
+            app                = 'dvp_new_compo2_b'
+            app_func           = 'run_1'
+            load_first         = 'mode1'
+            infiles
+                dname              = '/mntdirect/_data_id13_inhouse5/THEDATA_I5_1/d_2016-09-04_inh_ihsc1381_mro/DATA/AUTO-TRANSFER/eiger1'
+                fname              = 'm_wing_top_533_data_000001.h5'
+                numbers            = '1-206'
+                troi               = ((1169, 1120), (44, 40))
+            infiles1
+                dname              = '/mntdirect/_data_id13_inhouse5/THEDATA_I5_1/d_2016-07-06_inh_hc2919/DATA/AUTO-TRANSFER/eiger1'
+                fname              = 'nd18_8_data_000001.h5'
+                numbers            = '0-100'
+                troi               = None
+            infi_mode          = 'seiger2'
+            backfiles
+                dname              = None
+                fname              = None
+                numbers            = None
+                troi               = None
+            outfiles
+                dname              = '/mntdirect/_data_id13_inhouse5/THEDATA_I5_1/d_2016-09-04_inh_ihsc1381_mro/PROCESS/SESSION25/OUT'
+                fname              = 'out_533_m_wing_top_0000.edf'
+                numbers            = '0-10000'
+                troi               = None
+            regrouped_outfiles
+                dname              = './OUT'
+                fname              = 'reg_0000.edf'
+                numbers            = '0-1000000'
+                troi               = None
+            output
+                mode               = 'hdf5'
+                hdf5file           = './OUT/reg_buffer_0005.hdf5'
+            trois
+                table              = @t
+                === Table_A headerini
+                iid:6:i key:10:s ptype:10:s mode:10:s troi:35:tr
+                === Table_A headerline
+                iid         key       ptype        mode                                 troi
+                === Table_A body
+                0       saxs1        saxs        base              ((1320,1812),(637,141))
+                1       waxs1        waxs        base                ((1328,1012),(37,14))
+                @-
+            outindex           = 0
+            outoffset          = 0
+            skip               = 200
+            azim_mode          = False
+            o_reg_flg          = False
+            upd_numbers        = True
+            def_base_scale_flg = True
+            def_cake_scale_flg = True
+            base_imgscale      = (0, 7)
+            cake_imgscale      = (0, 0.35)
+            experiment
+                mode               = 'exp1'
+                settings
+                    beam
+                        energy             = 13.0
+                        wavelength         = 0.95
+                        polarization       = 0.98
+                        divergence         = (None, None)
+                        size_fwhm          = (None, None)
+                        prefocus           = ('wb', 3)
+                        typical_flux       = 10000000000.0
+                    detector
+                        type               = 'EIGER 4M'
+                        ident              = 'EIGER_4M_ID13_2'
+                        revision           = '1.0.0'
+                        flatfile           = None
+                        splinefile         = None
+                        maskfile           = './calib/m.edf'
+                        pixellayout
+                            rows               = 2167
+                            cols               = 2070
+                            rowbin             = 1
+                            colbin             = 1
+                        darkfiles
+                            dname              = None
+                            fname              = None
+                            numbers            = None
+                            troi               = None
+                    calibrations
+                        calibration_1
+                            nominal_dist       = None
+                            calibmode          = 'PyFAI'
+                            ponifile           = './calib/poni.poni'
+                            fit2d_params       = None
+                            fit2dfile          = None
+            binning            = 1
+            threshold          = 'auto'
+            hit_threshold      = 15
+            scan
+                specfile           = '/data/id13/inhouse2/THEDATA_I2_1/d_2015-10-10_inh_ihmi1162_nanocal/DATA/cund0/cund0.dat'
+                scannmb            = 11
+                meshshape          = (201, 204)
+            cake
+                np_rad             = 720
+                np_azi             = 720
+                method             = 'lut'
+                cake_troi          = ((142, 239), (121, 50))
+meta
+    execformtipe       = 'form13'
+    helptext           = @t
+    much much later comes help ...
+    @-
+    labelentrywidth    = 80
+    guidescription
+        tabs
+            titles             = 'main_io     process img help listtest'
+        groups
+            grp_1              = '0 1 iofiles           (1,1,1,1,1,8,8)'
+            grp_3              = '0 3 ioparams             (3,1,1,1,1,8,8)'
+            grp_4              = '1 4 calibration       (1,1,1,1,1,8,8)'
+            grp_5              = '0 5 ctrl              (4,1,1,1,1,8,8)'
+            grp_6              = '2 6 viewer            (3,1,1,1,1,8,8)'
+            grp_7              = '3 7 help              (1,1,1,1,1,8,8)'
+            grp_8              = '1 8 cake              (2,1,1,1,1,8,8)'
+            grp_9              = '4 9 trois             (1,1,1,1,1,8,8)'
+        pboxes
+            pbox_1             = '  1   1 lef1  lef        (2,1,1,1,1,None,None)'
+            pbox_3             = '  3   3 lef3  lef        (1,1,1,1,1,None,None)'
+            pbox_4             = '  4   4 lef4  lef        (1,1,1,1,1,None,None)'
+            pbox_5             = '  5   5 lef5  lefs       (1,2,1,1,1,4,None)'
+            pbox_6             = '  5   6 optl1 optl       (1,1,1,1,1,4,None)'
+            pbox_7             = '  5   7 lef6  lef        (3,1,1,1,1,None,None)'
+            pbox_8             = '  8   8 lef7 lef         (1,1,1,1,1,None,None)'
+            pbox_9             = '  9   9 itli1 itli       (1,1,1,1,1,None,None)'
+        compact_pboxes
+            deflist
+                l_1                = 'Karl'
+                cp0                = 'in_dname-1-1; in_fname-1-1; in_numbers-1-1; infi_mode-1'
+                cp1                = 'meshshape-3-1'
+                cp2                = 'troi-3-1'
+                cp3                = 'out_dname-1-1; out_fname-1-1; out_numbers-1-1; outindex-1; outoffset-1'
+                cp4                = 'hdf5buffer:hdf5file:1:lef:output'
+                cp5                = 'calib_ponifile:ponifile:4:lef:experiment.settings.calibrations.calibration_1;'
+                cp51               = 'maskfile:maskfile:4:lef:experiment.settings.detector;'
+                cp6                = 'binning:binning:5:lef:;'
+                cp61               = 'threshold-5-1'
+                cp62               = 'hit_threshold:hit_threshold:5:lef:;'
+                cp7                = 'skip:skip:5:lef:;'
+                cp71               = 'base_imgscale:base_imgscale:5:lef:;'
+                cp72               = 'cake_imgscale:cake_imgscale:5:lef:;'
+                cp8                = 'azim_integ:azim_mode:6:optl:;'
+                cp81               = 'output_polar:o_reg_flg:6:optl:;'
+                cp82               = 'update_numbers:upd_numbers:6:optl:;'
+                cp83               = 'base_defscale:def_base_scale_flg:6:optl:;'
+                cp84               = 'cake_defscale:def_cake_scale_flg:6:optl:;'
+                cp9                = 'np_radi:np_rad:8:lef:cake;'
+                cp10               = 'np_azii:np_azi:8:lef:cake;'
+                cp11               = 'cake_troi:cake_troi:8:lef:cake;'
+                cp100              = 'trois:table:9:itli:trois;'
+            repo               = *meta.repo_emul
+        texts
+            t_1                = '7 help (1,1,1,2,1,None,None)'
+        imvs
+            imv_1              = '1006 imvgen1_0001 512 512 (1,1,1,1,1,None,None) imv_base imv3modb ImV3C3'
+            imv_2              = '1006 imvgen1_0002 512 512 (1,1,1,1,1,None,None) imv_cake imv3modb ImV3C3'
+        toolbars
+            tb_main
+                tbconf             = '1 -1 generic main-toolbar (1,1,1,1,1,None,None)'
+                tboption           = ''
+                deepname           = ''
+                relpath            = ''
+                tbstr              = @t
+                trigger   : trig1    ::                 :                  :
+                : t_exec        :: -exec        : CBK_on_exec       :
+                : t_save        :: -save        : CBK_on_save       :
+                : t_loadnew     :: -load_new        : CBK_tbt_load_new       :
+                : t_loadnewcake :: -load_new_cake   : CBK_tbt_load_new_cake       :
+                : t_asynexec :: -asyn_exec   : CBK_tbt_asyn_exec       :
+                : t_killall :: -kill_all   : CBK_tbt_kill_all       :
+                : t_testdeepsync :: -test_deep_sync   : CBK_tbt_test_deep_sync       :
+                ____
+                @-
+    repo_emul
+        in_dname
+            path               = 'script.program.infiles.dname'
+            sectionkey         = 1
+        in_fname
+            path               = 'script.program.infiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'in_dname in_fname in_numbers'
+                validators         = 'in_dname:s in_fname:s in_numbers:s'
+                options            = 'in_dname:dname in_fname:fname in_numbers:numbers'
+                title              = 'input files'
+            sectionkey         = 1
+        in_numbers
+            path               = 'script.program.infiles.numbers'
+            sectionkey         = 1
+        out_dname
+            path               = 'script.program.outfiles.dname'
+            sectionkey         = 1
+        out_fname
+            path               = 'script.program.outfiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'out_dname out_fname out_numbers'
+                validators         = 'out_dname:s out_fname:s out_numbers:s'
+                options            = 'out_dname:dname out_fname:fname out_numbers:numbers'
+                title              = 'output files'
+            sectionkey         = 1
+        out_numbers
+            path               = 'script.program.outfiles.numbers'
+            sectionkey         = 1
+        troi
+            path               = 'script.program.infiles.troi'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'troi'
+                validators         = 'troi:s'
+                options            = '<python-none> ((926,843),(512,512)) ((1131,1048),(101,101)) ((1169,1120),(44,40)) ((0,0),(2167,2070))'
+            sectionkey         = 3
+        threshold
+            path               = 'script.program.threshold'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'threshold'
+                validators         = 'threshold:s'
+                options            = '<python-none> auto 65530 65534 65535 5000000 10000000'
+            sectionkey         = 5
+        meshshape
+            path               = 'script.program.scan.meshshape'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'meshshape'
+                validators         = 'meshshape:s'
+                options            = '(6,6) (11,11) (16,16) (21,21) (26,26) (31,31) (36,36) (41,41) (51,51) (61,61) (71,71) (81,81) (91,91) (101,101) (121,121) (151,151) (201,201) (301,301) (401,401)'
+            sectionkey         = 3
+    flatselection
+        in_dname
+            path               = 'script.program.infiles.dname'
+            sectionkey         = 1
+        in_fname
+            path               = 'script.program.infiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'in_dname in_fname in_numbers'
+                validators         = 'in_dname:s in_fname:s in_numbers:s'
+                options            = 'in_dname:dname in_fname:fname in_numbers:numbers'
+                title              = 'input files'
+            sectionkey         = 1
+        in_numbers
+            path               = 'script.program.infiles.numbers'
+            sectionkey         = 1
+        infi_mode
+            path               = 'script.program.infi_mode'
+            sectionkey         = 1
+        meshshape
+            path               = 'script.program.scan.meshshape'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'meshshape'
+                validators         = 'meshshape:s'
+                options            = '(6,6) (11,11) (16,16) (21,21) (26,26) (31,31) (36,36) (41,41) (51,51) (61,61) (71,71) (81,81) (91,91) (101,101) (121,121) (151,151) (201,201) (301,301) (401,401)'
+            sectionkey         = 3
+        troi
+            path               = 'script.program.infiles.troi'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'troi'
+                validators         = 'troi:s'
+                options            = '<python-none> ((926,843),(512,512)) ((1131,1048),(101,101)) ((1169,1120),(44,40)) ((0,0),(2167,2070))'
+            sectionkey         = 3
+        out_dname
+            path               = 'script.program.outfiles.dname'
+            sectionkey         = 1
+        out_fname
+            path               = 'script.program.outfiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'out_dname out_fname out_numbers'
+                validators         = 'out_dname:s out_fname:s out_numbers:s'
+                options            = 'out_dname:dname out_fname:fname out_numbers:numbers'
+                title              = 'output files'
+            sectionkey         = 1
+        out_numbers
+            path               = 'script.program.outfiles.numbers'
+            sectionkey         = 1
+        outindex
+            path               = 'script.program.outindex'
+            sectionkey         = 1
+        outoffset
+            path               = 'script.program.outoffset'
+            sectionkey         = 1
+        hdf5buffer
+            sectionkey         = 1
+            path               = 'script.program.output.hdf5file'
+        calib_ponifile
+            sectionkey         = 4
+            path               = 'script.program.experiment.settings.calibrations.calibration_1.ponifile'
+        maskfile
+            sectionkey         = 4
+            path               = 'script.program.experiment.settings.detector.maskfile'
+        binning
+            sectionkey         = 5
+            path               = 'script.program.binning'
+        threshold
+            path               = 'script.program.threshold'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'threshold'
+                validators         = 'threshold:s'
+                options            = '<python-none> auto 65530 65534 65535 5000000 10000000'
+            sectionkey         = 5
+        hit_threshold
+            sectionkey         = 5
+            path               = 'script.program.hit_threshold'
+        skip
+            sectionkey         = 5
+            path               = 'script.program.skip'
+        base_imgscale
+            sectionkey         = 5
+            path               = 'script.program.base_imgscale'
+        cake_imgscale
+            sectionkey         = 5
+            path               = 'script.program.cake_imgscale'
+        azim_integ
+            sectionkey         = 6
+            path               = 'script.program.azim_mode'
+        output_polar
+            sectionkey         = 6
+            path               = 'script.program.o_reg_flg'
+        update_numbers
+            sectionkey         = 6
+            path               = 'script.program.upd_numbers'
+        base_defscale
+            sectionkey         = 6
+            path               = 'script.program.def_base_scale_flg'
+        cake_defscale
+            sectionkey         = 6
+            path               = 'script.program.def_cake_scale_flg'
+        np_radi
+            sectionkey         = 8
+            path               = 'script.program.cake.np_rad'
+        np_azii
+            sectionkey         = 8
+            path               = 'script.program.cake.np_azi'
+        trois
+            sectionkey         = 9
+            path               = 'script.program.trois.table'
+        cake_troi
+            sectionkey         = 8
+            path               = 'script.program.cake.cake_troi'

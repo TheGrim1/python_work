@@ -1,0 +1,60 @@
+# |||||||| FORMAT:SPACEINDENT0
+project
+    script
+        inputpti           = '<self>'
+        outputpti          = '<self>'
+        program
+            name               = 'execlocalapp'
+            app                = 'split_avg_VO2_w3'
+            app_func           = 'run_meta'
+            infiles
+                dname              = '/data/id13/inhouse5/THEDATA_I5_1/d_2016-09-14_inh_ihhc2970/PROCESS/SESSION20/by_directory/vo2_w3/'
+                fname              = 'raw_vo2_w3_691_0000.edf'
+                numbers            = '0-12030'
+                troi               = None
+            outfiles
+                dname              = '/data/id13/inhouse5/THEDATA_I5_1/d_2016-09-14_inh_ihhc2970/PROCESS/SESSION2/keep/vo2_w3_splitavg'
+                fname              = 'vo2_w3_691_th_0000.edf'
+                numbers            = '0-10000'
+                troi               = None
+            mode
+                modetype           = 'average'
+            outindex           = 0
+meta
+    labelentrywidth    = 80
+    flatselection
+        mode
+            path               = 'script.program.mode.modetype'
+            browser
+                browserkey         = 'tksinglelist1'
+                keys               = 'mode'
+                validators         = 'mode:s'
+                options            = 'average maxproject minproject medianstack_filter medianstack_filter_large'
+        in_dname
+            path               = 'script.program.infiles.dname'
+        in_fname
+            path               = 'script.program.infiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'in_dname in_fname in_numbers'
+                validators         = 'in_dname:s in_fname:s in_numbers:s'
+                options            = 'in_dname:dname in_fname:fname in_numbers:numbers'
+                title              = 'input files'
+        in_numbers
+            path               = 'script.program.infiles.numbers'
+        out_dname
+            path               = 'script.program.outfiles.dname'
+        out_fname
+            path               = 'script.program.outfiles.fname'
+            browser
+                browserkey         = 'tkfileopen1'
+                keys               = 'out_dname out_fname out_numbers'
+                validators         = 'out_dname:s out_fname:s out_numbers:s'
+                options            = 'out_dname:dname out_fname:fname out_numbers:numbers'
+                title              = 'output files'
+        out_numbers
+            path               = 'script.program.outfiles.numbers'
+        outindex
+            path               = 'script.program.outindex'
+        troi
+            path               = 'script.program.infiles.troi'

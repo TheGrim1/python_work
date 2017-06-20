@@ -1,0 +1,108 @@
+* calib3 in 
+/mntdirect/_data_id13_inhouse7/THEDATA_I7_1/d_2017-06-13_user_mi1216_kubec/DATA/AUTO-TRANSFER/eiger1
+
+** find a known peak to find Theta 
+
+Indexed the following peak:
+0006 Al2O3
+/PROCESS/SESSION2/keep/vo2_2_xzth1_T20_splitavg/vo2_2_T20_th_1400.edf
+
+#+TBLNAME: calc_wavelength
+| c [m/s] |      h [Js] |      e [J/eV] | energy [keV] | wavelength [m] |
+|---------+-------------+---------------+--------------+----------------|
+| 2.998e8 | 6.62607e-34 | 1.6021766e-19 |      14.6407 |  8.4686741e-11 |
+#+TBLFM: $5=@2$1*@2$2/@2$3/@2$4/1000
+
+ 
+#+TBLNAME: reference_peak1
+|  row |  col | 2theta | wavelength [A] |
+|------+------+--------+----------------|
+| 1244 | 1707 | 22.603 |     0.84686741 |
+#+TBLFM: $4=remote(calc_wavelength,E2)*1e10
+
+
+** measure truncation rod speed
+
+Is the truncation rod running to the incident beam?
+
+#+TBLNAME: trunc_measure1
+|  row |  col | frame |
+|------+------+-------|
+| 1245 | 1734 |  1400 |
+| 1244 | 1810 |  1334 |
+| 1244 | 1923 |  1261 |
+| 1244 | 2003 |  1200 |
+  
+
+fit with:
+/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/fitting.py
+
+gives some result = 1.3682 pxl / frame or:
+
+#+TBLNAME: trunc_fitresult1 
+| drow/frame | dcol/frame | dpxl/frame |
+|------------+------------+------------|
+|        0.0 |     1.3682 |     1.3682 |
+#+TBLFM: @2$3=sqrt(@2$1*@2$1+@2$2*@2$2)
+
+
+** calc sample detector distance
+
+fill in from left to right
+Detector is assumed to be perpendicular to the incident beam! ->  the poni is where the beam hits the detector plane.
+
+#+TBLNAME:stddistance1
+| pxl size | d2Theta per frame | pxl / frame | 2Theta | dx / d2Theta | cos(2Theta) | sample detector distance at peak | sample detector distance at Poni |
+|----------+-------------------+-------------+--------+--------------+-------------+----------------------------------+----------------------------------|
+|    75e-6 |              0.02 |      1.3682 | 22.603 |   5.13075e-3 |  0.92319009 |                       0.27139049 |                       0.25054501 |
+#+TBLFM: @2$3=remote(trunc_fitresult1,C2)::@2$4=remote(reference_peak1,C2)::@2$5=@2$3 * @2$1/@2$2::@2$6=cos(@2$4)::@2$7=(180/3.14159265) * @2$5 * @2$6::@2$8=@2$6*@2$7
+
+
+
+** propagate the truncation rod to the PONI
+
+
+#+TBLNAME: further_calc1
+| distance between peek and poni on det | angle at Poni in that triangle |
+|---------------------------------------+--------------------------------|
+|                            0.10430722 |                             0. |
+#+TBLFM: $2=arctan(remote(trunc_fitresult1,A2)/remote(trunc_fitresult1,B2))::@2$1=sqrt(remote(stddistance1,G2)²-remote(stddistance1,H2)²)
+
+*** test
+#+TBLNAME: test_calc1
+| distance between peek and poni on det | distance between peek and poni on det |
+| via sin(2Theta)*r                     | via r2-d2                             |
+|---------------------------------------+---------------------------------------|
+| 0.10430721                            | 0.10430722                            |
+    #+TBLFM: $1=sin(remote(stddistance1,D2))*    remote(stddistance1,G2)::$2=sqrt(remote(stddistance1,G2)²-        remote(stddistance1,H2)²
+
+
+** make a poni file
+
+*** auto ponicalc
+#+TBLNAME: poni_calc1
+| peak to poni1 (z) | peak to poni2 (y) |  poni1 |      poni2 |
+|-------------------+-------------------+--------+------------|
+|                0. |        0.10430722 | 0.0933 | 0.23233222 |
+#+TBLFM: @2$1=remote(further_calc1,A2)*sin(remote(further_calc,B2))::@2$2=(cos(remote(further_calc1,B2)))*(remote(further_calc1,A2))::@2$3=@2$1+remote(stddistance1,A2)*remote(reference_peak1,A2)::@2$4=@2$2 + remote(stddistance1,A2)*remote(reference_peak1,B2)
+
+
+** Ponifile
+#+TBLNAME: poni_file1
+| PixelSize1 |        7.5e-5 |
+| PixelSize2 |        7.5e-5 |
+| Distance   |    0.25054501 |
+| Poni1      |        0.0933 |
+| Poni2      |    0.23233222 |
+| Rot1       |             0 |
+| Rot2       |             0 |
+| Rot3       |             0 |
+| SplineFile |          None |
+| Wavelength | 8.4686741e-11 |
+#+TBLFM: @10$2=remote(reference_peak1,D2)*1e-10::@1$2=remote(stddistance1,A2)::@2$2=remote(stddistance1,A2)::@3$2=remote(stddistance1,H2)::@4$2=remote(poni_calc1,C2)::@5$2=remote(poni_calc1,D2)
+
+EZexport read the following 2 lines, saved as a "calibC.txt" file with the python skript:
+python /data/id13/inhouse2/AJ/skript/orgmode/interpret_calib_to_ponifile.py calibX.txt
+Calibration done at [2016-10-25 Tue 13:59]
+| [PixelSize1, PixelSize2, Distance, Poni1, Poni2, Rot1, Rot2, Rot3, SplineFile, Wavelength] | [7.5e-5, 7.5e-5, 0.25054501, 0.0933, 0.23233222, 0, 0, 0, None, 8.4686741e-11] |
+#+TBLFM: $1=remote(poni_file1,@1$1..@10$1)::$2=remote(poni_file1,@1$2..@10$2)

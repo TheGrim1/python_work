@@ -1,0 +1,108 @@
+# |||||||| FORMAT:SPACEINDENT0
+project
+    script
+        inputpti           = '<self>'
+        outputpti          = '<self>'
+        program
+            name               = 'execlocalapp'
+            app                = 'many_compo'
+            app_func           = 'run_meta'
+            load_first         = 'mode1'
+            infiles
+                dname              = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-05_ih_ihmi1281/DATA/AUTO-TRANSFER/eiger1'
+                fname              = 'AJ2b_w1_T1yzth_5_198_data_000001.h5'
+                numbers            = '1-4'
+                troi               = ((1436, 475), (179, 323))
+            infiles1
+                dname              = '/_data_id13_inhouse5/THEDATA_I5_1/d_2016-07-06_inh_hc2919/DATA/AUTO-TRANSFER/eiger1'
+                fname              = 'nd18_8_data_000001.h5'
+                numbers            = '0-100'
+                troi               = None
+            infi_mode          = 'seiger2'
+            backfiles
+                dname              = None
+                fname              = None
+                numbers            = None
+                troi               = None
+            outfiles
+                dname              = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-05_ih_ihmi1281/PROCESS/aj_log/compos/'
+                fname              = 'outtest_0000.edf'
+                numbers            = '0-1000'
+                troi               = None
+            regrouped_outfiles
+                dname              = './OUT'
+                fname              = 'reg_0000.edf'
+                numbers            = '0-1000000'
+                troi               = None
+            output
+                mode               = 'hdf5'
+                hdf5file           = './OUT/x_0000.hdf5'
+            trois
+                table              = @t
+                === Table_A headerini
+                iid:6:i key:10:s ptype:10:s mode:10:s troi:35:tr
+                === Table_A headerline
+                iid         key       ptype        mode                                 troi
+                === Table_A body
+                0       saxs1        saxs        base              ((1320,1812),(637,141))
+                1       waxs1        waxs        base                ((1328,1012),(37,14))
+                @-
+            outindex           = 1
+            outoffset          = 0
+            skip               = 200
+            azim_mode          = False
+            o_reg_flg          = False
+            upd_numbers        = True
+            def_base_scale_flg = True
+            def_cake_scale_flg = True
+            base_imgscale      = (0, 1)
+            cake_imgscale      = (0, 0.35)
+            experiment
+                mode               = 'exp1'
+                settings
+                    beam
+                        energy             = 13.0
+                        wavelength         = 0.95
+                        polarization       = 0.98
+                        divergence         = (None, None)
+                        size_fwhm          = (None, None)
+                        prefocus           = ('wb', 3)
+                        typical_flux       = 10000000000.0
+                    detector
+                        type               = 'EIGER 4M'
+                        ident              = 'EIGER_4M_ID13_2'
+                        revision           = '1.0.0'
+                        flatfile           = None
+                        splinefile         = None
+                        maskfile           = './calib/m.edf'
+                        pixellayout
+                            rows               = 2167
+                            cols               = 2070
+                            rowbin             = 1
+                            colbin             = 1
+                        darkfiles
+                            dname              = None
+                            fname              = None
+                            numbers            = None
+                            troi               = None
+                    calibrations
+                        calibration_1
+                            nominal_dist       = None
+                            calibmode          = 'PyFAI'
+                            ponifile           = './calib/raw_test_74_maxproj.poni'
+                            fit2d_params       = None
+                            fit2dfile          = None
+            binning            = 1
+            threshold          = 'auto'
+            hit_threshold      = 5
+            scan
+                specfile           = '/data/id13/inhouse2/THEDATA_I2_1/d_2015-10-10_inh_ihmi1162_nanocal/DATA/cund0/cund0.dat'
+                scannmb            = 11
+                meshshape          = (199, 40)
+            cake
+                np_rad             = 720
+                np_azi             = 720
+                method             = 'lut'
+                cake_troi          = ((142, 239), (121, 50))  
+
+

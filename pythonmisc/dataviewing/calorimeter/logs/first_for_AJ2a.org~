@@ -1,0 +1,11 @@
+with
+/data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/calorimeter_160918.py
+
+def main(filelist):
+	header,data1 = read_calorimeter_datafiles(filelist)   
+	plotmany(header,data1)
+
+> find /data/id13/inhouse5/THEDATA_I5_1/AJ_calorimeter_data/calorimeter/2016_11_05_ihmi1281_and_ihsc1404/AJ2a/*empty* | python calorimeter_160918.py
+
+- plots all empty runs
+

@@ -1,0 +1,190 @@
+1
+import h5py
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.ndimage as nd
+
+e0 = 10.367
+fname200 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_200ms_Ga/MG154_fluoXAS_1.replace.h5'
+fname400 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_400ms_Ga/MG154_fluoXAS_1.replace.h5'
+
+h5f200 = h5py.File(fname200,'r')
+
+### data
+stepg200 = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_step'])
+edgeg200 = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_edge'])
+edgegdiff200 = edgeg200 - 10.367
+ga200    = np.asarray(h5f200['/detectorsum/Ga-K_norm/data'])
+ni200    = np.asarray(h5f200['/detectorsum/Ni-K/data'])
+xbic200  = np.asarray(h5f200['/counters/zap_p201_Xbic_norm/data'])
+mask200  = np.where(ga200[:,:,50] > 5e-9,1,0)
+
+### positions
+samp200  = [np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/sampz']),np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/sampy'])]
+samp200[0] = samp200[0] - min(samp200[0])
+samp200[1] = samp200[1] - min(samp200[1])
+
+
+stepx200 = np.asarray(h5f200['/counters/zap_p201_Xbic_norm_stan/xanes_step'])
+edgex200 = np.asarray(h5f200['/counters/zap_p201_Xbic_norm_stan/xanes_edge'])
+edgexdiff200 = edgex200 - 10.367
+
+h5f200.close()
+
+h5f400 = h5py.File(fname400,'r')
+
+### data
+stepg400 = np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/xanes_step'])
+edgeg400 = np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/xanes_edge'])
+edgegdiff400 = edgeg400 - 10.367
+ga400    = np.asarray(h5f400['/detectorsum/Ga-K_norm/data'])
+ni400    = np.asarray(h5f400['/detectorsum/Ni-K/data'])
+mask400  = np.where(ga400[:,:,50] > 5e-9,1,0)
+
+## position
+samp400  = [np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/sampz']),np.asarray(h5f400['/detectorsum/Ga-K_norm_stan/sampy'])]
+samp400[0] = samp400[0] - min(samp400[0])
+samp400[1] = samp400[1] - min(samp400[1])
+
+h5f400.close()
+
+### data
+fname2015 = '/tmp_14_days/johannes1/results/mg01_5_4_3/mg01_5_4_3.replace.h5'
+h5f2015 = h5py.File(fname2015,'r')
+
+xbic2015 = np.asarray(h5f2015['counters/zap_p201_IC/data'])[::-1,::-1,:]
+ga2015 = np.asarray(h5f2015['detectorsum/Ga-K/data'])[::-1,::-1,:]
+ni2015 = np.asarray(h5f2015['detectorsum/Ni-K/data'])[::-1,::-1,:]
+
+### positions
+
+samp2015  = [np.asarray(h5f2015['/detectorsum/Ga-K/slow']),np.asarray(h5f2015['/detectorsum/Ga-K/fast'])]
+samp2015[0] = samp2015[0] - min(samp2015[0])
+samp2015[1] = samp2015[1] - min(samp2015[1])
+
+h5f2015.close()
+
+### masking
+
+from matplotlib.colors import ListedColormap
+import matplotlib.pylab as pl
+cmap = pl.cm.hot_r
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+my_cmap = cmap(np.arange(cmap.N))
+
+# Set alpha
+my_cmap[:,-1] = np.linspace(0, 1, cmap.N)
+
+# Create new colormap
+my_cmap = ListedColormap(my_cmap)
+
+## plotting
+
+image1 = np.where(edgexdiff200 > 0, np.where(mask200,edgexdiff200*1000,0),0)
+image2 = np.where(edgegdiff200 > 0, np.where(mask200,edgegdiff200*1000,0),0)
+image3 = np.where(edgegdiff400 > 0, np.where(mask400,edgegdiff400*1000,0),0)
+
+image4 = np.where(
+
+
+### scale images so that 1 pxl = 3nm:
+scalingfactor1 = np.asarray([float(image3.shape[0])/image1.shape[0],float(image3.shape[1])/image1.shape[1]])
+image1 = nd.zoom(image1, scalingfactor11*10, order = 0)
+image2 = nd.zoom(image2, scalingfactor11*10, order = 0)
+image3 = nd.zoom(image3, 10, order = 0)
+
+
+cmax = max(np.max(image1),np.max(image2), np.max(image3))
+cmin = min(np.min(image2),np.min(image1), np.min(image3))
+
+
+
+# ## setup figure
+
+
+# fig, (ax1, ax2, ax3) = plt.subplots(1, 3, gridspec_kw = {'height_ratios':[1,1,1]})
+# #fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+
+
+# ### image1 ######################
+
+# im1 = ax1.matshow(image1, vmin = cmin, vmax = cmax)
+# ax1.set_title('XBIC.200ms')
+
+# # ### colorbar1
+# # divider1 = make_axes_locatable(ax1)
+# # cax1 = divider1.append_axes("bottom", size="1%", pad=0.05)
+# # cbar1 = plt.colorbar(im1, cax=cax1, orientation = 'horizontal')
+
+# ### ticklabels1
+# x1ticklabels = []
+# ax1.locator_params(nbins=5, axis='x')
+# for tick in ax1.get_xticks():
+#     x1ticklabels.append("{0:.2f}".format(tick *0.003))
+# ax1.set_xticklabels(x1ticklabels)
+
+
+# yticklabels = []
+# for tick in ax1.get_yticks():
+#     yticklabels.append("{0:.2f}".format(tick *0.003))    
+# ax2.set_yticklabels(yticklabels[::-1])
+                         
+# ax1.set_xlabel('x position [um]')
+# ax1.set_ylabel('y position [um]')
+# ax1.tick_params(labelbottom = 'on', labeltop = 'off')
+
+
+
+# ### image2 #########################
+
+# im2 = ax2.matshow(image2, vmin = cmin, vmax = cmax)
+# ax2.set_title('XRF.200ms')
+
+# # ### colorbar2
+
+# # divider2 = make_axes_locatable(ax2)
+# # cax2 = divider2.append_axes("right", size="10%", pad=0.05)
+# # cbar2 = plt.colorbar(im2, cax=cax2, orientation = 'vertical')
+# # cbar2.set_label('absorption edge shift [eV]')
+
+# ### ticklabels2
+# x2ticklabels = []
+# ax2.locator_params(nbins=5, axis='x')
+# for tick in ax2.get_xticks():
+#     x2ticklabels.append("{0:.2f}".format(tick *0.003))
+# ax2.set_xticklabels(x2ticklabels)
+
+
+# #ax2.set_yticklabels(ax1.get_yticks() * 0.05 * (scalingfactor1[1]*10))
+# ax2.set_xlabel('x position [um]')
+# # ax2.set_ylabel('y position [um]')
+# ax2.tick_params(labelleft = 'off', labelbottom = 'on', labeltop = 'off')
+
+
+# ### image3 ######################
+
+# im3 = ax3.matshow(image3, vmin = cmin, vmax = cmax)
+# ax3.set_title('XRF.400ms')
+
+# ### ticklabels3
+# x3ticklabels = []
+# ax3.locator_params(nbins=5, axis='x')
+# for tick in ax3.get_xticks():
+#     x3ticklabels.append("{0:.2f}".format(tick *0.003))
+# ax3.set_xticklabels(x3ticklabels)
+                         
+# #ax3.set_yticklabels(ax3.get_yticks() * 0.03 / 10)
+# ax3.set_xlabel('x position [um]')
+# # ax3.set_ylabel('y position [um]')
+# ax3.tick_params(labelleft = 'off', labelbottom = 'on', labeltop = 'off')
+
+# # colorbar3
+# divider3 = make_axes_locatable(ax3)
+# cax3     = divider3.append_axes("right", size="10%", pad = 0.05)
+# cbar3    = plt.colorbar(im3, cax=cax3, orientation = 'vertical')
+# cbar3.set_label('absorption edge shift [eV]')
+
+
+
+# fig.tight_layout()
+# plt.show()

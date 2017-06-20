@@ -1,0 +1,219 @@
+import numpy as np
+import os,sys
+import ast
+from multiprocessing import Pool
+import subprocess
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from fileIO.hdf5.h5_tools import make_eiger_yzth_tpl
+from fileIO.hdf5.h5_scan import h5_scan
+
+
+def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
+                      eigerfname  = None,
+                      poni        = None,
+                      troi        = None,
+                      troiname    = None,
+                      specfname   = None,
+                      defaultscan = None,
+                      counter     = None):
+    '''
+    skript to string together an evaluation using multiple instances of the h5_scan class
+    TODO yzth_scan class
+    '''
+
+    if defaultscan == None:
+        defaultscan = h5_scan()
+    else:
+        scanlist = defaultscan.meta['scanlist']
+        # TODO read the parameters in defaultscan
+        pass
+
+    if scanlist  == None:
+        firstinternal = int(raw_input('Please enter internal number of the first scan: '))
+        firsteiger    = int(raw_input('Please enter the eiger scan number of the first scan: '))
+        firstspec     = int(raw_input('Please enter the spec scan number of the first scan: '))
+        noscans       = int(raw_input('Please enter the total number of scans: '))
+        scanlist      = []
+        scanlist.append(range(firstinternal,firstinternal + noscans))
+        scanlist.append(range(firsteiger   ,firsteiger    + noscans))
+        scanlist.append(range(firstspec    ,firstspec     + noscans))
+    else:
+        noscans = len(scanlist[0]) 
+        
+    defaultscan.update_meta('scanlist',scanlist)
+
+    first = True
+    while not os.path.exists(str(eigerfname)):
+        eigerfname   = str(raw_input('Please enter the path to a .h5 data file of this dataset: '))
+        if not first:
+            print('file not found: %s'%eigerfname)
+        first = False
+    else:
+        eigerfnametpl = make_eiger_yzth_tpl(eigerfname = eigerfname)
+        eigerfname    = eigerfnametpl %(scanlist[0][0],scanlist[1][0])
+        defaultscan.update_meta('fnamelist',[eigerfname])
+        print('Saving first .h5 file path = %s' % eigerfname)
+
+    first = True
+    while not os.path.exists(str(poni)):
+        poni   = str(raw_input('Please enter the path to the calib.poni for this dataset: '))
+        if not first:
+            print('file not found: %s'%poni)
+        first = False
+
+    else:
+        print('Saving .poni file path = %s' % poni)
+        defaultscan.update_meta('poni', poni)
+        defaultscan.write_self(default = True)
+     
+        
+    if troi      == None:
+        troi         = ast.literal_eval(raw_input('Please enter the troi-region (format : [[top row, left col],[number of rows,number of colums]])  including all interesting peaks: '))
+    if troiname  == None:
+        troiname     = 'troi_%s_%s'%(troi[0][0],troi[0][1])
+
+    defaultscan.update_meta('troi',troi)
+    defaultscan.update_meta('troiname',troiname)
+    defaultscan.write_self(default = True)
+
+    first = True
+    while not os.path.exists(str(specfname)):
+        specfname    = str(raw_input('Please enter the spec session filename: '))
+        if not first:
+            print('file not found: %s'%specfname)
+        first = False
+
+    else:
+        if counter   == None:
+            counter      = str(raw_input('Please enter the XRF counter name in this spec session: '))
+    print('Saving spec .data path = %s\nfirst scan number = %s, counter = %s' % (specfname,firstspec,counter))
+    defaultscan.update_spec(specfname = specfname,scanno = scanlist[2][0], counter = counter)
+    defaultscan.write_self(default = True)
+    
+    #for i, scanno in enumerate(scanlist):
+        
+    return defaultscan
+        
+    
+def do_yzth_eval(*inargs):
+    print('inargs')
+    print inargs
+    print(type(inargs))
+    fname    = inargs[0][0]
+    verbose  = inargs[0][1]
+    if len(inargs)>1:
+        test     = inargs[2]
+    else:
+        test     = False
+        
+    defaultscan = h5_scan()
+
+    if not os.path.exists(fname):
+        raise IOError('could not read default initiaton file: %s' %fname)
+        
+    defaultscan.read_self(fname)
+    scanlist    = np.asarray(defaultscan.meta('scanlist'))
+    defaultpath = defaultscan.meta('path')
+
+    
+    if verbose == True:
+        for scan in scanlist.T:
+            newfname    = make_eiger_yzth_tpl(defaultscan.meta('fnamelist')[0]) % (scan[0],scan[1])
+            if os.path.exists(newfname):
+                print('Checked:\n%s' % newfname)
+            else:
+                raise IOError('Could not find this file:\n%s' % newfname)
+
+    for scan in scanlist.T:
+        newfname    = make_eiger_yzth_tpl(defaultscan.meta('fnamelist')[0]) % (scan[0],scan[1])
+        currentscan = h5_scan()
+        currentscan.read_self(defaultpath)
+        if verbose:
+            print('-'*15)
+            print('\nNow on scan %s:\n' %newfname)
+            print('-'*15)
+        currentscan.update_meta('fnamelist',[newfname])
+        currentscan.update_files()
+
+        
+        currentscan.update_spec(scanno = scan[2])
+        if not test:
+            currentscan.do_all(verbose = verbose)
+
+
+def paraeval(fnamelist,
+             verbose = False,
+             test=False,
+             noprocesses = None):
+
+    if noprocesses == None:
+        noprocesses = min(8,len(fnamelist))
+    if verbose:
+        print 'Creating pool with %d processes\n' % noprocesses
+    pool = Pool(processes=noprocesses)
+    tasklist = []
+    [tasklist.append([fname, verbose, test]) for fname in fnamelist]
+    print tasklist
+    pool.map(do_yzth_eval,tasklist)
+  
+     
+
+def main(args):
+    fnamelist = []
+    verbose = False
+    parallel = False
+    test = False
+    for arg in args:
+        if arg.find('--verbose') != -1:
+            print('verbose = True')
+            verbose = True
+        if arg.find('--parallel') !=-1:
+            print ('parallel = True')
+            parallel = True
+        if arg.find('--test') != -1:
+            print ('testmode = True')
+            test = True
+
+            
+    for arg in args:
+        if arg.find('.h5') != -1:
+            fname = os.path.realpath(arg)
+            if os.path.exists(fname):
+                fnamelist.append(fname)
+            
+    print('Filelist found = ')
+    print(fnamelist)
+    
+    if not parallel:
+        for fname in fnamelist:
+            if verbose:
+                print('reading file %s' % fname)
+            defaultargs = [fname, verbose]
+            do_yzth_eval(defaultargs)
+    else:
+        paraeval(fnamelist, verbose, test)
+
+if __name__ == '__main__':
+    
+    usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc. 
+\n2) python <thisfile.py> -f <file containing args as lines> 
+\n3) find <*yoursearch* -> arg1 etc.> | python <thisfile.py> 
+"""
+
+    args = []
+    if len(sys.argv) > 1:
+        if sys.argv[1].find("-f")!= -1:
+            f = open(sys.argv[2]) 
+            for line in f:
+                args.append(line.rstrip())
+        else:
+            args=sys.argv[1:]
+    else:
+        f = sys.stdin
+        for line in f:
+            args.append(line.rstrip())
+    
+#    print args
+    main(args)
+

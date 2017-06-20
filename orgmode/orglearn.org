@@ -1,0 +1,39 @@
+* logfile for 
+    
+
+** Experiment:
+date
+ID13 EH2
+/data/id13/inhouse2/
+photon energy 
+focal spot
+flux
+
+** VO2 wire 1
+
+*** finding sample pos
+
+*** #calib1 [[#calibration][calib]]
+    detx 100
+    dety 3
+    detz 0
+
+   
+** VO2 wire 2
+   here I also measured at calib1 [[#calibration][calib]]
+
+*** #calib2
+    detx 100
+    dety 50
+    detz 50
+
+
+
+
+** #calibration [1/1]  
+        - [X] [[#calib1]]
+	- [X] [[#calib2]]		
+
+
+
+** next chapter

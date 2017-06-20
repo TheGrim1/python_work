@@ -1,0 +1,2669 @@
+
+
+Creating 0 new, default configfiles
+{
+}
+{
+}
+Scanning source folder /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523
+ ... (this can take a while) 
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/AUTO-TRANSFER
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/AUTO-TRANSFER/eiger1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_02
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_04
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/edf
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/edf1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/imp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/mccd
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/xia
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/EIGER_MACROS
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/PTI
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/PTI/PTI_OUT
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/SECDATA
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9/CFG
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9/PTIPY_DIRECTORY
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/tmp-volatile-tmp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/tmp-volatile-tmp/tmp-volatile-tmp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/auto-transfer-server
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/auto-transfer-server/DECTRIS
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/fin1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/h1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_01
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_100
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_101
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_102
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_103
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_104
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_105
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_106
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_107
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_108
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_109
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_110
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_85
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_86
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_87
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_88
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_89
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_90
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_91
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_92
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_93
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_94
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_95
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_96
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_97
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_98
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_99
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_03
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_04
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_05
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/sin004g_zp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/sin004h1_zp
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/test
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/test2
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/vo2_1xzthscan_1117
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/w2_t2_yth1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_1
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_100
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_2
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_100
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_101
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_102
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_103
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_104
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_105
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_106
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_107
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_108
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_109
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_110
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_111
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_112
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_113
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_114
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_115
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_116
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_117
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_118
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_119
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_120
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_121
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_122
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_123
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_124
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_125
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_126
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_127
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_128
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_130
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_131
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_133
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_134
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_135
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_136
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_137
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_138
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_139
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_140
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_141
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_142
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_143
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_144
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_145
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_146
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_147
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_148
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_149
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_150
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_151
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_152
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_153
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_154
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_155
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_156
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_157
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_158
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_159
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_160
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_161
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_162
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_163
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_164
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_165
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_166
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_167
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_168
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_169
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_170
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_171
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_172
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_173
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_174
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_176
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_177
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_178
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_179
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_180
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_181
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_182
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_183
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_184
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_185
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_186
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_187
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_188
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_189
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_190
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_200
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_201
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_202
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_203
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_204
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_205
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_206
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_207
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_208
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_209
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_210
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_211
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_212
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_213
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_214
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_215
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_216
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_217
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_218
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_219
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_220
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_221
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_222
+looking at /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/eiger-reconstruct-auto
+Allocating folders from source ... 
+dumping path tree at exit:
+{
+   /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523:
+   {
+      info:
+      {
+         partno: 99
+         timestamp: 1472048829
+         flag: 1
+         foldersize: 4160
+         branchsize: 13607425184
+      }
+      /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA:
+      {
+         info:
+         {
+            partno: 99
+            timestamp: 1465224241
+            flag: 1
+            foldersize: 48
+            branchsize: 285166640
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465370663
+               flag: 1
+               foldersize: 19040
+               branchsize: 2986496
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/mccd:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465115241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/edf1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465115242
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/xia:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465139764
+                  flag: 1
+                  foldersize: 2967456
+                  branchsize: 2967456
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/edf:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465115241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_01/imp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465115241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465370663
+               flag: 1
+               foldersize: 65712
+               branchsize: 642944
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/edf:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465142855
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/edf1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465142856
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/imp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465142855
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/xia:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465216361
+                  flag: 1
+                  foldersize: 577232
+                  branchsize: 577232
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_02/mccd:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465142855
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465371650
+               flag: 1
+               foldersize: 55872
+               branchsize: 9434224
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/mccd:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465224241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/xia:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465288345
+                  flag: 1
+                  foldersize: 9378352
+                  branchsize: 9378352
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/edf:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465224240
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/imp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465224241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_05/edf1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465224241
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465370663
+               flag: 1
+               foldersize: 5376
+               branchsize: 789488
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/edf1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465217675
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/imp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465217674
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/edf:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465217674
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/mccd:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465217674
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/s2426_4_04/xia:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465223610
+                  flag: 1
+                  foldersize: 784112
+                  branchsize: 784112
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465048134
+               flag: 1
+               foldersize: 0
+               branchsize: 271277520
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465283553
+                  flag: 1
+                  foldersize: 270180080
+                  branchsize: 271277520
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465217674
+                     flag: 1
+                     foldersize: 48
+                     branchsize: 1097440
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_02:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465222872
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 0
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/AUTO-TRANSFER:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465048133
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 1097392
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/AUTO-TRANSFER/eiger1:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465222895
+                           flag: 1
+                           foldersize: 1097392
+                           branchsize: 1097392
+                        }
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_04:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465222872
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 0
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465222872
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 0
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/xia:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465139763
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/mccd:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465115241
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/imp:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465115241
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/edf:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465115241
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/s2426_4_01/edf1:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465115241
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465222872
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 0
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/edf1:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465048156
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/edf:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465048156
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/imp:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465048156
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/xia:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465113902
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                     /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/AUTO-TRANSFER/eiger1/DATA/GaN_fins/mccd:
+                     {
+                        info:
+                        {
+                           partno: 99
+                           timestamp: 1465048156
+                           flag: 1
+                           foldersize: 0
+                           branchsize: 0
+                        }
+                     }
+                  }
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465370663
+               flag: 1
+               foldersize: 35792
+               branchsize: 35920
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/edf:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048156
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/edf1:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048157
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/imp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048156
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/xia:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465113902
+                  flag: 1
+                  foldersize: 128
+                  branchsize: 128
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/DATA/GaN_fins/mccd:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048156
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+         }
+      }
+      /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS:
+      {
+         info:
+         {
+            partno: 99
+            timestamp: 1465048134
+            flag: 1
+            foldersize: 0
+            branchsize: 13322254336
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465048134
+               flag: 1
+               foldersize: 0
+               branchsize: 96
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/PTI:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048134
+                  flag: 1
+                  foldersize: 96
+                  branchsize: 96
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/PTI/PTI_OUT:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465048134
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION1/SECDATA:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048134
+                  flag: 1
+                  foldersize: 0
+                  branchsize: 0
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465050950
+               flag: 1
+               foldersize: 0
+               branchsize: 513904
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465048134
+                  flag: 1
+                  foldersize: 176
+                  branchsize: 464
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9/PTIPY_DIRECTORY:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465112743
+                     flag: 1
+                     foldersize: 240
+                     branchsize: 240
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/guipti9/CFG:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465232024
+                     flag: 1
+                     foldersize: 48
+                     branchsize: 48
+                  }
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/tmp-volatile-tmp:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465246183
+                  flag: 1
+                  foldersize: 512448
+                  branchsize: 513440
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION2/tmp-volatile-tmp/tmp-volatile-tmp:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465157280
+                     flag: 1
+                     foldersize: 992
+                     branchsize: 992
+                  }
+               }
+            }
+         }
+         /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20:
+         {
+            info:
+            {
+               partno: 99
+               timestamp: 1465401959
+               flag: 1
+               foldersize: 112
+               branchsize: 13321740336
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/auto-transfer-server:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1465481521
+                  flag: 1
+                  foldersize: 16
+                  branchsize: 96
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/auto-transfer-server/DECTRIS:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465050645
+                     flag: 1
+                     foldersize: 80
+                     branchsize: 80
+                  }
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory:
+            {
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_218:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411747
+                     flag: 1
+                     foldersize: 13765824
+                     branchsize: 13765824
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_201:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465402858
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_178:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413086
+                     flag: 1
+                     foldersize: 11942080
+                     branchsize: 11942080
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_222:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411926
+                     flag: 1
+                     foldersize: 4629536
+                     branchsize: 4629536
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_203:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465403685
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_202:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465403280
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/sin004g_zp:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1468738287
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_190:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465415004
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_207:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465405308
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_206:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404807
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_205:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404486
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_204:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404091
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_179:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413266
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_209:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465406125
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_208:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465405774
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_219:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411768
+                     flag: 1
+                     foldersize: 1560720
+                     branchsize: 1560720
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_131:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398893
+                     flag: 1
+                     foldersize: 25970944
+                     branchsize: 25970944
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_130:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398689
+                     flag: 1
+                     foldersize: 7014432
+                     branchsize: 7014432
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_133:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465399016
+                     flag: 1
+                     foldersize: 15449280
+                     branchsize: 15449280
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_135:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465399457
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_134:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465399236
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_137:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465399903
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_136:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465399681
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_139:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465400353
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_138:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465400127
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_177:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412985
+                     flag: 1
+                     foldersize: 10521664
+                     branchsize: 10521664
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_176:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412897
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_171:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412221
+                     flag: 1
+                     foldersize: 15449280
+                     branchsize: 15449280
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_170:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412095
+                     flag: 1
+                     foldersize: 28057728
+                     branchsize: 28057728
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_173:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412517
+                     flag: 1
+                     foldersize: 15449280
+                     branchsize: 15449280
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_172:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412388
+                     flag: 1
+                     foldersize: 21043328
+                     branchsize: 21043328
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_210:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465406384
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_211:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465407497
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_212:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465407763
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_213:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465408028
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_214:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465408351
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/test2:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465637811
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_128:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398629
+                     flag: 1
+                     foldersize: 8434880
+                     branchsize: 8434880
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_217:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411618
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_126:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398490
+                     flag: 1
+                     foldersize: 8434880
+                     branchsize: 8434880
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_127:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398558
+                     flag: 1
+                     foldersize: 8434880
+                     branchsize: 8434880
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_124:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398311
+                     flag: 1
+                     foldersize: 4927648
+                     branchsize: 4927648
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_125:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398421
+                     flag: 1
+                     foldersize: 14028864
+                     branchsize: 14028864
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_122:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398144
+                     flag: 1
+                     foldersize: 21043328
+                     branchsize: 21043328
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_123:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398268
+                     flag: 1
+                     foldersize: 15449280
+                     branchsize: 15449280
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_120:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397905
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_121:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397974
+                     flag: 1
+                     foldersize: 8434880
+                     branchsize: 8434880
+                  }
+               }
+               info:
+               {
+                  partno: 99
+                  timestamp: 1469481298
+                  flag: 1
+                  foldersize: 16
+                  branchsize: 13321739904
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_168:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411656
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_169:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411868
+                     flag: 1
+                     foldersize: 25970944
+                     branchsize: 25970944
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_162:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465408122
+                     flag: 1
+                     foldersize: 18956544
+                     branchsize: 18956544
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_163:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465408355
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_160:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465407742
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_161:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465407973
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_166:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465410865
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_167:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411402
+                     flag: 1
+                     foldersize: 8434880
+                     branchsize: 8434880
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_164:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465410138
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_165:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465410610
+                     flag: 1
+                     foldersize: 11942080
+                     branchsize: 11942080
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_200:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465402419
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_100:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465391925
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_05:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465392087
+                     flag: 1
+                     foldersize: 383619584
+                     branchsize: 383619584
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_04:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465227548
+                     flag: 1
+                     foldersize: 427547264
+                     branchsize: 427547264
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_03:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465215702
+                     flag: 1
+                     foldersize: 17343232
+                     branchsize: 17343232
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02:
+               {
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_103:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209523
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_91:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465248466
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_88:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465393714
+                        flag: 1
+                        foldersize: 299183712
+                        branchsize: 299183712
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_96:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465229613
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_98:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465394335
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_99:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465231641
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_94:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465248783
+                        flag: 1
+                        foldersize: 299183712
+                        branchsize: 299183712
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_89:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465393794
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_110:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465208114
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_95:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465248871
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465590051
+                     flag: 1
+                     foldersize: 68987728
+                     branchsize: 7276017136
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_102:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209427
+                        flag: 1
+                        foldersize: 299183680
+                        branchsize: 299183680
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_101:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209326
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_100:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465232272
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_107:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209886
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_106:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209796
+                        flag: 1
+                        foldersize: 299183712
+                        branchsize: 299183712
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_105:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209705
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_104:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209615
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_92:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465248579
+                        flag: 1
+                        foldersize: 299183680
+                        branchsize: 299183680
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_93:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465248687
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_109:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465210066
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_108:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465209977
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_85:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465249100
+                        flag: 1
+                        foldersize: 26619776
+                        branchsize: 26619776
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_97:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465394269
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_87:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465393635
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_86:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465393554
+                        flag: 1
+                        foldersize: 299183744
+                        branchsize: 299183744
+                     }
+                  }
+                  /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_02/run_90:
+                  {
+                     info:
+                     {
+                        partno: 99
+                        timestamp: 1465249466
+                        flag: 1
+                        foldersize: 0
+                        branchsize: 0
+                     }
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/s2426_4_01:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465142876
+                     flag: 1
+                     foldersize: 778199168
+                     branchsize: 778199168
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_149:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465403462
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_221:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411876
+                     flag: 1
+                     foldersize: 5015328
+                     branchsize: 5015328
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_119:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397727
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_118:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397491
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/w2_t2_yth1:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1469481298
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_220:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465411822
+                     flag: 1
+                     foldersize: 2016656
+                     branchsize: 2016656
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_113:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465396278
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_112:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465396036
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_111:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465395798
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_110:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465395564
+                     flag: 1
+                     foldersize: 25970944
+                     branchsize: 25970944
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_117:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397255
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_116:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465397021
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_115:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465396783
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_114:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465396545
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_157:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465406173
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_156:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465405910
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_155:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465405506
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_154:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465405078
+                     flag: 1
+                     foldersize: 15449280
+                     branchsize: 15449280
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_153:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404890
+                     flag: 1
+                     foldersize: 28057728
+                     branchsize: 28057728
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_152:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404559
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_151:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465404195
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_150:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465403828
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/vo2_1xzthscan_1117:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465637902
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_216:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465410893
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_159:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465407511
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_158:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465406401
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/test:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465637553
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_180:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413408
+                     flag: 1
+                     foldersize: 17536128
+                     branchsize: 17536128
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_181:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413603
+                     flag: 1
+                     foldersize: 24550528
+                     branchsize: 24550528
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_182:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413714
+                     flag: 1
+                     foldersize: 14028864
+                     branchsize: 14028864
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_183:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413745
+                     flag: 1
+                     foldersize: 3507216
+                     branchsize: 3507216
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_184:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465413885
+                     flag: 1
+                     foldersize: 17536128
+                     branchsize: 17536128
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_185:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465414023
+                     flag: 1
+                     foldersize: 17536128
+                     branchsize: 17536128
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_186:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465414121
+                     flag: 1
+                     foldersize: 11942080
+                     branchsize: 11942080
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_187:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465414343
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_188:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465414564
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_189:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465414783
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_108:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465395088
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_109:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465395329
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/fin1:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465160867
+                     flag: 1
+                     foldersize: 1767321344
+                     branchsize: 1767321344
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_100:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465393072
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_101:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465393325
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_102:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465393574
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_103:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465393826
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_104:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465394076
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_105:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465394330
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_106:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465394580
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_107:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465394833
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_144:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465401583
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_145:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465401903
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_146:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465402306
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_147:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465402712
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_140:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465400578
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_141:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1466157021
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_142:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1466157108
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_143:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465401273
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_1:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465389137
+                     flag: 1
+                     foldersize: 1437968
+                     branchsize: 1437968
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzscan_2:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465389163
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_148:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465403100
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/h1:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465398287
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_174:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465412706
+                     flag: 1
+                     foldersize: 22463744
+                     branchsize: 22463744
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/sin004h1_zp:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1468738363
+                     flag: 1
+                     foldersize: 0
+                     branchsize: 0
+                  }
+               }
+               /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/by_directory/yzthscan_215:
+               {
+                  info:
+                  {
+                     partno: 99
+                     timestamp: 1465410532
+                     flag: 1
+                     foldersize: 29478144
+                     branchsize: 29478144
+                  }
+               }
+            }
+            /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/PROCESS/SESSION20/eiger-reconstruct-auto:
+            {
+               info:
+               {
+                  partno: 99
+                  timestamp: 1469481346
+                  flag: 1
+                  foldersize: 224
+                  branchsize: 224
+               }
+            }
+         }
+      }
+      /mntdirect/_data_id13_inhouse2/THEDATA_I2_3/d_2016-06-04_user_hc2523/EIGER_MACROS:
+      {
+         info:
+         {
+            partno: 99
+            timestamp: 1465247956
+            flag: 1
+            foldersize: 48
+            branchsize: 48
+         }
+      }
+   }
+}
+Could not find a valid path, possible errors: 
+ not running this skript in the root path of the folder allocation 
+ or 
+ corrupted config files

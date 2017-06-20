@@ -1,0 +1,136 @@
+* spec API
+import fileIO.hdf5.h5_scan as h5
+
+myh5 = h5.h5_scan(<eiger data file>)
+myh5.data.keys()
+myh5.data.items()
+myh5.update_files()
+myh5.data.items()
+myh5.data['entry/data/meta']['fnamelist']
+myh5.update_spec(specfname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2c_after/AJ2c_after.dat",
+                 scanno = 318,
+                 counter = 'ball01')
+myh5.data['entry/data/spec']['data']['shape']
+myh5.data['entry/data/spec']['data'].keys()
+myh5.data['entry/data/spec']['data']['counter']
+
+myh5.write_self('test/test1.h5')
+readfile = h5py.File('test/test1.h5')
+specdata = ast.literal_eval((readfile['entry/data/spec'].value))
+type(specdata) == dict
+
+* setup integration
+myh5.update_meta('troi',((100,200),(500,200)))
+myh5.update_meta('poni','/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/aj_log/calib/calib1_prelim.poni')
+myh5.create_poni_for_troi(troiname = 'testtroi')
+
+def reinitmyh5():
+    reload(h5)
+    myh5 = h5.h5_scan()
+    myh5.read_self(<myh5_integrate.h5.>) # created by h5
+    return myh5
+
+def do():
+    myh5.read_data(verbose = True)
+    myh5.integrate_self(verbose = True)
+    qsum = np.sum(myh5.data['roi_q'],axis = 2)
+    realsum = np.sum(myh5.data['roi_real'],axis = 2)
+    return qsum,realsum
+
+myh5        = reinitmyh5()
+qsum,realsum = do()
+
+* saving / reading integrated.h5
+myh5.write_self() # default in PROCESS/SESSION23/something or optional <filename>
+readh5 = read_self(<path to integrate.h5>)
+
+
+
+* for calibrant testing procedure is:
+troi = [[1640, 0], [525, 519]]
+import fileIO.hdf5.h5_scan as h5
+calib = h5.h5_scan(<calibrant scan>)
+calib.update_meta('troi',troi)
+calib.updata_meta('poni',<path to calib.poni>)
+calib.creat_poni_for_troi()
+calib.write_self() # default in PROCESS/SESSION23/something or optional <filename>
+
+
+def reinitcalib():
+    reload(h5)
+    calib = h5.h5_scan()
+    calib.read_self(<calib_integrate.h5.>) # created by h5
+    return calib
+
+def do():
+    calib.read_data(verbose = True)
+    calib.integrate_self(verbose = True)
+    qsum = np.sum(calib.data['roi_q'],axis = 2)
+    realsum = np.sum(calib.data['roi_real'],axis = 2)
+    return qsum,realsum
+
+calib        = reinitcalib()
+qsum,realsum = do()
+
+
+* debug fitting
+import fileIO.hdf5.h5_scan as h5
+reload(h5)
+myh5 = h5.h5_scan()
+myh5.read_self('/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/SESSION23/integrated/AJ2c_af/AJ2c_after_T2_yzth_1580_393_integrated.h5')
+myh5.fit_rad_self(verbose = True)
+
+times = myh5.fit_rad_self()
+calib.write_self() 
+
+
+* finding optimal operation
+import fileIO.hdf5.h5_scan as h5
+defaultscan = h5.h5_scan()
+defaultscan.update_meta('troi',[[820, 31], [217, 532]])
+defaultscan.update_meta('troiname','peaktroi')
+defaultscan.update_meta('poni','/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/aj_log/calib/calib1_prelim.poni')
+defaultscan.update_meta('fnamelist',['/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AUTO-TRANSFER/eiger1/defaultscan_data_000000.h5'])
+defaultscan.update_spec(specfname = '/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2c_after/AJ2c_after.dat',scanno = 317, counter = 'ball01')
+defaultscan.write_self()
+
+
+scan392.update_meta('troi',[[820, 31], [217, 532]])
+scan392.update_meta('troiname','peaktroi')
+scan392.update_meta('poni','/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/aj_log/calib/calib1_prelim.poni')
+scan392.update_meta('fnamelist',['/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AUTO-TRANSFER/eiger1/AJ2c_after_T2_yzth_1579_392_data_000002.h5'])
+
+scan392.read_data()
+scan392.integrate_self()
+times392 = scan392.fit_rad_self()
+scan392.write_self()
+
+
+* imaging the peaks
+** basic histogram
+peaks1 = scan392.data['peaks_rad'][0,:,:]
+p1 = peaks1[1,:][peaks1[1,:]>0]
+hist, bins = np.histogram(p1, bins=50)
+width = 0.7 * (bins[1] - bins[0])
+center = (bins[:-1] + bins[1:]) / 2
+fig, ax = plt.subplots()
+ax.bar(center, hist, align='center', width=width)
+plt.show()
+
+np.any([img1<40,img1>38],axis = 0)
+
+
+* pipeline for yzth_scan:
+
+import time
+import fileIO.hdf5.h5_scan as h5
+import fileIO.hdf5.h5_eval as h5_eval
+defaultscan= h5.h5_scan()
+starttime = time.time()
+defaultscan.read_self('/mntdirect/_data_id13_inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/PROCESS/SESSION23/integrated/AJ2c_af/AJ2c_after_T2_yzth_1560_373_default.h5')
+h5_eval.do_yzth_eval(defaultscan,verbose = True)
+endtime = time.time()
+took = endtime - starttime
+print took
+
+
