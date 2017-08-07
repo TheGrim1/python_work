@@ -1,0 +1,59 @@
+
+# global imports
+
+import sys, os
+import matplotlib.pyplot as plt
+import time
+from matplotlib.colors import LogNorm
+import h5py
+
+# local imports
+sys.path.append('/data/id13/inhouse2/AJ/script')
+from simplecalc.calc import troi_to_slice
+
+def main(args):
+    fname = args[0]
+
+    troilist = [((1155, 781), (143, 94)), #empty space
+                ((99, 100), (89, 96)), # light in top left corner
+                ((826, 1173), (70, 45)), # streak towards top left
+                ((1210, 1357), (12, 27)), # data top
+                ((1247, 1328), (18, 10))] # data left
+
+    troi_names =['empty space',
+                 'light in top left corner',
+                 'streak towards top left',
+                 'data top',
+                 'data left']
+
+    
+    slice_list = []
+    for troi in troi_list:
+        slice_list.append(troi_to_slice(troi))
+
+              
+    
+
+
+
+if __name__='__main__':
+    usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc. 
+\n2) python <thisfile.py> -f <file containing args as lines> 
+\n3) find <*yoursearch* -> arg1 etc.> | python <thisfile.py> 
+"""
+  
+    args = []
+    if len(sys.argv) > 1:
+        if sys.argv[1].find("-f")!= -1:
+            f = open(sys.argv[2]) 
+            for line in f:
+                args.append(line.rstrip())
+        else:
+            args=sys.argv[1:]
+    else:
+        f = sys.stdin
+        for line in f:
+            args.append(line.rstrip())
+    
+#    print args
+    main(args)

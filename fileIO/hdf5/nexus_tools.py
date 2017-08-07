@@ -1,22 +1,3 @@
-'''
-This is supposed to turn into a tool that takes xyth data and images the strain as function of xy. Improved ofer h5_scan because this uses nexusformat.
-Step 1 : 
-* user imput of experiment parameter (file)
-
-Step 2 : 
-* validation (finding all files)
-* collecting in one meta NXfile
-
-<> independent:
-
-Step 3 : integration
-* fills the meta under NXfile/processing and /measurement
-
-<> independent:
-
-Step 4 : strain?
-'''
-
 import sys, os
 import h5py
 import numpy as np
@@ -26,19 +7,8 @@ import datetime
 # local import for testing:
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 from fileIO.hdf5.open_h5 import open_h5
-import fileIO.hdf5.nexus_update_functions as nuf
 import time
 
-def create_nx_scan(fname = '/data/id13/inhouse6/nexustest_aj/new_master_design.h5'):
-
-    nx_f = nxload(fname, 'w')
-    nx_f.attrs['file_name']        = fname
-    nx_f.attrs['creator']          = 'nexus_tools.py'
-    nx_f.attrs['HDF5_Version']     = h5py.version.hdf5_version
-    nx_f.attrs['NX_class']         = 'NXroot'
-    timestamp(nx_f)
-    
-    return nx_f
 
 def timestamp(nx_f = None):
     '''
@@ -56,47 +26,47 @@ def timestamp(nx_f = None):
         test = -1
     return test
 
-def initialize_scan(nx_f):
+
+def find_dataset_path(nx_g, dataset_name):
     '''
-    setup the empty group that will hopwfully be filled in the strain imaging workflow
-What happens if a file is initialized 2x?
+    returns the path to dataset_name within the groups in nx_g.
+    kind of like to find --maxdepth=1
     '''
-    ## required:
-    poni_fname         = None
-    doolog_fname       = None
-    eiger_master_fname = None
-    spec_fname         = None
-    samplename         = 'TODO, get this from eiger_master_fname'
-    xia_fname          = None
+    dataset_path = 'did not find a valid path'
+    for key in nx_g.keys():
+        for dataset in nx_g[key]:
+            if dataset.name == dataset_name:
+                data_set.path = key + '/' + dataset_name
     
-    nxentry = nx_f['entry'] = NXentry()
-
-    ## setup instrument
-    
-    nxinstrument = nxentry['instrument'] = NXinstrument()
-    nxinstrument.attrs['name'] = 'ID13_nano'
-    
-    # read beamline motor positions
-    nxinstrument = nuf.update_motors_from_doolog(nxinstrument, doolog_fname)    
-
-    ## setup sample
-
-    nxsample = nxentry['sample'] = NXsample()
-    nxsample.attrs['name']       = samplename
-
-    ### components in the beamline:
-    
-    active_components = {}
-    active_components.update({'calibration':poni_fname,
-                              'Eiger4M'    :eiger_master_fname,
-                              'Vortex_1'   :xia_fname,
-                              'spec'       :spec_fname})
-    
-    for (group, fname) in active_components.items():
-        nx_g = nxinstrument[group] = NXcollection()        ## maybe tis needs to be changed to NXdetector
-        nx_g = nuf.update_group_from_file(nx_g, fname)
+    return dataset_path
 
 
-    timestamp(nx_f)
+def id13_default_units(name):
+    angles = ['Theta',
+              'Rot1',
+              'Rot2',
+              'Rot3']
+    piezo  = ['nnp1',
+              'nnp2',
+              'nnp3']
+    time   = ['time',
+              'exp']
+    meter  = ['PixelSize1',
+              'PixelSize2',
+              'Distance',
+              'Poni1',
+              'Poni2',
+              'Wavelength']
     
-    return nx_f
+    if name in angles:
+        units = 'degrees'
+    elif name in meter:
+        units = 'm'
+    elif name in piezo:
+        units = 'um'
+    elif name in time:
+        units = 's'
+        
+    else:
+        units = 'mm'
+    return units

@@ -1,0 +1,47 @@
+import numpy as np
+import sys, os
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import fileIO.pyFAI.integrate1D_parallel as int1d
+reload(int1d)
+result = int1d.integrate1d()
+
+#####################
+
+
+import sys, os
+import h5py
+import numpy as np
+from nexusformat.nexus import *
+import datetime
+from silx.io.spech5 import SpecH5
+
+# local import for testing:
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from fileIO.hdf5.open_h5 import open_h5
+from fileIO.hdf5.nexus_tools import id13_default_units as default_units
+import time
+import fileIO.hdf5.nexus_class as nxc
+import fileIO.hdf5.nexus_tools as nxt
+import fileIO.hdf5.nexus_update_functions as nuf
+def rld():
+    reload(nxt)
+    reload(nuf)
+    reload(nxc)
+
+process = 'add_random_data'
+data = np.random.randn(5,10,7])
+
+axes  = [('x',{'units':'mm','values':np.arange(5)}),
+         ('time',{'values': np.arange(10)}),
+         ('thumbs',{'units':'mm','values':np.arange(7)})]
+
+kwargs = {'name':'blaasdgsd','axes':axes}
+
+
+savefname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/test.h5'
+os.remove(savefname)
+rld()
+snxc = nxc.nx_id13(savefname)
+snxc.create_file()
+snxc.insert_processed_data(data, process, **kwargs)
+print snxc.nx_f.tree

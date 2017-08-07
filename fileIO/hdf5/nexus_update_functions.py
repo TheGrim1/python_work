@@ -2,54 +2,88 @@
 import sys, os
 import h5py
 import numpy as np
-from nexusformat.nexus import *
+import nexusformat.nexus as nx
 import datetime
 from silx.io.spech5 import SpecH5
 
 # local import for testing:
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 from fileIO.hdf5.open_h5 import open_h5
+from fileIO.hdf5.nexus_tools import id13_default_units as default_units
 import time
 
   
 def update_group_from_file(nx_g,
                            newgroupname,
-                           properties = {fname:None}):
+                           properties = {'fname':None}):
     '''
-    reads the nx datagroup according to nx_g.name, the idea is to handle .h5 and spec files (ultimately)
+    passes nx_g, newgroupname and the properties dict to the right update function
     '''
     if newgroupname == 'Eiger4M':
         nx_g = update_from_eiger_master(nx_g,
-                                        NXdetector(name=newgroupname),
+                                        nx.NXdetector(name=newgroupname),
                                         properties)
         
-    elif newgroupname.find('Vortex') > -1:
+    elif newgroupname.find('fluo') > -1:
         nx_g = update_from_xiasettings(nx_g,
-                                       NXdetector(name=newgroupname),
+                                       nx.NXdetector(name=newgroupname),
                                        properties)
 
     elif newgroupname == 'spec':
         nx_g = update_initial_spec(nx_g,
-                                   NXcollection(name=newgroupname),
+                                   nx.NXcollection(name=newgroupname),
                                    properties)
 
     elif newgroupname == 'calibration':
         nx_g = update_from_ponifile(nx_g,
-                                    NXcollection(name=newgroupname),
+                                    nx.NXcollection(name=newgroupname),
                                     properties)
         
     elif newgroupname == 'beamline_positioners':
         nx_g = update_motors_from_doolog(nx_g,
-                                         NXcollection(name=newgroupname),
+                                         nx.NXcollection(name=newgroupname),
                                          properties)
-              
+
+    elif newgroupname == 'initial_command':
+        nx_g = update_command(nx_g,
+                              nx.NXcollection(name=newgroupname),
+                              properties)
     else:
         raise ValueError('unknown group %s' % newgroupname)
     
     return nx_g
 
 
-def update_from_ponifile(nx_g, new_nx_g, properties = {fname:None}):
+def update_command(nx_g, new_nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
+                                                 'type'   : 'eiger',
+                                                 'version':'Eiger_3_Apples.py',
+                                                 'motors' :{'dummy':[0.0,1.0,1]}}):
+    '''
+    stores command meta data and expected motor scan motor positions
+    '''
+    new_nx_g = nx.NXcollection(name = 'initial_command')
+    new_nx_g.attr['command'] = properties['cmd']
+    new_nx_g.attr['type'] = properties['type']
+    new_nx_g.attr['version'] = properties['version']
+    new_nx_g.attr['exposure_time'] = properties['exp']
+
+    parsed_motors = properties['motors'] 
+    
+    for motor in parsed_motors:
+        motor = parsed_motors[0]
+        start = parsed_motors[1]
+        stop  = parsed_motors[2]
+        steps = parsed_motors[3]
+        
+        positions = np.arange(start,stop+(stop-start)/steps,(stop-start)/steps)
+        new_nx_g.insert(nx.NXpositioner(name = motor,
+                                     value = positions,
+                                     unit = default_units(motor)))
+    
+    nx_g.insert(new_nx_g)
+    return nx_g
+
+def update_from_ponifile(nx_g, new_nx_g, properties = {'fname':None}):
     '''
     reads a .poni file into the group
     '''
@@ -60,7 +94,7 @@ def update_from_ponifile(nx_g, new_nx_g, properties = {fname:None}):
     return nx_g
 
 def nxparse_calibration(calib_fname):
-    nx_calib = NXcollection(name = 'Eiger4M')
+    nx_calib = nx.NXcollection(name = 'Eiger4M')
 
     if calib_fname == None:
         calib_fname = '/data/id13/inhouse6/nexustest_aj/files/al2o3_calib1_max.poni'
@@ -81,7 +115,7 @@ def nxparse_calibration(calib_fname):
         value        = float(current_line.split(':')[1].lstrip().rstrip())
         units        = default_units(name)
         
-        nx_calib.insert(NXfield(name=name,
+        nx_calib.insert(nx.NXfield(name=name,
                                 value=value,
                                 units=units))
 
@@ -124,18 +158,21 @@ def update_initial_spec(nx_g, new_nx_g, properties = {'fname':None}):
 
     new_nx_g.attrs['specfile_original_path'] = spec_fname
     new_nx_g.attrs['specfile_relative_path'] = os.path.relpath(spec_fname)
-    
-    sfh5        = SpecH5(spec_fname)
-    scan_list   = sfh5.keys()
-    scan_no_list = [int(x.split('.')[0]) for x in scan_list]
-    scan_no_list.sort()
-    last_scan_no =  scan_no_list[-1]
-    scan_no      = (last_scan_no + 1)
-    next_scan    = '%s.1' % scan_no
-    print('WARNING: assuming that the spec scan has not started yet! \nThis scan = last scan +1 = %s' %next_scan)
 
-    new_nx_g.insert(NXfield(name = 'spec_scan_no', value = scan_no))
-    new_nx_g.insert(NXfield(name = 'spec_fname', value = spec_fname))
+    if not properties['spec_scan_no_next'] == None:
+        scan_no =  properties['spec_scan_no_next']
+    else:
+        sfh5        = SpecH5(spec_fname)
+        scan_list   = sfh5.keys()
+        scan_no_list = [int(x.split('.')[0]) for x in scan_list]
+        scan_no_list.sort()
+        last_scan_no =  scan_no_list[-1]
+        scan_no      = (last_scan_no + 1)
+        next_scan    = '%s.1' % scan_no
+        print('WARNING: assuming that the spec scan has not started yet! \nThis scan = last scan +1 = %s' %next_scan)
+
+    new_nx_g.insert(nx.NXfield(name = 'spec_scan_no_next', value = scan_no))
+    new_nx_g.insert(nx.NXfield(name = 'spec_fname', value = spec_fname))
           
     # getting all counters: sfh5['13.1/measurement'].keys()
 
@@ -162,15 +199,25 @@ def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbo
     log_f = open(doolog_fname, 'r')
     log_lines = log_f.readlines()
 
-    specsession_list = ['bigmic',
-                        'scanning',
-                        'eybert',
-                        'photon',
-                        'tuning']
-
+    if properties['instrument_name'] == 'id13_eh2':
+        specsession_list = ['bigmic',
+                            'scanning',
+                            'eybert',
+                            'photon',
+                            'tuning']
+    elif properties['instrument_name'] == 'id13_eh3':
+        specsession_list = ['EH3',
+                            'eybert',
+                            'photon',
+                            'tuning']
+    else:
+        raise ValueError, '%s is not a valid instrument name' %properties['instrument_name']
+                
+        
+        
     ### what to update should be set, let's do it!
     
-    nx_blm = NXcollection(name = 'positioners_initial')
+    nx_blm = nx.NXcollection(name = 'positioners_initial')
     
     i = 0
     while len(specsession_list) > 0:
@@ -183,7 +230,7 @@ def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbo
             for no, session_name in enumerate(specsession_list):
                 if current_line.find(session_name) > 0:
                     specsession_list.pop(no)
-                    ds = NXcollection(name = session_name)               
+                    ds = nx.NXcollection(name = session_name)               
                     ds.attrs['log_no']      = int(current_line.split(':')[1].lstrip(' '))
                     ds.attrs['log_time']    = current_line.split(':')[4].lstrip(' ')
                     ds.attrs['update_time'] = "T".join( str( datetime.datetime.now() ).split() )
@@ -200,9 +247,9 @@ def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbo
                             name  = (subline.split(':')[-1].split('=')[0].lstrip().rstrip())
                             units  = default_units(name)
 #                            print 'inserted %s = %s' % (name,value)
-                            ds.insert(NXfield(value=value,
-                                              name=name,
-                                              units=units))
+                            ds.insert(nx.NXpositioner(value=value,
+                                                   name=name,
+                                                   units=units))
 
                     nx_blm.insert(ds)
 
@@ -247,38 +294,38 @@ def update_from_xiasettings(nx_g, new_nx_g, properties = {'fname':None},  verbos
 
     print('writing hard coded default XRF attenuators, including air attenuation!')
     
-    nx_attenuators = new_nx_g['attenuators'] = NXcollection()
+    nx_attenuators = new_nx_g['attenuators'] = nx.NXcollection()
 
-    deadlayer = NXattenuator(name = 'deadlayer')
-    deadlayer.insert(NXfield(name = 'density', value = 2.33, units='g cm-3'))
-    deadlayer.insert(NXfield(name = 'material', value = 'Si1'))
-    deadlayer.insert(NXfield(name = 'thickness', value = 0.00002, units='cm'))
-    deadlayer.insert(NXfield(name = 'Funny_Factor', value = 1))
+    deadlayer = nx.NXattenuator(name = 'deadlayer')
+    deadlayer.insert(nx.NXfield(name = 'density', value = 2.33, units='g cm-3'))
+    deadlayer.insert(nx.NXfield(name = 'material', value = 'Si1'))
+    deadlayer.insert(nx.NXfield(name = 'thickness', value = 0.00002, units='cm'))
+    deadlayer.insert(nx.NXfield(name = 'Funny_Factor', value = 1))
     
     nx_attenuators.insert(deadlayer)
 
-    atmosphere = NXattenuator(name = 'atmosphere')
-    atmosphere.insert(NXfield(name = 'density', value = 0.001205, units='g/cm3'))
-    atmosphere.insert(NXfield(name = 'material', value = 'Air'))
-    atmosphere.insert(NXfield(name = 'thickness', value = 2.0, units='cm',
+    atmosphere = nx.NXattenuator(name = 'atmosphere')
+    atmosphere.insert(nx.NXfield(name = 'density', value = 0.001205, units='g/cm3'))
+    atmosphere.insert(nx.NXfield(name = 'material', value = 'Air'))
+    atmosphere.insert(nx.NXfield(name = 'thickness', value = 2.0, units='cm',
                               comment = 'this is not corrected for the position of the detector!!!'))
-    atmosphere.insert(NXfield(name = 'Funny_Factor', value = 1))
+    atmosphere.insert(nx.NXfield(name = 'Funny_Factor', value = 1))
     
     nx_attenuators.insert(atmosphere)
 
-    window = NXattenuator(name = 'window')
-    window.insert(NXfield(name = 'density', value = 1.848, units='g cm-3'))
-    window.insert(NXfield(name = 'material', value = 'Be'))
-    window.insert(NXfield(name = 'thickness', value = 0.0025, units='cm'))
-    window.insert(NXfield(name = 'Funny_Factor', value = 1))
+    window = nx.NXattenuator(name = 'window')
+    window.insert(nx.NXfield(name = 'density', value = 1.848, units='g cm-3'))
+    window.insert(nx.NXfield(name = 'material', value = 'Be'))
+    window.insert(nx.NXfield(name = 'thickness', value = 0.0025, units='cm'))
+    window.insert(nx.NXfield(name = 'Funny_Factor', value = 1))
 
     nx_attenuators.insert(window)
     
-    detector = NXattenuator(name = 'detector')
-    detector.insert(NXfield(name = 'density', value = 2.33, units='g cm-3'))
-    detector.insert(NXfield(name = 'material', value = 'Si'))
-    detector.insert(NXfield(name = 'thickness', value = 0.0035, units='cm'))
-    detector.insert(NXfield(name = 'Funny_Factor', value = 1))
+    detector = nx.NXattenuator(name = 'detector')
+    detector.insert(nx.NXfield(name = 'density', value = 2.33, units='g cm-3'))
+    detector.insert(nx.NXfield(name = 'material', value = 'Si'))
+    detector.insert(nx.NXfield(name = 'thickness', value = 0.0035, units='cm'))
+    detector.insert(nx.NXfield(name = 'Funny_Factor', value = 1))
     
     nx_attenuators.insert(detector)
 
@@ -289,7 +336,7 @@ def update_from_xiasettings(nx_g, new_nx_g, properties = {'fname':None},  verbos
     
     return nx_g
 
-def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None,'list_to_get' : None}, verbose = False):
+def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None}, verbose = False):
     '''
     specific solution for eiger master files, get default values from ['entry/instrument/detector'] and data from entry/data/data
     '''
@@ -301,30 +348,29 @@ def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None,'list_to
         print('WARNING: using default master filename')
         master_fname = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AUTO-TRANSFER/eiger1/al2o3_calib1_132_master.h5'
 
-    nx_eiger = nxload(master_fname, 'r')
+    nx_eiger = nx.nxload(master_fname, 'r')
     nx_eigersource= nx_eiger['entry/instrument/detector']
 
     ### get the Eigers properties
     
-    if list_to_get == None:
-        list_to_get = ['bit_depth_image',
-                       'bit_depth_readout',
-                       'count_time',
-                       'countrate_correction_applied',
-                       'description',
-                       'detector_number',
-                       'detector_readout_time',
-                       'efficiency_correction_applied',
-                       'flatfield_correction_applied',
-                       'frame_time',
-                       'pixel_mask_applied',
-                       'sensor_material',
-                       'sensor_thickness',
-                       'threshold_energy',
-                       'virtual_pixel_correction_applied',
-                       'x_pixel_size',
-                       'y_pixel_size',
-                       'detectorSpecific/data_collection_date']
+    list_to_get = ['bit_depth_image',
+                   'bit_depth_readout',
+                   'count_time',
+                   'countrate_correction_applied',
+                   'description',
+                   'detector_number',
+                   'detector_readout_time',
+                   'efficiency_correction_applied',
+                   'flatfield_correction_applied',
+                   'frame_time',
+                   'pixel_mask_applied',
+                   'sensor_material',
+                   'sensor_thickness',
+                   'threshold_energy',
+                   'virtual_pixel_correction_applied',
+                   'x_pixel_size',
+                   'y_pixel_size',
+                   'detectorSpecific/data_collection_date']
 
     if verbose:
         print('updating group %s from file %s with:' % (nx_g.nxpath, master_fname))
@@ -346,46 +392,67 @@ def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None,'list_to
     
     nx_g.insert(new_nx_g)
 
-
-    ## this seems dangrous to me, opening the file again:
-    f                = h5py.File(nx_g.nxroot.nxfilename)
-    local_nxpath     = '/'.join([nx_g.nxpath,new_nx_g.nxname,'data'])
+    ### nexusformat external links:
+    local_nxpath     = new_nx_g.nxname + '/data'
     external_nxpath  = 'entry/data/'
-
-    #    print 'inserting external link at %s\nto file %s\nat the external link %s\n'\
-    #        % (local_nxpath, rel_master_fname, external_nxpath)
+    print local_nxpath
+    nx_g[local_nxpath] = nx.NXlink(external_nxpath, file = rel_master_fname)
+    nx_g[local_nxpath].attrs['sigal'] = 'data'
     
-    f[local_nxpath]  = h5py.ExternalLink(rel_master_fname, external_nxpath)
-
-    
-    f.close()
+    # ## this seems dangrous to me, opening the file again:
+    # f                = h5py.File(nx_g.nxroot.nxfilename)
+    # local_nxpath     = '/'.join([nx_g.nxpath,new_nx_g.nxname,'data'])
+    # external_nxpath  = 'entry/data/'
+    # f[local_nxpath]  = h5py.ExternalLink(rel_master_fname, external_nxpath)    
+    # f.close()
   
     
     return nx_g
 
     
-       
-def default_units(name):
-    angles = ['Theta',
-              'Rot1',
-              'Rot2',
-              'Rot3']
-    piezo  = ['nnp1',
-              'nnp2',
-              'nnp3']
-    meter  = ['PixelSize1',
-              'PixelSize2',
-              'Distance',
-              'Poni1',
-              'Poni2',
-              'Wavelength']
-    
-    if name in angles:
-        units = 'degrees'
-    elif name in meter:
-        units = 'm'
-    elif name in piezo:
-        units = 'um'
+def insert_dataset(nx_g,
+                   data = np.random.randint(5,10,7),
+                   **kwargs):
+    if 'name' in kwargs:
+        name = kwargs['name']
     else:
-        units = 'mm'
-    return units
+        name = 'data'
+
+    if 'units' in kwargs:
+        units = kwargs['units']
+    else:
+        units = default_units(name)
+
+    print 'data'
+    print data
+    print 'kwargs'
+    print kwargs
+    nx_g.insert(nx.NXfield(value = data, units = units, name = name))
+    
+    if 'axes' in kwargs:
+        nx_g.attrs['signal'] = name
+        axes = []
+        for axis, properties in kwargs['axes']:
+            print 'appending axis %s' % axis
+            print 'with properties:'
+            print properties
+            axes.append(axis)
+            if 'link' in properties:
+                nx_g.makelink(nx_g.nxroot[properties['link']])
+            elif 'values' in properties:
+                values = properties['values']
+
+                if 'units' in properties:
+                    units = properties['units']
+                else:
+                    units = default_units(axis)
+                nx_g[axis] = nx.NXfield(value = values, units = units)
+            else:
+                nx_g.makelink(nx_g.nx_root['entry/measurement/' + axis])
+                    
+        nx_g.attrs['axes'] = ':'.join(axes)
+    
+    return nx_g
+
+
+        

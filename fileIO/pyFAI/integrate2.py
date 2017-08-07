@@ -5,8 +5,8 @@ import pyFAI
 
 def main(file_list):
     ai = pyFAI.AzimuthalIntegrator()
-    ai.load('/data/id13/inhouse5/THEDATA_I5_1/d_2016-06-09_inh_ihmi1224/PROCESS/ANALYSIS/log')
-    ai.maskfile = '../PROCESS/SESSION3/calibration/total_mask.edf'
+    ai.load('/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc4415_smith/PROCESS/SESSION25/OUT/tr5_As40_40p_180um_1315_avg_00000.edf')
+    ai.maskfile = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc4415_smith/PROCESS/post_exp/tr5_As40_40p_180um_1315_avg_00000-mask.edf'
     
     for f in file_list:
         data = fabio.open(f).data

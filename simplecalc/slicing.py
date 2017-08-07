@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def troi_to_xy(troi):
     
     xstart = troi[0][1]
@@ -36,6 +39,27 @@ def troi_to_slice(troi):
 
     return [slice(ystart,yend,1),slice(xstart,xend,1)]
 
+def array_as_list(array):
+    '''
+    resorts array into [[x0,y0,z0],....]
+    returns shape = (3,n x m) for array,shape = (n,m)
+    '''
+    xyz = []
+    x = np.arange(array.shape[0])
+    y = np.arange(array.shape[1])
+
+    for i in x:
+        for j in y:
+            xyz.append([i,j,array[i,j]])
+
+    xyz = np.rollaxis(np.asarray(xyz),-1)
+    
+    
+
+    return xyz
+
+
+
 def test():
 
     print('troi = ')
@@ -44,3 +68,6 @@ def test():
     print(troi_to_xy(((20,60),(100,200))))
     print('xy_to_troi(troi_to_xy(((20,60),(100,200)))) = ')
     print(xy_to_troi(troi_to_xy(((20,60),(100,200)))))
+
+
+    

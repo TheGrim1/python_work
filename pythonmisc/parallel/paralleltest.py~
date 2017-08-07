@@ -1,0 +1,25 @@
+
+# global imports
+from multiprocessing import Pool
+import sys, os
+import matplotlib.pyplot as plt
+import time
+from time import sleep
+from matplotlib.colors import LogNorm
+import h5py
+import numpy as np
+import json
+
+
+# local imports
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from simplecalc.slicing import troi_to_slice
+
+
+
+
+def waitrounds(time):
+    for i in range(time):
+        rand = np.random.randint(10)
+        print 'round %s of %s: process %s is waiting %s' %(i,time,os.getpid(),rand)
+        sleep(rand)

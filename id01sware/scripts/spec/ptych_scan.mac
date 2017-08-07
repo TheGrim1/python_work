@@ -1,0 +1,157 @@
+###################
+# ptych_scan.mac
+###################
+# SL 20141208
+#
+# define different ptychographic scan types in SPEC
+# functions are actually generic x,y dat files for two motors could be anything
+# 
+
+
+def _lscan '
+        if (_n1 <= 0) {
+                eprint "Intervals <= 0"
+                exit
+        } ;
+        {
+         local i
+         for (i=0;i<_nm;i++) {
+                 local _min _max
+                 _bad_lim = 0
+                 #find min/max
+                 _chk_lim _m[i] array_op("min",_pos[:][i]) 
+                 _chk_lim _m[i] array_op("max",_pos[:][i])
+                 if (_bad_lim) exit;
+         }
+        }
+        HEADING=_nm>1? sprintf("a%dscan ", _nm):"ascan "
+        {
+         local i
+         for (i=0;i<_nm;i++) {
+                HEADING=sprintf("%s%s",HEADING,sprintf(" %s %s ",\
+                        motor_mne(_m[i]),_posfn))
+         }
+        }
+        _n1 = array_op("rows",_pos)
+        HEADING=sprintf("%s %g %g",HEADING,_n1,_ctime)
+        #_n1++ # definitive points not total steps like all spec scans
+        _cols=_nm+_hkl_col
+        X_L = motor_name(_m[0])
+        Y_L = cnt_name(DET)
+        _sx = _s[0]; _fx = _f[0]
+        _stype = scanType_MotorScan|(_nm<<8)
+        FPRNT=VPRNT=""
+        {
+         local i
+         for (i=0;i<_nm;i++) {
+             FPRNT=sprintf("%s%s  ",FPRNT,motor_name(_m[i]))
+             VPRNT=sprintf("%s%9.9s ",VPRNT,motor_name(_m[i]))
+         }
+        }
+        FPRNT=sprintf("%s%s  ",FPRNT,_hkl_sym1)
+        scan_head
+        VFMT=sprintf("%%s%%9.%df ",UP)
+        def _scan_on \'
+         for (; NPTS < _n1; NPTS++) {
+                local i
+                for (i=0;i<_nm;i++)
+                        A[_m[i]] = _pos[NPTS][i]
+                scan_move
+                FPRNT=VPRNT=""
+                for (i=0;i<_nm;i++) {
+                     FPRNT=sprintf("%s%.8g ",FPRNT,A[_m[i]])
+                     VPRNT=sprintf(VFMT,VPRNT,A[_m[i]])
+                }
+                FPRNT=sprintf("%s%s ",FPRNT,_hkl_val)
+                scan_loop
+                scan_data(NPTS,A[_m[0]])
+                scan_plot
+         }
+         scan_tail
+        \'
+        _scan_on
+'
+
+def ptych2D_usrpos_scan '
+        if ($# != 5) {
+                eprint "\
+Usage:  ptych_usrpos_scan  motor1 motor2 pos-fn nb-pos time"
+                exit
+        }
+        #insert fmt_read
+        #insert array_read - limit of 2048 lines do not use - NO limit exists! tested to 100000 points
+        _check0 "$1"; _check0 "$2"
+        _m[0] = $1;
+        _m[1] = $2;
+	    _posfn = "$3";
+        _nb_pos = $4;
+        array _pos[_nb_pos][2]
+        array_read(_posfn,_pos)  
+        _ctime = $5;
+        _nm = 2;
+	_n1 = _nb_pos
+        _lscan
+'
+
+def ptych2D_usrpos_scan_large '
+        local _tmp
+        if ($# != 5) {
+                eprint "\
+Usage:  ptych_usrpos_scan  motor1 motor2 pos-fn nb-pos time"
+                exit
+        }
+        # In principle no limit on array_read - read two lines of infinite length work around
+        # to be tested
+        # if it doesnt work invoke fmt_read - ask PB
+        _check0 "$1"; _check0 "$2"
+        _m[0] = $1;
+        _m[1] = $2;
+	    _posfn = "$3";
+        _nb_pos = $4;
+        array _tmp[2][_nb_pos]
+        array_read(_posfn,_tmp)
+        array _pos[array_op("cols",_tmp)][array_op("rows",_tmp)]
+        _pos = array_op("transpose",_tmp)
+        _ctime = $5;
+        _nm = 2;
+        _lscan
+'
+
+#end
+
+
+
+#3dptychscanning
+def ptych3D_usrpos_scan '
+        if ($# != 9) {
+                eprint "\
+Usage:  ptych_usrpos_scan  motor1 motor2 pos-fn nb-pos motor3 s f points time"
+                exit
+        }
+        #envisage either eta or energy scanning at some stage
+        #simply want to do an eta/nrj scan and do a 2D map at each position
+        _check0 "$1"; _check0 "$2"
+        _m[0] = $1;
+        _m[1] = $2;
+	    _posfn = "$3";
+        _nb_pos = $4;
+        #array _pos[_nb_pos][2]
+        #array_read(_posfn,_pos)
+        array _tmp[2][_nb_pos]
+        array_read(_posfn,_tmp)
+        array _pos[array_op("cols",_tmp)][array_op("rows",_tmp)]
+        _pos = array_op("transpose",_tmp)  
+        _ctime = $9;
+        _nm = 2;
+        _m[2] = $5
+        _start = $6
+        _finish = $7
+        _points = $8
+        _d = (_finish-_start)/_points
+        _points++
+        for (; _NPTS<_points; _NPTS++){
+		A[_m[2]]= _start+_NPTS*_d
+		_lscan
+		}
+        
+'

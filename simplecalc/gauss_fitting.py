@@ -1,12 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage
-from scipy.optimize import leastsq
+from scipy.optimize import leastsq, curve_fit
 import math
+import sys,os
 
 from scipy.signal import find_peaks_cwt as find_peaks
 from simplecalc.calc import subtract_c_bkg
 from scipy.ndimage import gaussian_filter1d as gauss1d
+
+# local imports
+path_list = os.path.dirname(__file__).split(os.path.sep)
+importpath_list = []
+if 'skript' in path_list:
+    for folder in path_list:
+        importpath_list.append(folder)
+        if folder == 'skript':
+            break
+importpath = os.path.sep.join(importpath_list)
+sys.path.append(importpath)        
+from simplecalc.slicing import array_as_list
+
 
 def peak_finder_1d(data,filterwidth = 1):
     '''
@@ -369,6 +383,76 @@ def do_variable_gaussbkg_pipeline(data,
     return peaks, residual
 
 
+
+def fit_2d_gauss(array):
+    '''
+    returns params, residual
+    params as [amp, x0, y0, a, b, c] see .gauss2d
+    '''
+    xyz   = array_as_list(array)
+    xy    = xyz[0:2]
+    z     = xyz[2]
+    i     = z.argmax()
+
+    guess = [1, xy[0][i], xy[1][i], 1, 1, 1]
+    params_found, uncert_cov = curve_fit(gauss2d, xy, z, p0=guess)
+
+    zpred = gauss2d(xy, *params_found)
+    
+    residual = np.sqrt(np.mean((z - zpred)**2))
+    return params_found, residual
+
+def gauss2d(xy, amp, x0, y0, a, b, c):
+    '''
+    # from https://stackoverflow.com/questions/27539933/2d-gaussian-fit-for-intensities-at-certain-coordinates-in-python
+    '''
+    x, y = xy
+    inner = a * (x - x0)**2
+    inner += 2 * b * (x - x0)**2 * (y - y0)**2
+    inner += c * (y - y0)**2
+    return amp * np.exp(-inner)
+
+
+
+def test_2d_gaussfit():
+    # from https://stackoverflow.com/questions/27539933/2d-gaussian-fit-for-intensities-at-certain-coordinates-in-python
+    np.random.seed(1977) # For consistency
+    x, y = np.random.random((2, 10))
+    xy = np.vstack([x,y])
+    x0, y0 = 0.3, 0.7
+    amp, a, b, c = 1, 2, 3, 4
+    true_params = [amp, x0, y0, a, b, c]    
+    zobs = gauss2d(xy, amp, x0, y0, a, b, c)
+
+    i = zobs.argmax()
+    guess = [1, x[i], y[i], 1, 1, 1]
+    pred_params, uncert_cov = curve_fit(gauss2d, xy, zobs, p0=guess)
+
+    zpred = gauss2d(xy, *pred_params)
+    print 'True parameters: ', true_params
+    print 'Predicted params:', pred_params
+    print 'Residual, RMS(obs - pred):', np.sqrt(np.mean((zobs - zpred)**2))
+
+    # from here its plotting:
+
+    fig, ax = plt.subplots()
+    scat = ax.scatter(x, y, c=zobs, s=200)
+    fig.colorbar(scat)
+    plt.show()
+
+    yi, xi = np.mgrid[:1:30j, -.2:1.2:30j]
+    xyi = np.vstack([xi.ravel(), yi.ravel()])
+
+    zpred = gauss2d(xyi, *pred_params)
+    zpred.shape = xi.shape
+
+    fig, ax = plt.subplots()
+    ax.scatter(x, y, c=zobs, s=200, vmin=zpred.min(), vmax=zpred.max())
+    im = ax.imshow(zpred, extent=[xi.min(), xi.max(), yi.max(), yi.min()],
+                   aspect='auto')
+    fig.colorbar(im)
+    ax.invert_yaxis()
+    plt.show()
 
 def main():
 

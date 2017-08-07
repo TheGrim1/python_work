@@ -1,3 +1,5 @@
+import numpy as np
+
 def draw_lines_troi(troi = ((0,0),(10,10)), color = "black", axes = None, linewidth = 1):
     """
     draw a box into an Eiger sized array plotted into axes = axes around the give troi = troi, with color = color.
@@ -10,3 +12,12 @@ def draw_lines_troi(troi = ((0,0),(10,10)), color = "black", axes = None, linewi
     axes.plot((x,x), (y,y+dy) ,color = color, linewidth = linewidth)
     
     return axes
+
+def get_vcolor(data,
+               low=10,
+               high=90):
+    '''returns the low(10) and high(90) percentile for nice colorscaling
+    '''
+    vmin=(np.percentile(data,low))
+    vmax=(np.percentile(data,high))
+    return (vmin,vmax)

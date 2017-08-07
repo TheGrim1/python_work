@@ -1,19 +1,34 @@
 import numpy as np
 import scipy.ndimage as nd
-from silx.image import sift
+#from silx.image import sift
 import timeit
-
+import sys, os
 import matplotlib.pyplot as plt
 
-def crosscorrelation_align(align, alignment = (0,0)):
-    'forms the correlation between align[0] and all others. The shift is center of refernce - max of the crosscorrelation. Aligns align to align[0].\n Applies optional linear potential from max(aling[0]) to min(align[0]) in direction alignment (see mask_align). \n tackes 3d array (X, N, M) and alligns all in X \nreturn (align, shift).\nAs the image is forced towards the direction given in alignment, repeated runs may continue to shift the image! '
+
+
+def crosscorrelation_align(imagestack):
+    
+# run over all including reference to apply the forcing evenly, repeated runs may continue to shift the image!
+
+    reference = np.copy(imagestack[:,:,0])
+    for i in range(imagestack.shape[2]):
+        print 'aligning 0 with %s' %i
+
+        (imagestack[:,:,i], ishift) = single_correlation_align(reference, imagestack[:,:,i])
+        shift.append(ishift) 
+
+    return imagestack, shift
+
+def forcedcrosscorrelation_align(imagestack, alignment = (0,0)):
+    'forms the correlation between imagestack[0] and all others. The shift is center of refernce - max of the crosscorrelation. Aligns imagestack to imagestack[:,:,0].\n Applies optional linear potential from max(alingimagestack[:,:,0]) to min(imagestack[:,:,0]) in direction alignment (see mask_align). \n tackes 3d array (X, N, M) and alligns all in X \nreturn (imagestack, shift).\nAs the image is forced towards the direction given in alignment, repeated runs may continue to shift the image! '
     shift = []
 
 #    setup the potential to force the alignment in a certain direction
-    maxforce = align[:,:,0].max()
-    minforce = align[:,:,0].min() 
-    xstepforce = (maxforce + minforce) / len(align[:,0,0])
-    ystepforce = (maxforce + minforce) / len(align[0,:,0])
+    maxforce = imagestack[:,:,0].max()
+    minforce = imagestack[:,:,0].min() 
+    xstepforce = (maxforce + minforce) / len(imagestack[:,0,0])
+    ystepforce = (maxforce + minforce) / len(imagestack[0,:,0])
 
     print 'alignment = '
     print alignment
@@ -21,46 +36,46 @@ def crosscorrelation_align(align, alignment = (0,0)):
         x = np.atleast_2d(np.arange(minforce, maxforce, xstepforce)).T        
         x = x[::-alignment[0]]
     else:
-        x = np.atleast_2d(np.ones(align.shape[0])).T
+        x = np.atleast_2d(np.ones(imagestack.shape[0])).T
 
     if alignment[1]:
         y = np.atleast_2d(np.arange(minforce, maxforce, ystepforce))
         y = y[0][::-alignment[1]]
     else:
-        y = np.atleast_2d(np.ones(align.shape[1]))
+        y = np.atleast_2d(np.ones(imagestack.shape[1]))
     
     if any(alignment):
         potential = x * y
         print 'potential.shape = '
         print potential.shape
-        reference = np.copy(align[:,:,0])
+        reference = np.copy(imagestack[:,:,0])
     else:
-        reference = np.copy(align[:,:,0])
+        reference = np.copy(imagestack[:,:,0])
         potential = x * y
         
 
 # run over all including reference to apply the forcing evenly, repeated runs may continue to shift the image!
-    for i in range(align.shape[2]):
+    for i in range(imagestack.shape[2]):
         print 'aligning 0 with %s' %i
         
-        forcedalign = np.copy(align[:,:,i]) * potential
+        forcedalign = np.copy(imagestack[:,:,i]) * potential
 
         (forcedalign,ishift) = single_correlation_align(potential * reference, forcedalign)
-        nd.shift(align[:,:,i],ishift,output = align[:,:,i])
+        nd.shift(imagestack[:,:,i],ishift,output = imagestack[:,:,i])
         shift.append(ishift)                                  
 
 # plot residue to reference
-#        align[:,:,i] = reference - align[:,:,i] 
+#        imagestack[:,:,i] = reference - imagestack[:,:,i] 
 
-#        align[:,:,i] = reference
+#        imagestack[:,:,i] = reference
         
 
-    return align, shift
+    return imagestack, shift
 
-def single_correlation_align(reference, align):
+def single_correlation_align(reference, imagestack):
     'see crosscorrelation before stacks were cool'
 
-    correlation = nd.correlate(align, reference, mode = 'constant')
+    correlation = nd.correlate(imagestack, reference, mode = 'constant')
     maxcorrelation = correlation.argmax()
     centerref = np.array([reference.shape[0]/2,reference.shape[1]/2])
 
@@ -71,17 +86,17 @@ def single_correlation_align(reference, align):
 
     shift = centerref - np.array(np.unravel_index(maxcorrelation,correlation.shape)) 
 
-    nd.shift(align,shift, output = align)
+    nd.shift(imagestack,shift, output = imagestack)
 
-    return (align, shift)
+    return (imagestack, shift)
 #    return (correlation, shift)
 
 
-def mask_align(align, threshold = 5, alignment = (0,0)):
-    'masks the aling array by thresholding.\n Aligns to the alighnment = (1,1) = top - left/n(-1,1) = btm - left/n(1,-1) = top - right/n(-1,-1) = bottom - right corner. A value of 0 in alignment does not align that direction.\n Returns the align array aligned to the first array in the stack and a list of the shift (r[0]-a[0],r[1]-a[1]).'
+def mask_align(imagestack, threshold = 5, alignment = (0,0)):
+    'masks the aling array by thresholding.\n Aligns to the alighnment = (1,1) = top - left/n(-1,1) = btm - left/n(1,-1) = top - right/n(-1,-1) = bottom - right corner. A value of 0 in alignment does not align that direction.\n Returns the imagestack array aligned to the first array in the stack and a list of the shift (r[0]-a[0],r[1]-a[1]).'
 
     
-    maskreference = np.where(align[:,:,0] > threshold, 1, 0)
+    maskreference = np.where(imagestack[:,:,0] > threshold, 1, 0)
     
     shift = [(0,0)]
     drefcols  = 0
@@ -101,9 +116,9 @@ def mask_align(align, threshold = 5, alignment = (0,0)):
             drefrows += 1
             i        += 1
 
-    for k in range(1,align.shape[2]):
-        kshift = np.zeros(shape=(2))
-        maskalign     = np.where(align[:,:,k] > threshold, 1, 0)
+    for k in range(1,imagestack.shape[2]):
+        kshift = [0,0]
+        maskalign     = np.where(imagestack[:,:,k] > threshold, 1, 0)
         if alignment[0]:
             aligncols = maskalign.sum(1)[::alignment[0]]
             dcols  = 0
@@ -122,40 +137,45 @@ def mask_align(align, threshold = 5, alignment = (0,0)):
                 kshift[0] = drows - drefrows
 
         shift.append(kshift)
-        align[:,:,k] = nd.shift(align[:,:,k],shift[k])
+        imagestack[:,:,k] = nd.shift(imagestack[:,:,k],shift[k])
 
-    return (align, shift)
+    return (imagestack, shift)
 
 
-def sift_align(align, threshold = None):
-    'uses the silx.image.sift alignment. Returns aligned array and tupel  (r[0]-a[0],r[1]-a[1]). The optional threshold has not been shown to help for single wire images.'
+# def sift_align(imagestack, threshold = None):
+#     'uses the silx.image.sift alignment. Returns aligned array and tupel  (r[0]-a[0],r[1]-a[1]). The optional threshold has not been shown to help for single wire images.'
 
-# initialize sift according to mail from Pierre Paleo
+# # initialize sift according to mail from Pierre Paleo
 
-    reference = np.ascontiguousarray(np.where(align[:,:,0] > threshold, align[:,:,0], 0))
+#     reference = np.ascontiguousarray(np.where(imagestack[:,:,0] > threshold, imagestack[:,:,0], 0))
 
-    alignplan = sift.LinearAlign(reference, devicetype="GPU")
-# alternative:
-#    alignplan = sift.LinearAlign(reference, device=(2,0))
+#     alignplan = sift.LinearAlign(reference, devicetype="GPU")
+# # alternative:
+# #    alignplan = sift.LinearAlign(reference, device=(2,0))
     
-    shift = [(0,0)]
-    for i in range(1,align.shape[2]):
+#     shift = [(0,0)]
+#     for i in range(1,imagestack.shape[2]):
         
-        dummy = np.copy(align[:,:,i])
-        dummy = np.where(dummy > threshold, dummy, 0)
+#         dummy = np.copy(imagestack[:,:,i])
+#         dummy = np.where(dummy > threshold, dummy, 0)
 
-        result  = alignplan.align(dummy, shift_only = True, return_all=True)
-        if result:
-            shift.append(np.round(np.asarray(result['offset'],dtype = float)))
-        else:
-            shift.append(np.zeros(shape=2))
+#         result  = alignplan.imagestack(dummy, shift_only = True, return_all=True)
+#         if result:
+#             shift.append(np.round(np.asarray(result['offset'],dtype = float)))
+#         else:
+#             shift.append(np.zeros(shape=2))
 
-        align[:,:,i] = nd.shift(align[:,:,i],shift[i])
+#         imagestack[:,:,i] = nd.shift(imagestack[:,:,i],shift[i])
 
 
 
-    return (align, shift)
+#     return (imagestack, shift)
 
+def shift_image(data, shift):
+    for i, ishift in enumerate(shift):
+        nd.shift(data[:,:,i], ishift, output = data[:,:,i],)
+    
+    return data
 
 def real_from_rel(frame,data,shift = [1,1]):
     'this function gives you the real frame number if you give it the shifted frame number, an examplary dataset and the shift.\n returns -1 if the frame is out of the FOV.\n accepts slices'
@@ -175,60 +195,102 @@ def real_from_rel(frame,data,shift = [1,1]):
     
     return frames[frame]
 
-def image_align(align, mode = {'mode':'sift'}):
-    'returns the align array stack aligned to the [0] array in it. The relative shift ist areturned as a list of touples (r[0]-a[0],r[1]-a[1])'
+def image_align(imagestack, mode = {'mode':'sift'}):
+    'returns the imagestack array stack aligned to the r = reference = imagestack[:,:,0] in it. The relative shift ist areturned as a list of touples (r[0]-a[0],r[1]-a[1])'
 
-    if mode['mode'] == 'sift':
-        (align, shift) = sift_align(align, threshold = mode['threshold'])
-    elif mode['mode'] == 'mask':
-        (align, shift) = mask_align(align, threshold = mode['threshold'], alignment = mode['alignment'])
+    # if mode['mode'] == 'sift':
+    #     (imagestack, shift) = sift_align(imagestack, threshold = mode['threshold'])
+    if mode['mode'] == 'mask':
+        (imagestack, shift) = mask_align(imagestack, threshold = mode['threshold'], alignment = mode['alignment'])
     elif mode['mode'] == 'crosscorrelation':
-        (align, shift) = crosscorrelation_align(align, alignment = mode['alignment'])
-
+        (imagestack, shift) = crosscorrelation_align(imagestack, alignment = mode['alignment'])
+    elif mode['mode'] == 'forcedcrosscorrelation':
+        (imagestack, shift) = forcedcrosscorrelation_align(imagestack, alignment = mode['alignment'])
     else:
         print "%s is not a valid mode" % mode    
-
-    return (align, shift)
-
-
+        
+    return (imagestack, shift)
 
 
-if __name__ == '__main__':
-    'testfuction'
 
-# setup an pair of array to test alignment 
+def find_COR(imagestack, mode='elastix'):
+    '''
+    imagestack.shape = [nimage, npixel1, npixel2], for now nimage = 2
+    returns COR as CORpixel1, CORpixel2, Rotationangel in deg
+    '''
+    raise NotImplementedError('TODO')
+    
+    return COR
+
+def do_test():
+    '''testfuction'''
+
+
+    # local imports
+    path_list = os.path.dirname(__file__).split(os.path.sep)
+    importpath_list = []
+    if 'skript' in path_list:
+        for folder in pathlist:
+            importpath_list.append(folder)
+            if folder = 'skript':
+                break
+    importpath = os.path.sep.join(importpath_list)
+    sys.path.append(importpath)        
+    import pythonmisc.simplecalc.plot_array as plot_array
+    
+    # setup arrays to test alignment
+
+
     x         = np.atleast_2d(np.arange(100))
     y         = np.atleast_2d(np.arange(100)).T
     shift     = (5,15)
     reference = ((x-50)/100)**2 * ((y-50)/100)**2
     reference[50:55,50:55] = 50000
-    align1    = nd.shift(reference,shift)
-    align2    = nd.shift(align1,shift)
-    align     = np.dstack((reference, align1, align2))
-    dummy     = np.copy(align)
-
-#    timing:
-    start_time = timeit.default_timer()
-
-# do the test    
-    (dummy, (foundshift)) = image_align(dummy, mode = {'mode':'sift'})
-    print 'sift shift found:'
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
-    dummy     = np.copy(align)
-#    timing
-    start_time = timeit.default_timer()
-    (dummy, (foundshift)) = image_align(dummy, mode = {'mode':'mask','threshold':np.percentile(align,70),'alignment':(1,1)})
-    print 'mask shift found:'
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
-    dummy     = np.copy(align)
-#    timing:
-    start_time = timeit.default_timer()
-    (dummy, (foundshift)) = image_align(dummy, mode = {'mode':'crosscorrelation'})
-    print 'crosscorrelation shift found:'
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    imagestack1    = nd.shift(reference,shift)
+    imagestack2    = nd.shift(imagestack1,shift)
+    imagestack     = np.dstack([reference, imagestack1, imagestack2])
+    print 'set up test data with shift = '
+    print ((0,0),(shift[0],shift[1]),(shift[0]*2,shift[1]*2))
+    print
     
+    plot_arrays(imagestack)
+    
+    #    timing:
+    # start_time = timeit.default_timer()
+    # (dummy, (foundshift)) = image_align(dummy, mode = {'mode':'sift'})
+    # print 'sift shift found:'
+    # print foundshift
+    # print 'took %s' % (timeit.default_timer() - start_time)
+    # dummy     = np.copy(imagestack)
+
+
+    ### testing maskshift
+    start_time = timeit.default_timer()
+    dummy     = np.copy(imagestack)
+    mode = {'mode':'mask','threshold':np.percentile(imagestack,70),'alignment':(1,1)}
+    (dummy, (foundshift)) = image_align(dummy, mode = mode)
+    print '%s shift found:' %mode['mode']
+    print foundshift
+    print 'with alignment'
+    print mode['alignment']
+    print 'took %s' % (timeit.default_timer() - start_time)
+
+    ### testing forcedcorrelation
+    dummy     = np.copy(imagestack)
+    start_time = timeit.default_timer()
+    mode = {'mode':'forcedcrosscorrelation','alignment':(1,1)}
+    (dummy, (foundshift)) = image_align(dummy, mode = mode)
+    print '%s shift found:' %mode['mode']
+    print 'with alignment'
+    print mode['alignment']
+    print foundshift
+    print 'took %s' % (timeit.default_timer() - start_time)
+
+
+    
+   
+if __name__ == '__main__':
+
+    do_test()
     
     
