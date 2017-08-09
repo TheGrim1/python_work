@@ -10,6 +10,45 @@ from fileIO.hdf5.open_h5 import open_h5
 import time
 
 
+def createlink(f,dest,linkdir,linkname,soft=True):
+    """
+    Args:
+        f (h5py.File|str): hdf5 file
+        dest (str): destination for the link
+        linkdir (str): link directory
+        linkname (str): link name
+        adapted from spectrocrunch (woutdenolf)
+    """
+    bclose = False
+    if isinstance(f,h5py.File) or isinstance(f,h5py.Group):
+        hdf5FileObject = f
+    elif isinstance(f,str):
+        hdf5FileObject = h5py.File(f)
+        bclose = True
+    else:
+        raise ValueError("The hdf5 file must be either a string or an hdf5 file object.")
+    
+    if dest in hdf5FileObject:
+        if soft:
+            # Remove the link if it exists
+            if linkdir in hdf5FileObject:
+                if linkname in hdf5FileObject[linkdir]:
+                    hdf5FileObject[linkdir].id.unlink(linkname)
+            # Create the link
+            hdf5FileObject[linkdir][linkname] = h5py.SoftLink(dest)
+        else:
+            b = True
+            if linkdir in hdf5FileObject:
+                if linkname in hdf5FileObject[linkdir]:
+                    hdf5FileObject[linkdir][linkname].path = f[dest]
+                    b = False
+            if b:
+                hdf5FileObject[linkdir][linkname] = f[dest]
+
+    if bclose:
+        hdf5FileObject.close()
+
+
 def timestamp(nx_f = None):
     '''
     timestamps the passed nexus file, returns 1 if succesfull, -1 else

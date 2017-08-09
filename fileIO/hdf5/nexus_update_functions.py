@@ -13,80 +13,115 @@ from fileIO.hdf5.nexus_tools import id13_default_units as default_units
 import time
 
   
-def update_group_from_file(nx_g,
+def update_group_from_file(nxentry,
                            newgroupname,
                            properties = {'fname':None}):
     '''
-    passes nx_g, newgroupname and the properties dict to the right update function
+    passes nx_entry, newgroupname and the properties dict to the right update function
     '''
     if newgroupname == 'Eiger4M':
+        nx_g = nxentry['instrument']
         nx_g = update_from_eiger_master(nx_g,
-                                        nx.NXdetector(name=newgroupname),
                                         properties)
         
-    elif newgroupname.find('fluo') > -1:
+    elif newgroupname.find('xia') > -1:
+        nx_g = nxentry['instrument']
         nx_g = update_from_xiasettings(nx_g,
-                                       nx.NXdetector(name=newgroupname),
                                        properties)
 
     elif newgroupname == 'spec':
+        nx_g = nxentry['instrument']
         nx_g = update_initial_spec(nx_g,
-                                   nx.NXcollection(name=newgroupname),
                                    properties)
 
     elif newgroupname == 'calibration':
+        nx_g = nxentry['instrument']
         nx_g = update_from_ponifile(nx_g,
-                                    nx.NXcollection(name=newgroupname),
                                     properties)
         
     elif newgroupname == 'beamline_positioners':
+        nx_g = nxentry['instrument']
         nx_g = update_motors_from_doolog(nx_g,
-                                         nx.NXcollection(name=newgroupname),
                                          properties)
 
     elif newgroupname == 'initial_command':
+        nx_g = nxentry['instrument']
         nx_g = update_command(nx_g,
-                              nx.NXcollection(name=newgroupname),
                               properties)
+    elif newgroupname == 'sample_info':
+        nx_g = nxentry['sample']
+        nx_g = update_sample_info(nx_g,
+                                  properties)
+        
     else:
         raise ValueError('unknown group %s' % newgroupname)
     
     return nx_g
 
 
-def update_command(nx_g, new_nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
+def update_sample_info(nx_g, properties = {'auto_update' : True}):
+    '''
+    writes some default information if auto_update: 
+    TODO: eiger_prefix, eiger, scan_no, spec_scanno
+
+    and updates the given sample info in entry/sample/sample_info
+    '''
+    for attr, value in properties.items():
+        nx_g.attrs[attr] = value
+
+    if properties['auto_update'] :
+        print 'auto update sample information is not yet implemented'
+
+    
+    return nx_g
+
+def update_command(nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
                                                  'type'   : 'eiger',
                                                  'version':'Eiger_3_Apples.py',
-                                                 'motors' :{'dummy':[0.0,1.0,1]}}):
+                                                 'motors' :[['dummy',0.0,1.0,1]]}):
     '''
     stores command meta data and expected motor scan motor positions
     '''
     new_nx_g = nx.NXcollection(name = 'initial_command')
-    new_nx_g.attr['command'] = properties['cmd']
-    new_nx_g.attr['type'] = properties['type']
-    new_nx_g.attr['version'] = properties['version']
-    new_nx_g.attr['exposure_time'] = properties['exp']
+    new_nx_g.attrs['command']  = properties['cmd']
+    new_nx_g.attrs['type']     = properties['type']
+    new_nx_g.attrs['version']  = properties['version']
 
-    parsed_motors = properties['motors'] 
-    
-    for motor in parsed_motors:
-        motor = parsed_motors[0]
-        start = parsed_motors[1]
-        stop  = parsed_motors[2]
-        steps = parsed_motors[3]
+    new_nx_g.insert(nx.NXfield(value = properties['exp_time'],
+                               name  = 'exp_time',
+                               units = 's'))
+   
+
+    if 'motors' in properties.keys():
+        parsed_motors = properties['motors']
+    else:
+        ## TODO parse the command 
+        raise NotImplementedError('parsing motors from command strings is currently not implemented')
+
+    axes_list = []
+    for parsed_motor in parsed_motors:
+        motor = parsed_motor[0]
+        start = float(parsed_motor[1])
+        stop  = float(parsed_motor[2])
+        steps = int(parsed_motor[3])
+
         
         positions = np.arange(start,stop+(stop-start)/steps,(stop-start)/steps)
         new_nx_g.insert(nx.NXpositioner(name = motor,
-                                     value = positions,
-                                     unit = default_units(motor)))
+                                        value= positions,
+                                        unit = default_units(motor)))
+        axes_list.append(motor)
+    axesstr = (':').join(axes_list)
+    new_nx_g.attrs['axes'] = axesstr
     
     nx_g.insert(new_nx_g)
     return nx_g
 
-def update_from_ponifile(nx_g, new_nx_g, properties = {'fname':None}):
+def update_from_ponifile(nx_g, properties = {'fname':None}):
     '''
     reads a .poni file into the group
     '''
+    new_nx_g = nx.NXcollection(name='calibration')
     poni_fname = properties['fname']
     new_nx_g.insert(nxparse_calibration(poni_fname))
     nx_g.insert(new_nx_g)
@@ -97,7 +132,7 @@ def nxparse_calibration(calib_fname):
     nx_calib = nx.NXcollection(name = 'Eiger4M')
 
     if calib_fname == None:
-        calib_fname = '/data/id13/inhouse6/nexustest_aj/files/al2o3_calib1_max.poni'
+        calib_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/al2o3_calib1_max.poni'
         print('WARNING: using default dummy file:')
 
     print('reading calib file')
@@ -116,8 +151,8 @@ def nxparse_calibration(calib_fname):
         units        = default_units(name)
         
         nx_calib.insert(nx.NXfield(name=name,
-                                value=value,
-                                units=units))
+                                   value=value,
+                                   units=units))
 
     i = 8
     found = False
@@ -143,14 +178,15 @@ def update_calibration_link(nxeiger):
     print('no calibration information written in the Eiger4M group')
   
 
-def update_initial_spec(nx_g, new_nx_g, properties = {'fname':None}):
+def update_initial_spec(nx_g, properties = {'fname':None}):
     '''
     reads a specfile and finds the next spec run number and the defined counters respective groups in nx_g
     '''
+    new_nx_g = nx.NXcollection(name='spec')
     spec_fname = properties['fname']
     
     if spec_fname == None:
-        spec_fname = '/data/id13/inhouse6/nexustest_aj/files/setup.dat'
+        spec_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup.dat'
         print('WARNING: using default dummy file:')
         
     print 'reading file:'
@@ -179,14 +215,15 @@ def update_initial_spec(nx_g, new_nx_g, properties = {'fname':None}):
     nx_g.insert(new_nx_g)
     return nx_g
     
-def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbose=False):
+def update_motors_from_doolog(nx_g, properties = {'fname':None}, verbose=False):
     '''
     specific solution for the ID13 microbranch currently working on a default doolog file
     '''
+    new_nx_g = nx.NXcollection(name='beamline_positioners')
     doolog_fname = properties['fname']
     
     if doolog_fname == None:
-        doolog_fname = '/data/id13/inhouse6/nexustest_aj/files/doolog_001.log'
+        doolog_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/doolog_001.log'
         print('WARNING: using default dummy file:')
         
     print 'reading file:'
@@ -213,7 +250,6 @@ def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbo
     else:
         raise ValueError, '%s is not a valid instrument name' %properties['instrument_name']
                 
-        
         
     ### what to update should be set, let's do it!
     
@@ -266,14 +302,15 @@ def update_motors_from_doolog(nx_g, new_nx_g, properties = {'fname':None}, verbo
     return nx_g
 
 
-def update_from_xiasettings(nx_g, new_nx_g, properties = {'fname':None},  verbose = False):
+def update_from_xiasettings(nx_g, properties = {'fname':None},  verbose = False):
     '''
-    specific solution for the vortex xia detector, could read these values from a cfg file.
+    specific solution for the vortex xia detectors, could read these values from a cfg file.
     '''
+    new_nx_g = nx.NXdetector(name='xia')
     xia_fname = properties['fname']
     
     if xia_fname == None:
-        xia_fname = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2b_after/AJ2b_after/xia_xia00_0480_0000_0005.edf'
+        xia_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/xia_xia00_0480_0000_0005.edf'
         print('WARNING: using default dummy file:')
 
     print 'reading file:'
@@ -289,7 +326,7 @@ def update_from_xiasettings(nx_g, new_nx_g, properties = {'fname':None},  verbos
     new_nx_g.attrs['xia_data_relative_path'] = xiapath
     new_nx_g.attrs['xia_data_original_path'] = xia_fname
     new_nx_g.attrs['xia_data_prefix'] = xiaprefix
-    new_nx_g.attrs['xia_data_scannumber'] = xiano
+    new_nx_g.attrs['xia_data_next_scannumber'] = xiano
     
 
     print('writing hard coded default XRF attenuators, including air attenuation!')
@@ -336,17 +373,19 @@ def update_from_xiasettings(nx_g, new_nx_g, properties = {'fname':None},  verbos
     
     return nx_g
 
-def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None}, verbose = False):
+def update_from_eiger_master(nx_g, properties = {'fname':None}, verbose = False):
     '''
     specific solution for eiger master files, get default values from ['entry/instrument/detector'] and data from entry/data/data
     '''
 
     ### open the eiger master file:
-
+    
+    new_nx_g = nx.NXdetector(name='Eiger4M')
+    
     master_fname = properties['fname']
     if master_fname == None:
         print('WARNING: using default master filename')
-        master_fname = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AUTO-TRANSFER/eiger1/al2o3_calib1_132_master.h5'
+        master_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup1_8_master.h5'
 
     nx_eiger = nx.nxload(master_fname, 'r')
     nx_eigersource= nx_eiger['entry/instrument/detector']
@@ -380,9 +419,9 @@ def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None}, verbos
         new_nx_g.insert(nx_eigersource[ds])
 
     
-    nx_g.attrs['eiger_master_original_path'] = master_fname
+    new_nx_g.attrs['eiger_master_original_path'] = master_fname
     rel_master_fname = os.path.relpath(master_fname)
-    nx_g.attrs['eiger_master_relative_path'] = rel_master_fname
+    new_nx_g.attrs['eiger_master_relative_path'] = rel_master_fname
     
     nx_eiger.close()
 
@@ -395,7 +434,7 @@ def update_from_eiger_master(nx_g, new_nx_g, properties = {'fname':None}, verbos
     ### nexusformat external links:
     local_nxpath     = new_nx_g.nxname + '/data'
     external_nxpath  = 'entry/data/'
-    print local_nxpath
+    # print local_nxpath
     nx_g[local_nxpath] = nx.NXlink(external_nxpath, file = rel_master_fname)
     nx_g[local_nxpath].attrs['sigal'] = 'data'
     

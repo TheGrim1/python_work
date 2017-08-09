@@ -71,3 +71,22 @@ def test():
 
 
     
+def goodmesh_example(xlen, ylen):
+    
+    y = np.arange(ylen)
+    x = np.arange(xlen)
+    # get shape = (xlen, ylen) result:
+    # test = x**2 + np.matrix(y**2).T
+    
+    # get shape = (xlen, ylen) meshgrid
+    xx, yy = np.meshgrid(x,y)
+    # also possible : xx,yy,zz etc.
+    # indz = np.array([0,3])[np.newaxis,:,np.newaxis]
+    # indx = np.arange(4,6)[:,np.newaxis,np.newaxis]
+    # indy = np.arange(0,2)[np.newaxis,:,np.newaxis]
+    # bla = [ind[indx,indy,indz] for ind in [xx,yy,zz]]
+
+    # get shape = (xlen, ylen) with mixed contributions:
+    # test = x**2 + np.matrix(y**2).T + 2*xx - yy**2
+    
+    return np.array(xx,yy)
