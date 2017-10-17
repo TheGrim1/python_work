@@ -8,7 +8,7 @@ from fileIO.datafiles.open_data import open_data
 def save_data(fname, data, header = None, delimiter = ' ', quotechar = '#'):
     '''
     counterpart to open_data,
-header can be str od list type
+header can be str or list type
     '''
 
     f = open(fname, 'w')

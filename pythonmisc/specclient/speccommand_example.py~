@@ -1,3 +1,0 @@
-import sys
-path_to_specclient = './specclient'
-sys.path.append(path_to_specclient)

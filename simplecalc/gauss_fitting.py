@@ -77,23 +77,25 @@ def peak_guess(data, nopeaks = 2, verbose = False):
     while len(peaks) < nopeaks:
         width *= 0.5
         widths.append(width)
-        peaks = find_peaks(data[1],widths = np.asarray(widths))
+        peak_indexes = find_peaks(data[1],widths = np.asarray(widths))
+
         if verbose:
             if len(peaks) >=1:
                 print('with width = %s, guess found peaks at :'%width)
                 print(data[0][peaks])
 
-    peakheight = data[1][peaks]
-    peakpos    = data[0][peaks]
+    peakheight = data[1][np.asarray(peak_indexes,dtype = np.int)]
+    peakpos    = data[0][np.asarray(peak_indexes,dtype = np.int)]
     peaks      = np.asarray([peakheight,peakpos])
     peaks      = peaks[:,peaks[0,:].argsort()[::-1]]
 
-
     guess      = []
     sigmaguess = 5*np.absolute(data[0,0]-data[0,1])
-     
-    peakheight = data[1][peaks]
-    peakpos    = data[0][peaks]
+
+    peakheight = data[1][np.asarray(peak_indexes,dtype = np.int)]
+    peakpos    = data[0][np.asarray(peak_indexes,dtype = np.int)]
+    
+
     if verbose:
         print(peakpos)
         print(peakheight)
@@ -389,6 +391,7 @@ def fit_2d_gauss(array):
     returns params, residual
     params as [amp, x0, y0, a, b, c] see .gauss2d
     '''
+    print 'array.shape: ', array.shape
     xyz   = array_as_list(array)
     xy    = xyz[0:2]
     z     = xyz[2]
@@ -460,8 +463,9 @@ def main():
     # change the parameters as you see fit
     y = two_gauss_func([20,20,3,60,50,4],np.arange(50)/.5)
     x = np.arange(50)/.5
+    plt.plot(x,y)
     data = np.asarray([x,y])
-    do_two_gauss_fit(data,verbose = True)
+#    do_two_gauss_fit(data,verbose = True)
     
     do_multi_gauss_fit(data,nopeaks = 2,verbose = True)
     

@@ -21,3 +21,14 @@ def get_vcolor(data,
     vmin=(np.percentile(data,low))
     vmax=(np.percentile(data,high))
     return (vmin,vmax)
+
+def factorize(total, more_rows=False):
+    '''
+    factorizes total into a number of rows an columns which will suffice to plot total number of frames in one figure
+    '''
+    i = np.int(np.round(np.sqrt(total)))
+
+    if more_rows :
+        return (i,i+1)
+    else:
+        return (i+1,i)

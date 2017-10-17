@@ -1,7 +1,0 @@
-import numpy
-
-
-def read_poni(filename):
-    
-    
-    return ponidict

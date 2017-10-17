@@ -1,8 +1,0 @@
-
-import h5py
-import numpy as np
-import matplotlib.pyplot as plt
-
-e0 = 10.367
-fname200 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_200ms_Ga/MG154_fluoXAS_1.replace.h5'
-h5f = h5py.File(fname200,'r')

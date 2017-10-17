@@ -44,11 +44,13 @@ def rotate_series(array, thetas, COR = (785,1450),copy = True):
     
     return dummy
 
-
     
 
 def create_rotated_series(array, thetas, COR = (785,1450)):
-    ''' returns massive array, no saving
+    ''' returns massive array, \
+    rotated around COR by angeles theta 
+    stacked in axis 0
+    no saving
     '''
     start_image = array
     COR         = np.array(COR)
@@ -67,5 +69,24 @@ def create_rotated_series(array, thetas, COR = (785,1450)):
                                                        mode='nearest',
                                                        cval=0.0)
 
+    
+    return rotated
+
+
+def create_rotated_xprojection(array, thetas, amplitude = 30):
+    ''' 
+    returns massive array, \
+    shift axis 1 of array by sin(theta)
+    stacked in axis 0
+    no saving
+    '''
+    rotated = np.empty(shape = [len(thetas)] + list(array.shape))
+    for i,theta in enumerate(thetas):
+        dx         = amplitude * np.sin(theta/180.0*np.pi)
+        shift      = np.zeros(shape = array.ndim)
+        shift[1]   = dx
+        print shift, array.shape
+        rotated[i] = nd.shift(array,shift)
+        
     
     return rotated

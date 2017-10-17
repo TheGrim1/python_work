@@ -4,6 +4,9 @@ import scipy.ndimage as nd
 import timeit
 import sys, os
 import matplotlib.pyplot as plt
+import SimpleITK as sitk
+import multiprocessing
+
 # local imports
 path_list = os.path.dirname(__file__).split(os.path.sep)
 importpath_list = []
@@ -17,32 +20,82 @@ sys.path.append(importpath)
 
 from simplecalc.slicing import troi_to_slice
 from simplecalc.gauss_fitting import fit_2d_gauss
+from simplecalc.rotated_series import rotate_series
+from simplecalc.gauss_fitting import do_multi_gauss_fit
 
 
 
-# def centerofmass_align_1d(linestack):
-#     '''
-#     shifts the lines in linestack so that their center of mass lies on the COM of linestack[0,:]
-#     only aligns for axes where alignmetn != 0
-#     '''
-#     COM = []
-#     shift = []1
-#     for i in range(linestack.shape[0]):
-#         COM.append(np.asarray(nd.measurements.center_of_mass(linestack[i,:])))
-#         #print COM[i]
-#         x0    = COM[0]
-#         ishift = 0.0*np.array(COM[0])
-#         if alignment[0]:
-#             ishift[0]= x0 - COM[i][0]
-#         if alignment[1]:
-#             ishift[1]= y0 - COM[i][1]
-            
-#         shift.append(ishift)
-#         #print shift
-#         nd.shift(imagestack[i,:,:],ishift, output = imagestack[i,:,:])
+def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parameterMapkwargs):
+    '''
+    uses elastix recognition to find the affine transform between imagesstack[0] and all others
+    mode:
+        'rigid'       : returns imagestack, shift, thetas
+        'translation' : returns imagestack, shift
+
+    default thetas == None
+    else:
+        + is more robust
+        uses list of angeles thetas to first rotate imagestack[i] by -theta[i]
+        rotates around COR or middle of images if COR == None
+        then does alignment according to <rotation>
+    the elastix parameterMap parameters maps can be passed in the dict parameterMapkwargs
+    '''
     
-#     shift = np.asarray(shift)
-#     return imagestack,shift
+    shift = [[0,0]]
+    if type(thetas) == type(None):
+        thetas = np.zeros(imagestack.shape[0])
+    else:
+        if COR == None:
+            COR = (imagestack.shape[1]/2.0,imagestack.shape[2]/2.0)
+        imagestack = rotate_series(imagestack, -np.asarray(thetas), COR = COR, copy = False)
+    
+    images = [sitk.GetImageFromArray(imagestack[i]) for i in range(imagestack.shape[0])]
+
+    if mode == 'rigid':
+        results = imagestack, shift, thetas
+        parameterMap = sitk.GetDefaultParameterMap('rigid')
+    elif mode == 'translation':
+        results = imagestack, shift
+        parameterMap = sitk.GetDefaultParameterMap('translation')
+    else:
+        raise ValueError('%s is not a valid mode argument' % mode)
+
+    # default elastix parameters:
+    parameterMap['MaximumNumberOfIterations'] = ['512']
+    parameterMap['FinalBSplineInterpolationOrder'] = ['1']
+    parameterMap['NumberOfResolutions'] = ['32','16','4','2']
+    # custom parameters:
+    for key, value in parameterMapkwargs.items():
+        parameterMap[key] = value
+
+    fixedImage = images[0]
+    elastixImageFilter = sitk.ElastixImageFilter()
+    elastixImageFilter.SetFixedImage(fixedImage)
+    elastixImageFilter.SetParameterMap(parameterMap)
+
+    for i,image in enumerate(images[1::]):
+
+        elastixImageFilter.SetMovingImage(image)
+        elastixImageFilter.Execute()
+
+        resultimage = elastixImageFilter.GetResultImage()
+        imagestack[i+1] = sitk.GetArrayFromImage(resultimage)
+        #imagestack[i] = np.where(sitk.GetArrayFromImage(resultimage)<0.1,0,sitk.GetArrayFromImage(resultimage))
+
+        if mode == 'rigid':
+            print 'found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            angle, dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            thetas[i+1] += (np.float(angle)/np.pi*180)
+        elif mode == 'translation':
+            print 'found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            
+
+        shift.append((np.float(dy),np.float(dx)))
+        
+    shift = np.asarray(shift)
+    
+    return results
 
 
 def centerofmass_align(imagestack, alignment= None):
@@ -51,9 +104,9 @@ def centerofmass_align(imagestack, alignment= None):
     works for arbitrary dimensions
     only aligns for axes where alignmetn != 0, defaults to ones
     '''
-    if alignment == None:
+    if type(alignment) == type(None):
         alignment = np.ones_like(imagestack.shape)
-    COM = []
+    COM   = []
     shift = []
     for i in range(imagestack.shape[0]):
         COM.append(np.asarray(nd.measurements.center_of_mass(imagestack[i])))
@@ -67,25 +120,60 @@ def centerofmass_align(imagestack, alignment= None):
         #print shift
         nd.shift(imagestack[i],ishift, output = imagestack[i])
     
+
     shift = np.asarray(shift)
-    return imagestack,shift
+    
+    return imagestack, shift
 
 
-def crosscorrelation_align(imagestack):
-    ''' forms the cross correlation of all images with imagestack[0,:,:] and shifts them to to the maximum
+
+
+def crosscorrelation_align_1d(imagestack, axis = 1):
+    ''' 
+    forms the 1d cross correlation of all images with imagestack[0,:,:]
+    along <axis> =                                                 0,1
+    shifts imagestack[n,:,:] to to the maximum
+    less memory intense than full CC-align
     '''
     shift=[]
     reference = np.copy(imagestack[0])
     for i in range(imagestack.shape[0]):
         print 'aligning 0 with %s' %i
 
-        (imagestack[i], ishift) = single_correlation_align(reference, imagestack[i])
-        shift.append(ishift) 
+        (imagestack[i], ishift) = single_correlation_align_1d(reference,
+                                                              imagestack[i],
+                                                              axis=axis)
+        shift.append(ishift)
+        
+    shift=np.asarray(shift)
 
     return imagestack, shift
 
+
+def crosscorrelation_align(imagestack):
+    '''forms the cross correlation of all images with imagestack[0,:,:]
+    and shifts them to to the maximum memory intense use small ROIs!
+    '''
+    shift=[]
+    reference = np.copy(imagestack[0])
+    for i in range(imagestack.shape[0]):
+        print 'aligning 0 with %s' %i
+
+        (imagestack[i], ishift) = single_correlation_align(reference,
+                                                           imagestack[i])
+        shift.append(ishift) 
+    shift=np.asarray(shift)
+    return imagestack, shift
+
 def forcedcrosscorrelation_align(imagestack, alignment = (0,0)):
-    'forms the correlation between imagestack[0] and all others. The shift is center of refernce - max of the crosscorrelation. Aligns imagestack to imagestack[0,:,:].\n Applies optional linear potential from max(alingimagestack[0,:,:]) to min(imagestack[0,:,:]) in direction alignment (see mask_align). \n tackes 3d array (X, N, M) and alligns all in X \nreturn (imagestack, shift).\nAs the image is forced towards the direction given in alignment, repeated runs may continue to shift the image! '
+    '''forms the correlation between imagestack[0] and all others. The shift
+is center of refernce - max of the crosscorrelation. Aligns imagestack
+to imagestack[0,:,:].\n Applies optional linear potential from
+max(alingimagestack[0,:,:]) to min(imagestack[0,:,:]) in direction
+alignment (see mask_align). \n tackes 3d array (X, N, M) and alligns
+all in X \nreturn (imagestack, shift).\nAs the image is forced towards
+the direction given in alignment, repeated runs may continue to shift
+the image!'''
     shift = []
 
 #    setup the potential to force the alignment in a certain direction
@@ -136,11 +224,65 @@ def forcedcrosscorrelation_align(imagestack, alignment = (0,0)):
     shift = np.asarray(shift)
     return imagestack, shift
 
+def correlation_task(args):
+    reference = args[0]
+    image     = args[1]
+    shift     = args[2]
+    i         = args[3]
+    reflen    = args[4]
+    return (reference*nd.shift(image,shift*(i - reflen))).sum()
+
+def single_correlation_align_1d(reference, image, axis = 1):
+    '''
+    cross correlation between reference and image along <axis>
+    shifts image to the maximum
+    returns (image, shift)
+    '''
+    print 'cpu_count() = %d\n' % multiprocessing.cpu_count()
+
+    #
+    # Create pool
+    #
+
+    PROCESSES = multiprocessing.cpu_count()
+    print 'Creating pool with %d processes\n' % PROCESSES
+    pool = multiprocessing.Pool(PROCESSES)
+
+    shift       = np.zeros(reference.ndim)
+    shift[axis] = 1.0
+    reflen = reference.shape[axis]
+    
+    task_list = [(reference, image, shift, i, reflen) for i in range(2*reflen)]
+    correlation = pool.map(correlation_task, task_list)
+
+    pool.close()
+
+    maxcorrelation = np.argmax(correlation)
+
+
+    ### sub-pixel refining with gaussian fit:
+    ### there seems to be a problem wiht do_multi_gauss_fit :(
+    # data = np.asarray([np.arange(11),correlation[maxcorrelation-5:maxcorrelation+6]]) 
+
+    # amp, gaussmax, sig = do_multi_gauss_fit(data, nopeaks = 1, verbose = True)
+    
+    # maxcorrelation += gausmax - 5
+
+    
+    # print 'maxcorrelation after gauss: ', maxcorrelation
+    
+    shift          = shift*(maxcorrelation - reference.shape[axis])
+    
+    nd.shift(image,shift, output = image)
+    shift = np.asarray(shift)
+    return (image, shift)
+
 def single_correlation_align(reference, image):
     'see crosscorrelation before stacks were cool'
 
-    correlation    = nd.correlate(image, reference, mode = 'constant')
+    correlation = nd.correlate(image, reference, mode = 'constant')
     maxcorrelation = np.argmax(correlation)
+
     maxcorrelation = np.array(np.unravel_index(maxcorrelation,correlation.shape))
 
     
@@ -150,7 +292,9 @@ def single_correlation_align(reference, image):
     area           = np.array((10,10))
     peak_troi      = (np.array(maxcorrelation) - area/2, area)
 
+
     fitting_region = np.array(correlation[troi_to_slice(peak_troi)])
+
     (amp, x0, y0, a,b,c,), residual = fit_2d_gauss(fitting_region)
     
     # import fileIO.plots.plot_array as pa
@@ -182,7 +326,6 @@ def single_correlation_align(reference, image):
 #    print 'correlation'
 #    plt.matshow(correlation)
 #        
-
 
     nd.shift(image,shift, output = image)
     shift = np.asarray(shift)
@@ -274,7 +417,7 @@ def mask_align(imagestack, threshold = 5, alignment = (0,0)):
 
 def shift_image(data, shift):
     for i, ishift in enumerate(shift):
-        nd.shift(data[i,:,:], ishift, output = data[i,:,:],)
+        nd.shift(data[i], ishift, output = data[i],)
     
     return data
 
@@ -299,6 +442,8 @@ def real_from_rel(frame,data,shift = [1,1]):
 def image_align(imagestack, mode = {'mode':'sift'}):
     'returns the imagestack array stack aligned to the r = reference = imagestack[:,:,0] in it. The relative shift ist areturned as a list of touples (r[0]-a[0],r[1]-a[1])'
 
+    shift = []
+    
     # if mode['mode'] == 'sift':
     #     (imagestack, shift) = sift_align(imagestack, threshold = mode['threshold'])
     if mode['mode'] == 'mask':
@@ -309,6 +454,10 @@ def image_align(imagestack, mode = {'mode':'sift'}):
         (imagestack, shift) = forcedcrosscorrelation_align(imagestack, alignment = mode['alignment'])
     elif mode['mode'] == 'centerofmass':
         (imagestack, shift) = centerofmass_align(imagestack, alignment = mode['alignment'])
+    elif mode['mode'] == 'elastix':
+        (imagestack, shift) = elastix_align(imagestack, mode = mode['elastix_mode'])
+    elif mode['mode'] == 'crosscorrelation_1d':
+        (imagestack, shift) = crosscorrelation_align_1d(imagestack, axis = mode['axis'])
     else:
         print "%s is not a valid mode" % mode    
         
@@ -338,7 +487,7 @@ def do_test():
     shift     = (5,15)
     reference = -((50-x)/100.0)**2 *((50-y)/100.0)**2 + 0.0625
     print 'min(reference) = ',np.min(reference)
-    reference[50:55,50:55] = 5.0
+    reference[50:55,50:55] = 0
     imagestack1    = nd.shift(reference,shift)
     imagestack2    = nd.shift(imagestack1,shift)
     imagestack     = np.rollaxis(np.dstack([reference, imagestack1, imagestack2]),-1)
@@ -397,7 +546,31 @@ def do_test():
 
     plot_array(dummy, title = 'cross correllation align')
 
+ ### testing correlation aling 1d axis = 1
+    print 'testing correlation aling 1d'
+    start_time = timeit.default_timer()
+    dummy     = np.copy(imagestack)
+    mode = {'mode':'crosscorrelation_1d','axis':1}
+    (dummy, (foundshift)) = image_align(dummy, mode = mode)
+    print '%s shift found:' %mode['mode']
+    print foundshift
+    print 'took %s' % (timeit.default_timer() - start_time)
 
+    plot_array(dummy, title = 'cross correllation align 1d 1')
+
+ ### testing correlation aling 1d axis = 0
+    print 'testing correlation aling 1d'
+    start_time = timeit.default_timer()
+    dummy     = np.copy(imagestack)
+    mode = {'mode':'crosscorrelation_1d','axis':0}
+    (dummy, (foundshift)) = image_align(dummy, mode = mode)
+    print '%s shift found:' %mode['mode']
+    print foundshift
+    print 'took %s' % (timeit.default_timer() - start_time)
+
+    plot_array(dummy, title = 'cross correllation align 1d 0')
+
+    
     
     ### testing forcedcorrelation
     print 'testing forced correlation'
@@ -411,6 +584,17 @@ def do_test():
     print foundshift
     print 'took %s' % (timeit.default_timer() - start_time)
     plot_array(dummy, title = 'forced correlation')
+
+    ### testing elastix
+    print 'testing elastix rigid align'
+    dummy     = np.copy(imagestack)
+    start_time = timeit.default_timer()
+    mode = {'mode':'elastix'}
+    (dummy, (foundshift)) = image_align(dummy, mode = mode)
+    print '%s shift found:' %mode['mode']
+    print foundshift
+    print 'took %s' % (timeit.default_timer() - start_time)
+    plot_array(dummy, title = 'elastix')
 
  
    

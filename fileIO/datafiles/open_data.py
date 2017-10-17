@@ -14,12 +14,16 @@ def open_data(filename, delimiter = ' ', quotecharlist= ['#'],verbose = False):
 
     header = []
     for i, l in enumerate(reader):
-        try:
-            
-            if not l[0].lstrip()[0] in quotecharlist:
-                data.append([float(x) for x in (l.rstrip().split(delimiter))])
+        try:            
+            if l.lstrip()[0] in quotecharlist:
+                header.append((l[1:].rstrip().split(delimiter)))
             else:
-                header.append((l.rstrip().split(delimiter)))
+                # print 'found line '
+                # print l
+                # print l.lstrip().split(delimiter)
+                # print 'parsed it as :'
+                # print [float(x) for x in (l.rstrip().split(delimiter)) if len(x)> 0]
+                data.append([float(x) for x in (l.rstrip().split(delimiter)) if len(x)> 0])
         except IndexError:
             if verbose:
                 print('discarding:')

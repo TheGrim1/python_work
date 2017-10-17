@@ -1,6 +1,9 @@
-
+import shlex
+import subprocess
 import numpy as np
 import PIL.Image as Image
+import os
+
 
 def imagefile_to_array(imagefname):
     """
@@ -16,37 +19,119 @@ def imagefile_to_array(imagefname):
         im_arr = np.rollaxis(im_arr,-1)
     return im_arr
 
-def array_to_imagefile(data, imagefname):
+def array_to_imagefile(data, imagefname,verbose=False):
     """
     gets a 3D Numpy array of shape 
     (width, height, channels)
     and saves it into imagefname
     """
-    img = Image.fromarray(np.rollaxis(np.rollaxis(data,-1),-1))
+    if data.ndim == 2:
+        data = np.dstack([data,data,data])
+        data = np.rollaxis(data,-1)
+        #print data.shape
+    img = Image.fromarray(np.uint8(np.rollaxis(np.rollaxis(data,-1),-1)))
+        
+    img.convert("RGB")
+    img.mode   = "RGB"
+    if verbose:
+        print "saving ", os.path.realpath(imagefname)
     img.save(imagefname)
     return 1
 
 
-def optimize_greyscale(data_in, perc_low=10, perc_high = 90, foreground_is_majority = True, out_max = 255):
+def optimize_greyscale(data_in, perc_low=1, perc_high = 99,
+                       foreground_is_majority = True, out_max = 255, dtype = "uint8"):
     '''
     optimizes the scaling of data to facilitate alignment procedures
     inverts scale if at percentile (<prec_low> + <perc_high>)/2 the luninosity is less* than 0.5
     * swithched with <foreground_is_majority>
+    default is change dytpe to: "int8" else pass None
     '''
     low  = np.percentile(data_in,perc_low)
     high = np.percentile(data_in,perc_high)
-    print low,high
+    #print '0-',low,high
     data = np.copy(data_in)
+    data = data*1.0 # floatify
     data = (data - low) / (high-low)
-    
-    data = np.where(data<0, 0.0,data)
-    data = np.where(data>1.0, 1,data)
 
+    #print '1-',np.min(data),np.max(data)
     
-    if np.percentile(data,50) < 0.5:
-        data = 1.0 - data
+    data = np.where(data<0,   0.0,data)
+    data = np.where(data>1.0, 1.0,data)
+
+    #print '2-',np.min(data),np.max(data)
+
+    print np.percentile(data,50)
+    if np.percentile(data,50) > 0.5:
+        print 'inverted'
         
+        data = 1.0 - data
 
-    
+    #print '3-',np.min(data),np.max(data)
+
     optimized = data * out_max
+
+    #print '4-',np.min(optimized),np.max(optimized)
+    
+    if dtype == "uint8":
+        optimized = np.asarray(np.where(optimized<0,   0,optimized), dtype = np.uint8)
+        
+    #print '5-',np.min(optimized),np.max(optimized)
+    
     return optimized
+
+
+def open_series(find_path,find_arg, verbose = False):
+    '''
+    opens a series of images found with unix: find <prefix>
+    sorts the found file names
+    '''
+    
+    arg       = []
+    arg.append("find")
+    arg.append(find_path)
+    arg.append('-name')
+    arg.append(find_arg)
+
+    all_fnames =shlex.split(subprocess.check_output(arg))
+    all_fnames.sort()
+    #all_fnames = all_fnames[1::]
+    
+    image_list = []
+    for i, fname in enumerate(all_fnames):
+        image_list.append(imagefile_to_array(fname))
+        if verbose:
+            print 'opening image ' , fname
+    imagestack = np.stack(image_list)
+    return imagestack
+
+def save_series(data, savename="default.png", savename_list = None, verbose=True):
+    '''
+    saves 3d or 4d array as imagesfiles: 
+         3d (imagenumber, width, height)
+         4d (imagenumber, width, height, channels)
+    if savename_list is a list with the correct length these are used to save images, 
+    else savename is appended with _X (before the suffix)
+    '''
+    if type(savename_list) == list:
+        if len(savename_list) == data.shape[0]:
+            if verbose:
+                print('using given names: ')
+                print(savename_list)
+        else:
+            raise ValueError('incorrect savename_list len : ', len(savename_list))
+    else:
+        digits = len(str(data.shape[0]))
+        save_path = os.path.dirname(savename)
+        save_prefix = os.path.basename(savename.split('.')[:-2])
+        save_suffix = os.path.basename(savename.split('.')[-1])
+        savename_list = [os.path.sep.join([save_path,save_prefix])+str(i).zfill(digits) + save_suffix for i in range(data.shape[0])]
+        if verbose:
+            print('made names list:')
+            print(save_name_list)
+            
+    for i, image in enumerate(data):
+        array_to_imagefile(image, savename_list[i],verbose=verbose)
+            
+            
+    return True

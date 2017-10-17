@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 import time
 from matplotlib.colors import LogNorm
+import numpy as np
 
 # local imports
 # local imports
@@ -18,13 +19,16 @@ if 'skript' in path_list:
             break
 importpath = os.path.sep.join(importpath_list)
 sys.path.append(importpath)        
-from fileIO.plots.plot_tools import get_vcolor
+import fileIO.plots.plot_tools as pt
+
 
 
 def plot_array(data,
-               index    = None,
-               savename = None,
-               title    = 'title'):
+               index     = None,
+               savename  = None,
+               perc_low  = 0,
+               perc_high = 100,
+               title     = 'title'):
     'plots the data (nparray) at frame index (if it is 3D). If savename is not None, it saves the plot using save_plot(plt,savename). Plotted with title = title.'
 
 
@@ -53,27 +57,32 @@ def plot_array(data,
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1,axisbg = (0.9, 0.9, 0.95))
         ax1.figure.set_size_inches(10,10)
-        (vmin,vmax) = get_vcolor(data)
+        (vmin,vmax) = pt.get_vcolor(data, low=perc_low, high=perc_high)
         ax1.matshow(data,
                     vmin=vmin,
                     vmax=vmax)
 
     elif dimension == 3:
+        nframes = len(index_list)
+        (ncols, nrows) = pt.factorize(nframes)
         
-        fig, axes = plt.subplots(nrows=1, ncols=len(index_list))
+        
+        fig, axes = plt.subplots(nrows=np.int(nrows),
+                                 ncols=np.int(ncols))
+        axes_flat = axes.flatten()
         
         for index_no, i in enumerate(index_list):
             tobeplotted = data[i,:,:]
-            (vmin,vmax) = get_vcolor(tobeplotted)
+            (vmin,vmax) = pt.get_vcolor(tobeplotted, low=perc_low, high=perc_high)
 
-            axes[index_no].matshow(tobeplotted,
-                                   vmin=vmin,
-                                   vmax=vmax)
-            axes[index_no].tick_params(direction = 'out', labelbottom = True, labeltop = False)
+            axes_flat[index_no].matshow(tobeplotted,
+                                        vmin=vmin,
+                                        vmax=vmax)
+            axes_flat[index_no].tick_params(direction = 'out', labelbottom = True, labeltop = False)
             if type(title) == list:
-                axes[index_no].set_title(title[index_no])
+                axes_flat[index_no].set_title(title[index_no])
             else:
-                axes[index_no].set_title(title + ' %s' %index_no)
+                axes_flat[index_no].set_title(title)
                 
 ## ticks## ticks ## ticks ## ticks ## ticks ## ticks ## ticks ## ticks 
 

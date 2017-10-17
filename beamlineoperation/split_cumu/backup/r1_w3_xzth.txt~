@@ -1,8 +1,0 @@
-{"indname"           : "/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/AUTO-TRANSFER/eiger1"}
-{"outdname"          : "/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/maxprojections/r1_w3_xzth"}
-{"fileprefix"        : "r1_w3_xzth_"}
-{"outfileidentifier" : "maxoptavg"}
-{"firstinternalno"   : 167}
-{"firsteigerno"      : 5}
-{"nruns"             : 1}
-{"nframes"           : 10126}

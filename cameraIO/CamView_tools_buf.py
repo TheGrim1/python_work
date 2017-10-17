@@ -145,16 +145,12 @@ class stage():
 
 
     def _calibrate(self, motor, calibration, view = 'side'):
-        ''' itererate through the 'same calibration' dict of dicts
-        to set all relative calibrations
-        '''
         self.calibration[view][motor] = calibration
-        for motorset in self.stagegeomety['same_calibration'][view].values():
-            if motor in motorset.keys():
-                for othermotor in motorset.keys():
-                    # this is 1 for the initial motor, and equal to the relative factor for all others
-                    factor = motorset[othermotor]/motorset[motor] 
-                    self.calibration[view].update({othermotor:factor*calibration}) 
+        for motorset in self.stagegeomety['same_calibration'][view]:
+            if motor in motorset[0]:
+                for i, motor in enumerate(motorset[0]):
+                    factor = motorset[1][i]
+                    self.calibration[view].update({motor:factor*calibration}) 
         
     def SpecCommand(self, command):
         print 'sending %s the command:'% self.specversion
@@ -171,7 +167,7 @@ class stage():
             print 'side view = camera 1'
     
     def switch_cameras(self):
-        self.cameras = self.cameas[::-1]
+        self.cameras = self.cameras[::-1]
         bg.identify_cameras(self.cameras)
         print 'top view = camera 0'
         print 'side view = camera 1'
@@ -241,10 +237,11 @@ class stage():
         if self._goto_COR(motor = motor):
             print 'SUCCESS, now move your sample into the focus and repeat until COR is sufficiently aligned.' 
         
-    def _get_imagestack(self, view,
+    def _get_imagestack(self,
+                        view,
                         motor,
-                        plot,
                         positions,
+                        plot,
                         troi = None,
                         cutcontrast = 0.5,
                         move_using_lookup = False,
@@ -253,15 +250,10 @@ class stage():
 
         print 'prepping images... '
         prep_image = self._get_view(view,troi=troi)
-             
-
-        shape = tuple([int(x) for x in [len(positions)]+list(prep_image.shape)])
-        if np.asarray(shape).prod() > 2e8:
-            # aleviate memory bottlenecks
-            print('created temp file: ',temp_file_fname) 
-            imagestack = np.memmap(temp_file_fname, dtype=np.float16, mode='w+', shape=shape)
-        else:
-            imagestack = np.zeros(shape = shape)  
+        print('created temp file: ',temp_file_fname) # this is supposed to aleviate some memory bottlenecks
+        #imagestack = np.zeros(shape = ([len(positions)]+list(prep_image.shape)))
+        # TODO: do this only if neccessary
+        imagestack = np.memmap(temp_file_fname, dtype=np.float16, mode='w+', shape=([len(positions)]+list(prep_image.shape)))
         
         
         if backlashcorrection:
@@ -376,14 +368,11 @@ class stage():
         print 'Done. Found COR at ', self.COR
 
         # neccessary cleanup for memmap
-        if type(imagestack) == np.core.memmap:
-            imagestack_tmpfname = imagestack.filename
-            other_tmpfname = aligned.filename
+        if type(imagestack) == numpy.core.memmap.memmap:
+            todelete = imagestack.filename
             del imagestack
-            del aligned
             gc.collect()
-            os.remove(imagestack_tmpfname)
-            os.remove(aligned_tmpfname)
+            os.remove(todelete)
 
         
         return self.COR
@@ -466,7 +455,7 @@ class stage():
             mode  = {'mode':'elastix', 'elastix_mode':'translation'}
             dummy, elas_shift = ia.image_align(dummy, mode)
             elas_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(elas_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -476,7 +465,7 @@ class stage():
             mode  = {'mode':'crosscorrelation_1d', 'axis': axis}
             dummy, CC_shift = ia.image_align(dummy, mode)
             CC_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(CC_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -488,9 +477,7 @@ class stage():
             mode  = {'mode':'centerofmass', 'alignment':alignment}
             dummy, COM_shift = ia.image_align(dummy, mode)
             COM_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(COM_shift)]
-            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
-            # shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -501,7 +488,7 @@ class stage():
             mode  = {'mode':'elastix', 'elastix_mode':'translation'}
             dummy, elas_shift = ia.image_align(dummy, mode)
             elas_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(elas_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -512,7 +499,7 @@ class stage():
             mode  = {'mode':'crosscorrelation_1d', 'axis': axis}
             dummy, CC_shift = ia.image_align(dummy, mode)
             CC_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(CC_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -526,7 +513,7 @@ class stage():
             mode  = {'mode':'centerofmass', 'alignment':alignment}
             dummy, COM_shift = ia.image_align(dummy, mode)
             COM_sum = dummy.sum(0)
-            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(COM_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
             print mode['mode'] + ' found a shift of ', shift
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print mode['mode'] + ' found calibration of ', calibration
@@ -543,14 +530,12 @@ class stage():
             self._show_results(imagestack, dummy, positions,save=saveimages,prefix = saveimages_prefix,COR=self.cross_pxl)
 
         # neccessary cleanup for memmap
-        if type(imagestack) == np.core.memmap:
-            imagestack_tmpfname = imagestack.filename
-            other_tmpfname = dummy.filename
+        if type(imagestack) == numpy.core.memmap.memmap:
+            todelete = imagestack.filename
             del imagestack
-            del dummy
             gc.collect()
-            os.remove(imagestack_tmpfname)
-            os.remove(dummy_tmpfname)
+            os.remove(todelete)
+
             
         return self.calibration[view][motor]
 
@@ -647,7 +632,7 @@ class stage():
             mode  = {'mode':'centerofmass', 'alignment':alignment}     
 
         # aleviate memory problems:
-        if type(imagestack) == np.core.memmap:
+        if type(imagestack) == numpy.core.memmap.memmap:
             aligned_fname = 'tmp_aligned.tmp'
             aligned = np.memmap(aligned_fname, dtype=np.float16, mode='w+', shape=imagestack.shape)
             aligned[:] = imagestack[:]
@@ -689,13 +674,7 @@ class stage():
                 old_theta = old_thetas[j]
                 while new_theta > old_theta:
                     j+=1
-                    if j== len(old_thetas[j]):
-                        old_thetas.append(new_theta)
-                        old_mot0.append(new_mot0[i])
-                        old_mot1.append(new_mot1[i])
-                        break
-                    else:
-                        old_theta = old_thetas[j]
+                    old_theta = old_thetas[j]
                 else:
                     if new_theta == old_theta:
                         old_mot0[j]=new_mot0[i]
@@ -712,8 +691,8 @@ class stage():
             # just overwrite the old lookup
             print('writing new lookuptable')
             new_thetas = thetas
-            new_mot1   = shift[:,0]/self.calibration[view][mot1]
-            new_mot0   = shift[:,1]/self.calibration[view][mot0]
+            new_mot1   = shift[:,0]/self.calibration[view][new_mot1]
+            new_mot0   = shift[:,1]/self.calibration[view][new_mot0]
             
         self.lookup[motor].update({motor: np.asarray(new_thetas)})
         self.lookup[motor].update({mot0: np.asarray(new_mot0)})
@@ -724,28 +703,26 @@ class stage():
         if saveimages:
             self._show_results(imagestack, aligned, thetas, save = True, prefix = saveimages_prefix, COR=self.cross_pxl)
 
-        # neccessary cleanup for memmap
-        if type(imagestack) == np.core.memmap:
-            imagestack_tmpfname = imagestack.filename
-            other_tmpfname = aligned.filename
-            del imagestack
-            del aligned
-            gc.collect()
-            os.remove(imagestack_tmpfname)
-            os.remove(aligned_tmpfname)
-
-        
+        # # neccessary cleanup for memmap
+        # if type(imagestack) == numpy.core.memmap.memmap:
+        #     todelete = imagestack.filename
+        #     del imagestack
+        #     gc.collect()
+        #     os.remove(todelete)
+        #     todelete = aligned.filename
+        #     del aligned
+        #     gc.collect()
+        #     os.remove(todelete)
+            
         return self.lookup[motor]
     
 ##### some cosmetic plotting
     def _show_results(self, imagestack, aligned, thetas,save=False,prefix = '',COR=[10,10]):
-
-        if imagestack.shape[0]<30:
-            initialtitle = ['initial' + str(x) + 'deg' for x in thetas]
-            pa.plot_array(imagestack, title = initialtitle)
+        initialtitle = ['initial' + str(x) + 'deg' for x in thetas]
+        pa.plot_array(imagestack, title = initialtitle)
                 
-            alignedtitle = ['aligned' + str(x) + 'deg' for x in thetas]
-            pa.plot_array(aligned, title = alignedtitle)
+        alignedtitle = ['aligned' + str(x) + 'deg' for x in thetas]
+        pa.plot_array(aligned, title = alignedtitle)
         
         fig1, ax1 = plt.subplots(1) 
         aligned_sum = aligned.sum(0)
@@ -768,3 +745,58 @@ class stage():
             it.array_to_imagefile(initial_sum,imagefname=prefix+"initial_sum.png")
                                             
         
+        
+class motexplore_jul17(stage):
+    def __init__(self, specsession = 'motexplore', initialize_cameras = True):
+        if initialize_cameras:
+            self.initialize_cameras(plot=False)
+        
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'x'    : 'navix',
+                      'y'    : 'naviy',
+                      'z'    : 'naviz', 
+                      'rotz' : 'srotz'}
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeomety = {}
+        
+        # lists of motors that will the rotation axis for centering
+        # self.stagegeomety['COR_motors'] = {'rotation':['y','x']} # ORDER MATTERS!
+        self.stagegeomety['COR_motors'] = {'rotz':['x','y']} # ORDER MATTERS!
+
+        # connect to spec
+        self.connect(specsession = specsession)
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in self.stagegeomety['COR_motors'].items()]
+        
+        # lists of motors that have the same calibration:
+        # the second list can be a known difference factor, usually useful if it is -1 for eg.
+        self.stagegeomety['same_calibration'] = {}
+        self.stagegeomety['same_calibration']['side'] = [[['x','y'],[1,1]]]
+        self.stagegeomety['same_calibration']['top']  = [[['x','y'],[-1,-1]]]
+     
+        self.calibration = {}
+        self.calibration.update({'side':{}})
+        self.calibration.update({'top':{}})
+        print 'setting default calibration for zoomed out microscopes'
+        self._calibrate('y',-1495.4,'side')
+        self._calibrate('y',1495.4,'top')
+        self._calibrate('z',-914.02,'side')
+
+        # General point of reference
+        self.cross_pxl = [600,1000]
+
+        # lookuptables:
+        self.lookup = {}
+        
+        # lookuptables look like this:
+        # self.lookup[motor] = {} # look up dict for <motor>
+        # self.lookup[motor].update({motor: thetas})  ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <thetas>
+        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
+        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
+
+        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
+

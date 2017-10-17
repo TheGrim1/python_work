@@ -1,8 +1,0 @@
-import numpy as np
-import sys, os
-
-import h5py
-
-
-fnameh200 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_200ms_Ga/MG154_fluoXAS_1.replace.h5'
-h200 = h5py.File(fnameh200, 'r+')

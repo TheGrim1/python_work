@@ -314,3 +314,32 @@ def line_maskfunc(x, y, inclination, yintersect, width):
     else:
         nearwire = False
     return nearwire
+
+def define_a_circle_as_mask(exampledatashape, center_x, center_y, radius=4, verbose=False):
+    '''
+    not really on funbctional level, but worked once like this:
+    '''
+    ## masking the wire:
+    mask = np.zeros(shape = exampledatashape)
+    
+    for y in range(mask.shape[0]):
+        for x in range(mask.shape[1]):
+            if circle_maskfunc(x, y, center_x, center_y, radius):
+                mask[y,x] = 1
+            else:
+                mask[y,x] = 0
+
+    if verbose:
+        plt.matshow(np.where(mask,1,0))                    
+        plt.show()
+    return mask
+
+
+def circle_maskfunc(x, y, cy, cx, radius):
+    '''
+    returns true if point xy in circle of radius around point (cx, cy)
+    '''
+    if ((cx-x)**2 + (cy - y)**2) < radius**2:
+        return True
+    else:
+        return False

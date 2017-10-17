@@ -74,7 +74,41 @@ def open_scan(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc140
         data[:,:,i] = np.reshape(flat, scanshape)
         i          +=1
     return data
+
+def open_dscans(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2c_after/AJ2c_after.dat",
+                scanlist  = [333], # 333 +16 und nnp2 bei 313 +16
+                counter = 'Detector',
+                sorting_motor=None):
+    '''opens counter of all dscans in scanlist. Stacks scans. Returns just data. They must be the same length for this to make sense'''
+
+#preps:
+    sfh5        = SpecH5(fname)
+    grouptpl    = '%s.1/'
+    speccommand = sfh5[grouptpl %scanlist[0]]['title']
+    print speccommand.split()
+    scanlen     = int(speccommand.split()[5]) +1
+    scan_positions = (float(speccommand.split()[3]) - float(speccommand.split()[4])) * np.arange(float(scanlen))/float(scanlen) + float(speccommand.split()[3])
+    data        = np.zeros(shape = (len(scanlist),scanlen))
+    at_positions = []
+    
+    i = 0
+    for i,scan in enumerate(scanlist):
+        print 'reading scan no %s' %scan
+
+        # #    timing:
+        # start_time = timeit.default_timer()
+        # print 'took %s' % (timeit.default_timer() - start_time)
+
+        if type(sorting_motor) == str:
+            at_positions.append(float(sfh5[grouptpl %scan]['instrument']['positioners'][sorting_motor]))
+
+        # print (np.asarray(sfh5[grouptpl % scan]['measurement']['Detector']))
+        data[i]     = np.asarray(sfh5[grouptpl % scan]['measurement']['Detector'])
         
+       
+    return data , np.asarray(at_positions), scan_positions 
+
+
 
 if __name__ == "__main__":
     'test'

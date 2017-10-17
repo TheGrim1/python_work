@@ -1,3 +1,0 @@
-# local imports
-sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
-from hdf5.open_h5 import test
