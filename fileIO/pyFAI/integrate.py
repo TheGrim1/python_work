@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import matplotlib.pyplot as plt
 import fabio
@@ -17,7 +18,7 @@ def main(file_list):
   
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print 'usage: python integrate.py <your_files.py>'
+        print('usage: python integrate.py <your_files.py>')
         sys.exit(0)
     else:
         main(sys.argv[1:])

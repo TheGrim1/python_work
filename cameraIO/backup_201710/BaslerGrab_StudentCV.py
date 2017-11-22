@@ -4,6 +4,7 @@ Spyder Editor
 
 This is a temporary script file.
 """
+from __future__ import print_function
 import time
 import pypylon.pylon as py
 import matplotlib.pyplot as plt
@@ -18,15 +19,15 @@ def initialize_cameras():
     factory = py.TlFactory.GetInstance()
     available_cameras = factory.EnumerateDevices()
     for i in range(len(available_cameras)):
-        print available_cameras[i]
-        print 'this camera is currently available: %s' % factory.IsDeviceAccessible(available_cameras[i])
+        print(available_cameras[i])
+        print('this camera is currently available: %s' % factory.IsDeviceAccessible(available_cameras[i]))
         campointer = factory.CreateDevice(available_cameras[i])
         cameras.append(py.InstantCamera(campointer))
     
-    print "found %s cameras" % len(cameras)
+    print("found %s cameras" % len(cameras))
     
     for cam_no, cam in enumerate(cameras):
-        print 'initializing camera %s' % cam_no
+        print('initializing camera %s' % cam_no)
     
         
         cam.Close()
@@ -39,7 +40,7 @@ def initialize_cameras():
         cam.StartGrabbing(py.GrabStrategy_LatestImages)
         cam.Close()
         
-    print "%s cameras ready" % len(cameras)
+    print("%s cameras ready" % len(cameras))
     return cameras
 
 def grab_image(cam, bw = False):
@@ -98,13 +99,13 @@ def liveview(camera, bw = False):
             image = grab_image(camera, bw = bw)
             i+=1
             plt.imshow(image)
-            print 'showing frame %s'%i  
+            print('showing frame %s'%i)  
             plt.pause(0.05)     
     
     except Exception:
-        print 'live view failed'
-        print Exception.args
-        print Exception.message
+        print('live view failed')
+        print(Exception.args)
+        print(Exception.message)
         plt.ioff()
         pass
 
@@ -116,7 +117,7 @@ def plot_cameras_images(cameras):
     '''
     for cam_no, cam in enumerate(cameras):
         image = grab_image(cam)  
-        print 'camera number %s' %cam_no
+        print('camera number %s' %cam_no)
         plt.matshow(image.sum(-1))
         plt.show()
         
@@ -127,15 +128,15 @@ def time_grabbing(no_frames):
     start_time = time.time()
     cameras = initialize_cameras()
     open_time = time.time() - start_time
-    print "opening cameras took %s s" % open_time
+    print("opening cameras took %s s" % open_time)
         
     for i in range(no_frames):
         grab_images(cameras)    
         
     grab_time = time.time() - start_time - open_time
 
-    print 'grabbing %s images on %s cameras took %s s' % \
-        (no_frames, len(cameras), grab_time )
+    print('grabbing %s images on %s cameras took %s s' % \
+        (no_frames, len(cameras), grab_time ))
         
 #    for i in range(no_frames):
 #        plot_cameras_images(cameras)

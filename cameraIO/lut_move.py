@@ -1,3 +1,4 @@
+from __future__ import print_function
 import collections
 from matplotlib import pyplot
 
@@ -104,7 +105,7 @@ class LUT_Anyberg(object):
                     corrdc[mot] = correction
             return corrdc
         else:
-            print 'no lookuptable found for ' , function
+            print('no lookuptable found for ' , function)
             return None
 
     def sync_pos(self, pos_dc):
@@ -120,15 +121,15 @@ class LUT_Anyberg(object):
         for mot in self.dynamiclut.keys():
             self.dynamiclut[mot].mockup_currpos.update(res)
         print('updated the currentposition to the lookuptabe interface')
-        print res
+        print(res)
 
 ### methods migrated here from the CamView stage class:
         
     def load_lut(self, fname):
         data, header           =  open_data.open_data(fname)
         lut_motor = header[0]
-        print "found lookuptable for motor: ", lut_motor
-        print 'using (unsorted) motors ', header[1:]
+        print("found lookuptable for motor: ", lut_motor)
+        print('using (unsorted) motors ', header[1:])
         self.lookup[header[0]] = LookupDict(self, self.motors)
         for i, mot in enumerate(header):
             self.lookup[header[0]][mot] = data[:,i]
@@ -265,8 +266,8 @@ class LUT_Anyberg(object):
             # just overwrite the old lookup
             print('writing new lookuptable')
             new_positions = positions
-            print new_positions
-            print 'new_positions'
+            print(new_positions)
+            print('new_positions')
             new_mots=[]
             for k in range(len(shift)):
                 new_mots.append(shift[k])
@@ -283,12 +284,12 @@ class LUT_Anyberg(object):
         '''
         overwrites the old lookup for <lookupmotor> with the values from tmp_lookup
         '''
-        print 'overwriting lookup for %s with:' % lookupmotor
+        print('overwriting lookup for %s with:' % lookupmotor)
         lookup_motors = []
         for mot,values in self.tmp_lookup[lookupmotor].items():
             lookup_motors.append(mot)
-            print mot
-            print values
+            print(mot)
+            print(values)
         self.update_lut(motor=lookupmotor, shift_lookup=self.tmp_lookup[lookupmotor], overwrite=True, lookup_motors=lookup_motors)      
           
     def initialize_temp_lut(self, lookup_motor = 'phi', save_motor_list=['x','y','z']):
@@ -304,7 +305,7 @@ class LUT_Anyberg(object):
             self.tmp_lookup[lookup_motor].update({mot:[]})
         self.tmp_lookup[lookup_motor].update({lookup_motor:[]})
 
-        print 'ready to save lookup positions for ', save_motor_list
+        print('ready to save lookup positions for ', save_motor_list)
 
     def add_pos_to_temp_lut(self, lookupmotor, motor_dc):
         '''
@@ -337,10 +338,10 @@ class LUT_Anyberg(object):
         COR_motors=self.motors[rotmotor]['COR_motors']
 
         if not self.motors[rotmotor]['is_rotation']:
-            print 'does it make sense to shift a COR if self.motors[rotmotor]["is_rotation"] == False ?'
+            print('does it make sense to shift a COR if self.motors[rotmotor]["is_rotation"] == False ?')
             
         COR_shift = [float(x) for x in COR_shift]
-        print('shifting lookuptable for ',rotmotor,' with ',COR_motors,' COR by ',COR_shift)
+        print(('shifting lookuptable for ',rotmotor,' with ',COR_motors,' COR by ',COR_shift))
         lookup = self.lookup[rotmotor]
 
         if self.motors[rotmotor]['invert']:
@@ -357,7 +358,7 @@ class LUT_Anyberg(object):
     def show_lut(self):
         lc = self.lookup
         for (k,lut) in lc.iteritems():
-            print k, lut
+            print(k, lut)
 
     def dummy_mv(self, mk, pos):
         self.sync_pos()
@@ -463,7 +464,7 @@ class LUT_Navitar(LUT_Anyberg):
         for function in self.lut_fnames.keys():
             self.load_lut(self.lut_fnames[function])
 
-        print "luts loaded"
+        print("luts loaded")
 
         self.phi_dynamiclut = dyl = LookupDict_Phi_XZKappa(self.motors, self.lookup)
         dyl.mockup_currpos(self.pos)
@@ -471,7 +472,7 @@ class LUT_Navitar(LUT_Anyberg):
         self.dynamiclut['phi'] = dyl
         self.dynamiclut['kappa'] = self.lookup['kappa']
 
-        print "dynam lut done."
+        print("dynam lut done.")
     
 class LUT_Feldberg(LUT_Anyberg):
     ''' 
@@ -539,7 +540,7 @@ class LUT_Feldberg(LUT_Anyberg):
         for function in self.lut_fnames.keys():
             self.load_lut(self.lut_fnames[function])
 
-        print "luts loaded"
+        print("luts loaded")
 
         self.phi_dynamiclut = dyl = LookupDict_Phi_XZKappa(self.motors, self.lookup)
         dyl.mockup_currpos(self.pos)
@@ -547,7 +548,7 @@ class LUT_Feldberg(LUT_Anyberg):
         self.dynamiclut['phi'] = dyl
         self.dynamiclut['kappa'] = self.lookup['kappa']
 
-        print "dynam lut done."
+        print("dynam lut done.")
 
 
             
@@ -619,8 +620,8 @@ def _test1():
     zf.load_lut('lookuptable_phi_dense.dat')
     zf.show_lut()
     for phipos in range(0,180,30):
-        print phipos
-        print zf.get_lut_correction("phi", phipos*1.0, phipos+30.0)
+        print(phipos)
+        print(zf.get_lut_correction("phi", phipos*1.0, phipos+30.0))
 
 _test = _test2
 

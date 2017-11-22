@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 import weakref
 import exceptions
 import time
-import saferef
+from . import saferef
 import gevent
 import logging
 from .SpecClientError import SpecClientDispatcherError
@@ -18,17 +19,17 @@ def robustApply(slot, arguments = ()):
 
     if hasattr(slot, 'im_func'):
         # an instance method
-        n_default_args = slot.im_func.func_defaults and len(slot.im_func.func_defaults) or 0
-        n_args = slot.im_func.func_code.co_argcount - n_default_args - 1
+        n_default_args = slot.__func__.__defaults__ and len(slot.__func__.__defaults__) or 0
+        n_args = slot.__func__.__code__.co_argcount - n_default_args - 1
     else:
         try:
-            n_default_args = slot.func_defaults and len(slot.func_defaults) or 0
-            n_args = slot.func_code.co_argcount - n_default_args
+            n_default_args = slot.__defaults__ and len(slot.__defaults__) or 0
+            n_args = slot.__code__.co_argcount - n_default_args
         except:
-            raise SpecClientDispatcherError, 'Unknown slot type %s %s' % (repr(slot), type(slot))
+            raise SpecClientDispatcherError('Unknown slot type %s %s' % (repr(slot), type(slot)))
 
     if len(arguments) < n_args:
-        raise SpecClientDispatcherError, 'Not enough arguments for calling slot %s (need: %d, given: %d)' % (repr(slot), n_args, len(arguments))
+        raise SpecClientDispatcherError('Not enough arguments for calling slot %s (need: %d, given: %d)' % (repr(slot), n_args, len(arguments)))
     else:
         return slot(*arguments[0:n_args])
 

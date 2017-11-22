@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import subprocess
@@ -89,7 +90,7 @@ class part():
     #        print os.path.join(self.partpath,relpath)
             subargs.append(os.path.sep.join([self.partpath,relpath]))
             cmd=" "
-            print "doing: %s" % cmd.join(subargs)
+            print("doing: %s" % cmd.join(subargs))
             try:
                 subprocess.check_call([cmd.join(subargs)], shell=True)
             except:
@@ -97,9 +98,9 @@ class part():
      #       
 
         if problem:
-            print "------------------------------"
-            print "\n rsync had a problem here \n"
-            print "------------------------------"
+            print("------------------------------")
+            print("\n rsync had a problem here \n")
+            print("------------------------------")
             return False
         else:
             return True
@@ -131,37 +132,37 @@ def dump(obj, nested_level=0, output=sys.stdout):
 
     spacing = '   '
     if type(obj) == dict:
-        print >> output, '%s{' % ((nested_level) * spacing)
+        print('%s{' % ((nested_level) * spacing), file=output)
         for k, v in obj.items():
             if hasattr(v, '__iter__'):
-                print >> output, '%s%s:' % ((nested_level + 1) * spacing, k)
+                print('%s%s:' % ((nested_level + 1) * spacing, k), file=output)
                 dump(v, nested_level + 1, output)
             else:
-                print >> output, '%s%s: %s' % ((nested_level + 1) * spacing, k, v)
-        print >> output, '%s}' % (nested_level * spacing)
+                print('%s%s: %s' % ((nested_level + 1) * spacing, k, v), file=output)
+        print('%s}' % (nested_level * spacing), file=output)
     elif type(obj) == list:
-        print >> output, '%s[' % ((nested_level) * spacing)
+        print('%s[' % ((nested_level) * spacing), file=output)
         for v in obj:
             if hasattr(v, '__iter__'):
                 dump(v, nested_level + 1, output)
             else:
-                print >> output, '%s%s' % ((nested_level + 1) * spacing, v)
-        print >> output, '%s]' % ((nested_level) * spacing)
+                print('%s%s' % ((nested_level + 1) * spacing, v), file=output)
+        print('%s]' % ((nested_level) * spacing), file=output)
     else:
-        print >> output, '%s%s' % (nested_level * spacing, obj)
+        print('%s%s' % (nested_level * spacing, obj), file=output)
 
 
 def printparts(parts):
 ## used for debugging and informing the user
     for i in range(len(parts)):
         part = parts[i]
-        print ""
-        print "Configuration of part %s saved in source-path: %s" % (part.partno,part.srcpath)
-        print "File:                                          %s" % (part.filterfname)
-        print "Destinaton path of part%s:                     %s" % (part.partno,part.partpath)
-        print "Space on this part:                            %s" % (part.allocatedsize)
-        print "Space allocated to folders:                    %s" % (part.writesize)
-        print "Folders in this part: "
+        print("")
+        print("Configuration of part %s saved in source-path: %s" % (part.partno,part.srcpath))
+        print("File:                                          %s" % (part.filterfname))
+        print("Destinaton path of part%s:                     %s" % (part.partno,part.partpath))
+        print("Space on this part:                            %s" % (part.allocatedsize))
+        print("Space allocated to folders:                    %s" % (part.writesize))
+        print("Folders in this part: ")
         dump(part.dirs)
 
 
@@ -170,7 +171,7 @@ def printparts(parts):
 def recursivefoldersearch(pathtree, folderlist, spath):
 #like recursice search but returns those paths (after dest/..) that appear in pathtree after (src/..)
     
-    print "folderlist : "
+    print("folderlist : ")
 #    dump(folderlist)
     for path in pathtree:
         if path !="info":
@@ -178,9 +179,9 @@ def recursivefoldersearch(pathtree, folderlist, spath):
                 if subpath != "info":
                     folderlist        =recursivefoldersearch(pathtree[path], folderlist, spath)
     
-                    print "looking for %s \n in %s" % (spath, subpath)
+                    print("looking for %s \n in %s" % (spath, subpath))
                     if subpath == spath:
-                        print 'found\n\n'
+                        print('found\n\n')
                         info=pathtree[path][subpath]["info"]
                         folderlist.append({"path":path,
                                            "flag":info["flag"],
@@ -240,26 +241,26 @@ def add_to_recursivedict(newpath,pathtree,
                 ## debugging
 
     elif type(newpath) == dict:
-        print newpath
+        print(newpath)
         norm_path     = os.path.realpath(newpath["path"])
         path_list     = norm_path.split(os.sep)
         superpath     = os.sep.join(path_list[:-1])
         for expath in pathtree:
-            print "now comparing superpath :\n%s with \n%s in the pathtree" % (superpath,expath)
+            print("now comparing superpath :\n%s with \n%s in the pathtree" % (superpath,expath))
             if superpath == expath:
-                print "found a match !!!!" 
+                print("found a match !!!!") 
                 if newpath["path"] not in pathtree[expath]:
                     pathtree[expath].update({newpath["path"]:{"info":{"timestamp":newpath["timestamp"],"foldersize":newpath["foldersize"],"branchsize":newpath["branchsize"],"partno":newpath["partno"],"flag":newpath["flag"]}}})
-                print "written: "
-                print pathtree[expath]
+                print("written: ")
+                print(pathtree[expath])
 
             elif superpath.find(expath)!=-1:
                 add_to_recursivedict(newpath,pathtree[expath])
-                print "recursion: "
-                print pathtree[expath]
+                print("recursion: ")
+                print(pathtree[expath])
                 
             else:
-                print " here " 
+                print(" here ") 
     return(pathtree)
 
 
@@ -337,7 +338,7 @@ def scansource(src):
 
     pathtree     = startingpathtree
     for path in allfolders:
-        print "looking at %s" %path
+        print("looking at %s" %path)
         pathtree.update(add_to_recursivedict(path,pathtree))  
 #    dump(pathtree)
     pathtree = fill_branchsize(pathtree)
@@ -427,10 +428,10 @@ def recursivesplit(sections, pathtree):
 #                        print " sectionno = %s" %sectionno  #debug
 #                        dump(pathtree[path])
                         if pathtree[path]["info"]["branchsize"] > sections[sectionno]["size"]-sections[sectionno]["tobewritten"]:
-                            print "dumping path tree at exit:"
+                            print("dumping path tree at exit:")
                             dump(pathtree)
-                            print "Unable to allocate data to parts, the folder %s does not fit on part %s" %(path,sectionno)
-                            print "You have some thinking to do, I quit."
+                            print("Unable to allocate data to parts, the folder %s does not fit on part %s" %(path,sectionno))
+                            print("You have some thinking to do, I quit.")
                             sys.exit(0)                    
                         pathtree[path]["info"]["partno"]     = sectionno
                         pathtree[path]["info"]["flag"]       = "keyfolder"
@@ -461,14 +462,14 @@ def recursivesplit(sections, pathtree):
                 try:
                     recursivesplit(sections,pathtree[path])
                 except KeyError:
-                    print "dumping path tree at exit:"
+                    print("dumping path tree at exit:")
                     dump(pathtree)
-                    print "It was not possible to allocate all the folders to your parts. Possibe cause: there is a single folder larger than the remaining space on any part"
-                    print "folder:"
-                    print path
-                    print "size : %s, largest partspace found on part %s: %s" %(pathtree[path]["info"]["branchsize"], lsectionno, (lsection["size"]-lsection["tobewritten"]))
-                    print "possible solution: move files into subfolders and/or delete files on part and refine the file allocation."
-                    print "You have some thinking to do, I quit."
+                    print("It was not possible to allocate all the folders to your parts. Possibe cause: there is a single folder larger than the remaining space on any part")
+                    print("folder:")
+                    print(path)
+                    print("size : %s, largest partspace found on part %s: %s" %(pathtree[path]["info"]["branchsize"], lsectionno, (lsection["size"]-lsection["tobewritten"])))
+                    print("possible solution: move files into subfolders and/or delete files on part and refine the file allocation.")
+                    print("You have some thinking to do, I quit.")
                     sys.exit(0)
                 (lsectionno,lsection)                   =  largestpart(sections)
                 pathtree[path]["info"]["partno"]        = lsectionno                    
@@ -486,7 +487,7 @@ def findsplit(parts, pathtree):
 # synces parts and pathtree:    
     for i in range(len(parts)):
         for pathdict in parts[i].dirs:
-            print "adding %s" % pathdict["path"]
+            print("adding %s" % pathdict["path"])
             add_to_recursivedict(pathdict,pathtree)
 
             ###debugging2
@@ -495,20 +496,20 @@ def findsplit(parts, pathtree):
     try:
         totalsize = pathtree[superpath]["info"]["branchsize"]
     except KeyError:
-        print "dumping path tree at exit:"
+        print("dumping path tree at exit:")
         dump(pathtree)
 #        printparts(parts)
-        print "Could not find a valid path, possible errors: \n not running this skript in the root path of the folder allocation \n or \n corrupted config files"
+        print("Could not find a valid path, possible errors: \n not running this skript in the root path of the folder allocation \n or \n corrupted config files")
         sys.exit(0)
              
     availablespace     = 0
     for i in range(len(parts)):
         availablespace+=parts[i].allocatedsize
     if availablespace<totalsize:
-        print "dumping path tree at exit:"
+        print("dumping path tree at exit:")
         dump(pathtree)
         printparts(parts)
-        print "Sorry, I could not find a solution to the allocation problem or there is simply not enough part space to save all files. You have some thinking to do. I quit."   
+        print("Sorry, I could not find a solution to the allocation problem or there is simply not enough part space to save all files. You have some thinking to do. I quit.")   
         sys.exit(0)
     
 # list of keywords (foldernames) to be put on a certain diskno
@@ -551,11 +552,11 @@ def df_in_path(path):
     args   =[]
     args.append("df")
     args.append(path)
-    print "doing: %s" % (" ".join(args))
+    print("doing: %s" % (" ".join(args)))
     output = shlex.split(subprocess.check_output(args))
     space  = output[10]
 
-    print "Found %s free space on %s "%(output[10],output[12])
+    print("Found %s free space on %s "%(output[10],output[12]))
 
     return space
 
@@ -582,15 +583,15 @@ def deletefilter(src):
         if fname.endswith(".txt") and fname.find("part")!=-1:
             flag = 1
             try:
-                print "deleting %s " % os.path.join(src,fname)
+                print("deleting %s " % os.path.join(src,fname))
                 cmd   = "rm %s"% os.path.join(src,fname)
                 os.system(cmd) 
             except:
-                print "error deleting %s" % os.path.join(src,fname)
-                print "please remove manually"
+                print("error deleting %s" % os.path.join(src,fname))
+                print("please remove manually")
                 sys.exit(0)
     if flag !=1:
-        print "No config files found in %s, continuing" %src
+        print("No config files found in %s, continuing" %src)
 
 
 
@@ -613,7 +614,7 @@ def save(part):
         finally:
             f.close()
     except IOError:
-        print "could not write file %s , quitting" %  os.path.join(part.srcpath,part.filterfname)
+        print("could not write file %s , quitting" %  os.path.join(part.srcpath,part.filterfname))
         sys.exit(0)
 
 
@@ -625,7 +626,7 @@ def doall(parts,
 
     done = []
     for part in parts:
-        print "Trying to sync part %s" % part.partno
+        print("Trying to sync part %s" % part.partno)
         if check_access(part.partpath):
             if mode.find("t")!=-1:
                 worked = part.syncit(mode = "test")
@@ -634,7 +635,7 @@ def doall(parts,
                 if worked:
                     done.append(part.partno)
         else:
-            print "Could not access destination path of part%s at %s" %(part.partno,part.partpath)
+            print("Could not access destination path of part%s at %s" %(part.partno,part.partpath))
    #    except:
    #        choice    = raw_input_with_timeout("Something happened! To quit press q, will continue in 30s ")
    #        if choice == "q":
@@ -643,18 +644,18 @@ def doall(parts,
     
     doneconfig = []
     if len(done) ==  len(parts):
-        print "SUCCESS"
+        print("SUCCESS")
         for part in parts:
             doneconfig.append("/".join([part.srcpath,part.filterfname]))
         if mode.find("t")!=-1:
-            print "The folders listed in these configfiles can be synced: \n%s" % "\n".join(doneconfig)
+            print("The folders listed in these configfiles can be synced: \n%s" % "\n".join(doneconfig))
         else:
-            print "The folders listed in these configfiles were synced: \n%s" % "\n".join(doneconfig)
+            print("The folders listed in these configfiles were synced: \n%s" % "\n".join(doneconfig))
     else:
         for part in parts:
             if part.partno not in done:
                 doneconfig.append("/".join([part.srcpath,part.filterfname]))                
-        print "The files listed in these configfiles were NOT synced: \n%s" % "\n".join(doneconfig)
+        print("The files listed in these configfiles were NOT synced: \n%s" % "\n".join(doneconfig))
                 
 
 def findfilter(src):
@@ -695,12 +696,12 @@ def findfilter(src):
                 parts.append(new_filter)
                 f.close()
             except IndexError: 
-                print "Error reading diskXX.txt files in the specified path. Please check the format of or remove files:"
-                print "path specified : %s" %src
-                print "filename tried:   %s" %fname
+                print("Error reading diskXX.txt files in the specified path. Please check the format of or remove files:")
+                print("path specified : %s" %src)
+                print("filename tried:   %s" %fname)
                 sys.exit(0)
     if flag != 1:
-        print "No configfiles found in %s " % src
+        print("No configfiles found in %s " % src)
         
     return parts
 
@@ -709,4 +710,4 @@ def findfilter(src):
 
 if __name__ =='__main__':
     
-    print "this is just a collection of useful functions" 
+    print("this is just a collection of useful functions") 

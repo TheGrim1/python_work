@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 18})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -57,8 +58,8 @@ gaasmeas_norm, gaasmeas_edge, step = normalize_xanes(np.asarray([gaasmeas[:,0],g
 gaasmeas_norm[:,0] *= 1000
 e0gaas_gaasmeas = np.interp(0.5, gaasmeas_norm[:,1], gaasmeas_norm[:,0])
 measured_correction = e0gaas_gema - e0gaas_gaasmeas
-print "measured_correction"
-print measured_correction
+print("measured_correction")
+print(measured_correction)
 
 xanes[:,0] += measured_correction
 xanes200[:,0] += measured_correction

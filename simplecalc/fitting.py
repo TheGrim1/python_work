@@ -8,6 +8,7 @@ do_exp_fit(data)
 do_gauss_fit(data)
 do_logistic_fit(data)
 '''
+from __future__ import print_function
 
 import numpy as np
 import scipy.odr
@@ -34,9 +35,9 @@ def do_sin_fit(data, verbose = False):
     phase_guess = 0
     offset_guess = 0.5*(np.max(data[:,1]) + np.min(data[:,1]))
     if verbose:
-        print 'amp_guess = ', amp_guess
-        print 'phase_guess = ', phase_guess
-        print 'offset_guess = ', offset_guess
+        print('amp_guess = ', amp_guess)
+        print('phase_guess = ', phase_guess)
+        print('offset_guess = ', offset_guess)
 
     Odr = scipy.odr.ODR(Data, Model, [amp_guess, phase_guess, offset_guess], maxit = 10000000)
     Odr.set_job(fit_type=2)    
@@ -48,9 +49,9 @@ def do_sin_fit(data, verbose = False):
     if verbose :
         fig, ax = plt.subplots()
     #    print "poly", fit_np
-        print "fit result amp: \n", beta[0]
-        print "fit result phase: \n", beta[1]
-        print "fit result offset: \n", beta[2]
+        print("fit result amp: \n", beta[0])
+        print("fit result phase: \n", beta[1])
+        print("fit result offset: \n", beta[2])
 
         ax.plot(data[:,0], data[:,1], "bo")
         # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
@@ -85,10 +86,10 @@ def do_logistic_fit(data, verbose = False):
     min_guess = np.min(data[:,1])
     inflection_guess = np.mean(data[:,0])
     sigma_guess = 1
-    print 'max_guess = ', np.max(data[:,1])
-    print 'min_guess = ', np.min(data[:,1])
-    print 'inflection_guess = ', np.mean(data[:,0])
-    print 'steepness_guess = ', 1
+    print('max_guess = ', np.max(data[:,1]))
+    print('min_guess = ', np.min(data[:,1]))
+    print('inflection_guess = ', np.mean(data[:,0]))
+    print('steepness_guess = ', 1)
     Odr = scipy.odr.ODR(Data, Model, [max_guess, min_guess, inflection_guess, sigma_guess ], maxit = 10000000)
     Odr.set_job(fit_type=2)    
     output = Odr.run()
@@ -99,10 +100,10 @@ def do_logistic_fit(data, verbose = False):
     if verbose :
         fig, ax = plt.subplots()
     #    print "poly", fit_np
-        print "fit result max: \n", beta[0]
-        print "fit result min: \n", beta[1]
-        print "fit result inflection point: \n", beta[2]
-        print "fit result sigma: \n", beta[3]
+        print("fit result max: \n", beta[0])
+        print("fit result min: \n", beta[1])
+        print("fit result inflection point: \n", beta[2])
+        print("fit result sigma: \n", beta[3])
 
         ax.plot(data[:,0], data[:,1], "bo")
         # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
@@ -164,9 +165,9 @@ def do_gauss_fit(data, verbose = False):
     if verbose :
         fig, ax = plt.subplots()
     #    print "poly", fit_np
-        print "fit result a: \n", beta[0]
-        print "fit result mu: \n", beta[1]
-        print "fit result sigma: \n", beta[2]
+        print("fit result a: \n", beta[0])
+        print("fit result mu: \n", beta[1])
+        print("fit result sigma: \n", beta[2])
 
         ax.plot(data[:,0], data[:,1], "bo")
     #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
@@ -196,7 +197,7 @@ def do_linear_fit(data, verbose = False):
     if verbose :
         fig, ax = plt.subplots()
     #    print "poly", fit_np
-        print "fit result [pxl/frame]: \n", beta[0]
+        print("fit result [pxl/frame]: \n", beta[0])
 
         ax.plot(data[:,0], data[:,1], "bo")
     #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
@@ -225,7 +226,7 @@ def do_quadratic_fit(data, verbose = False):
 
     if vebose:
         fig, ax = plt.subplots()
-        print "fit result y = %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2])
+        print("fit result y = %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2]))
         ax.plot(data[:,0], data[:,1], "bo")
     #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
         ax.plot(data[:,0], quadratic_func(beta, data[:,0]), "r--", lw = 2)
@@ -252,7 +253,7 @@ def do_cubic_fit(data, verbose=False):
     if verbose:
         fig, ax = plt.subplots()
     #    print "poly", fit_np
-        print "fit result y = %s x3 + %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2], beta[3])
+        print("fit result y = %s x3 + %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2], beta[3]))
         ax.plot(data[:,0], data[:,1], "bo")
     #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
         ax.plot(data[:,0], cubic_func(beta, data[:,0]), "r--", lw = 2)
@@ -274,19 +275,19 @@ def do_polynomial_fit(data, degree, verbose = False):
     test : failed  TODO
     '''
     print('data in fitting:')
-    print'x:'
-    print data[:,0]
-    print'y:'
-    print data[:,1] 
+    print('x:')
+    print(data[:,0])
+    print('y:')
+    print(data[:,1]) 
     
     p = np.polynomial.polynomial.polyfit(data[:,0], data[:,1], degree)
     beta = p[::-1]
 
     print('result of fitting:')
-    print'x:'
-    print data[:,0]
-    print'y:'
-    print polynomial_func(beta, data[:,0])
+    print('x:')
+    print(data[:,0])
+    print('y:')
+    print(polynomial_func(beta, data[:,0]))
 
     if verbose:
         fig, ax = plt.subplots()
@@ -315,7 +316,7 @@ def do_exp_fit(data, verbose = False):
 
     if verbose:
         fig, ax = plt.subplots()
-        print "fit result y = %s e^(x * %s) + %s" % (beta[0],beta[1],beta[2])
+        print("fit result y = %s e^(x * %s) + %s" % (beta[0],beta[1],beta[2]))
         ax.plot(data[:,0], data[:,1], "bo")
         #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
         ax.plot(data[:,0], exp_func(beta, data[:,0]), "r--", lw = 2)
@@ -325,10 +326,10 @@ def do_exp_fit(data, verbose = False):
     return beta
 
 def poisson_func(p,t):
-    print 'p[1] ', p[1]
-    print 'np.math.factorial(p[0]) ', np.math.factorial(p[0])
-    print 'np.exp(-t) ', np.exp(-t)
-    print 'p[1](t**p[0]/np.math.factorial(p[0]))* np.exp(-t)\n', p[1] * (t**p[0]/np.math.factorial(p[0]))* np.exp(-t)
+    print('p[1] ', p[1])
+    print('np.math.factorial(p[0]) ', np.math.factorial(p[0]))
+    print('np.exp(-t) ', np.exp(-t))
+    print('p[1](t**p[0]/np.math.factorial(p[0]))* np.exp(-t)\n', p[1] * (t**p[0]/np.math.factorial(p[0]))* np.exp(-t))
     return p[1] * (t**p[0]/np.math.factorial(p[0]))* np.exp(-t)
 
 def do_poisson_fit(data, verbose=False):
@@ -338,13 +339,13 @@ def do_poisson_fit(data, verbose=False):
 
     parameters, cov_matrix = optimize.curve_fit(poisson_func, data[:,0], data[:,1]) 
     beta = parameters
-    print beta
+    print(beta)
     #betastd = output.sd_beta
     #    print "poly", fit_np
 
     if verbose:
         fig, ax = plt.subplots()
-        print "fit result y = %s * x^%s/(%s!) * e^(-x)" % (beta[1],beta[0],beta[0])
+        print("fit result y = %s * x^%s/(%s!) * e^(-x)" % (beta[1],beta[0],beta[0]))
         ax.plot(data[:,0], data[:,1], "bo")
         #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
         ax.plot(data[:,0], exp_func(beta, data[:,0]), "r--", lw = 2)

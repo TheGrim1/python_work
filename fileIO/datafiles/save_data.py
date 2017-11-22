@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,sys
 import numpy as np
 
@@ -39,7 +40,7 @@ def test():
     fname = './savetest.txt' 
     save_data(fname, testdata, testheader, delimiter = '\t')
     
-    print 'if readtest.txt = savetest.txt - SUCCESS'
+    print('if readtest.txt = savetest.txt - SUCCESS')
 
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage
@@ -107,12 +108,12 @@ def peak_guess(data, nopeaks = 2, verbose = False):
 
     if verbose and nopeaks == 2:
         print('guessing possitions with')
-        print("p[0], a1: ", guess[0])
-        print("p[1], mu1: ", guess[1])
-        print("p[2], sigma1: ", guess[2])
-        print("p[3], a2: ", guess[3])
-        print("p[4], mu2: ", guess[4])
-        print("p[5], sigma2: ", guess[5])
+        print(("p[0], a1: ", guess[0]))
+        print(("p[1], mu1: ", guess[1]))
+        print(("p[2], sigma1: ", guess[2]))
+        print(("p[3], a2: ", guess[3]))
+        print(("p[4], mu2: ", guess[4]))
+        print(("p[5], sigma2: ", guess[5]))
         
     return guess
 
@@ -173,12 +174,12 @@ def conservative_peak_guess(data,
         
     if verbose and nopeaks == 2:
         print('guessing possitions with')
-        print("p[0], a1: ", guess[0])
-        print("p[1], mu1: ", guess[1])
-        print("p[2], sigma1: ", guess[2])
-        print("p[3], a2: ", guess[3])
-        print("p[4], mu2: ", guess[4])
-        print("p[5], sigma2: ", guess[5])
+        print(("p[0], a1: ", guess[0]))
+        print(("p[1], mu1: ", guess[1]))
+        print(("p[2], sigma1: ", guess[2]))
+        print(("p[3], a2: ", guess[3]))
+        print(("p[4], mu2: ", guess[4]))
+        print(("p[5], sigma2: ", guess[5]))
         
     return guess
 
@@ -321,12 +322,12 @@ def do_two_gauss_fit(data, verbose = False):
         ax1.plot(xxx,ccc,'b') #fitted spectrum
         plt.show()
         print('found peaks at')
-        print("p[0], a1: ", v[0])
-        print("p[1], mu1: ", v[1])
-        print("p[2], sigma1: ", v[2])
-        print("p[3], a2: ", v[3])
-        print("p[4], mu2: ", v[4])
-        print("p[5], sigma2: ", v[5])
+        print(("p[0], a1: ", v[0]))
+        print(("p[1], mu1: ", v[1]))
+        print(("p[2], sigma1: ", v[2]))
+        print(("p[3], a2: ", v[3]))
+        print(("p[4], mu2: ", v[4]))
+        print(("p[5], sigma2: ", v[5]))
 
     return v.reshape((3,2))
 
@@ -391,7 +392,7 @@ def fit_2d_gauss(array):
     returns params, residual
     params as [amp, x0, y0, a, b, c] see .gauss2d
     '''
-    print 'array.shape: ', array.shape
+    print('array.shape: ', array.shape)
     xyz   = array_as_list(array)
     xy    = xyz[0:2]
     z     = xyz[2]
@@ -432,9 +433,9 @@ def test_2d_gaussfit():
     pred_params, uncert_cov = curve_fit(gauss2d, xy, zobs, p0=guess)
 
     zpred = gauss2d(xy, *pred_params)
-    print 'True parameters: ', true_params
-    print 'Predicted params:', pred_params
-    print 'Residual, RMS(obs - pred):', np.sqrt(np.mean((zobs - zpred)**2))
+    print('True parameters: ', true_params)
+    print('Predicted params:', pred_params)
+    print('Residual, RMS(obs - pred):', np.sqrt(np.mean((zobs - zpred)**2)))
 
     # from here its plotting:
 

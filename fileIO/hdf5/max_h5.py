@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 ### average over an h5 datasets first index, saves each dataset that was averaged as avg_data.h5
 # backup:
 # cp avg_h5.py /data/id13/inhouse2/AJ/skript/fileIO/hdf5/avg_h5.py
@@ -9,8 +11,8 @@ import os
 import numpy as np
 
 # local
-from save_h5 import save_h5
-from open_h5 import open_h5
+from .save_h5 import save_h5
+from .open_h5 import open_h5
 # from plot_h5 import plot_h5
 
 def max_h5(data, 
@@ -31,8 +33,8 @@ def main(filelist):
     nfiles = len(filelist) 
     for fname in filelist:
         try:
-            print "averaging %s" %fname
-            print "%s of %s" % (i,nfiles)
+            print("averaging %s" %fname)
+            print("%s of %s" % (i,nfiles))
             i += 1
             data     = open_h5(fname,threshold = 5000000)
 #        plot_h5(data, index = 1)
@@ -42,7 +44,7 @@ def main(filelist):
             save_h5(data, fullfname = newfname)
 #            plot_h5(data, title = newfname)
         except KeyError:
-            print "ERROR on %s" % fname
+            print("ERROR on %s" % fname)
             pass
 
 

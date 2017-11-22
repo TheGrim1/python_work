@@ -1,3 +1,4 @@
+from __future__ import print_function
 # global imports
 import sys, os
 import matplotlib.pyplot as plt
@@ -24,4 +25,4 @@ def save_edf(data, filename, threshold = 0.0):
         edffile.write(filename)
         return data
     else:
-        print "%s is not a .edf file?" %filename
+        print("%s is not a .edf file?" %filename)

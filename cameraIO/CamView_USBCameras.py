@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import cameraIO.BaslerGrab as bg
 from image_tools import uint8array_to_qimage
@@ -18,7 +19,7 @@ class USBCameras(object):
                 return bg.grab_image(self.cameras[cam_no], bw=True)[troi_to_slice(troi)]
                 
         except AttributeError:
-            print 'cameras not properly initialized' 
+            print('cameras not properly initialized') 
 
     def grab_qimage(self, cam_no, troi=None):
         array = self.grab_image(cam_no,troi)

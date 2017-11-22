@@ -1,3 +1,4 @@
+from __future__ import print_function
 # use to gzip files in place using more than one process
 # AJ 07.2016
 
@@ -12,17 +13,17 @@ import shlex
 arg            = "-v9"
 
 def usage():
-    print "python parrallelgzip.py <path> <no of processes (default 4)>  -<optional gzip arguement>"
-    print "runs one process per folder"
+    print("python parrallelgzip.py <path> <no of processes (default 4)>  -<optional gzip arguement>")
+    print("runs one process per folder")
     sys.exit(0)
 
 def confirm(path, noprocesses, arg):
 # yes or exit
     prompt = "Do you want to run gzip in all of the folders in \n%s\nin %s parallel processes with these arguements: %s\n [y/n] " 
     if raw_input(prompt % (path, noprocesses, arg)) in ("y","yes"):
-        print "will do"
+        print("will do")
     else:
-        print "ok, quitting"
+        print("ok, quitting")
         sys.exit(0)
 
 def task2(inargs):
@@ -41,7 +42,7 @@ def task2(inargs):
 def paragzip2(path, noprocesses, arg):
 # test with os.walk faster/more stable than find -d with running pools
 
-    print 'Creating pool with %d processes\n' % noprocesses
+    print('Creating pool with %d processes\n' % noprocesses)
   
     pool = Pool(processes=noprocesses, maxtasksperchild = 10)
     
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     rest = []
 
     if len(sys.argv) == 1:
-        print "default: working in current directory"
+        print("default: working in current directory")
     elif len(sys.argv) == 2:
         path = str(sys.argv[1])
     elif len(sys.argv) in  (3,4):
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         usage()
 
 
-    print 'Using %d processes to gzip all files in folders in %s in parallel' % (noprocesses,path)
+    print('Using %d processes to gzip all files in folders in %s in parallel' % (noprocesses,path))
  
 
     confirm(path, noprocesses, arg)
@@ -107,5 +108,5 @@ if __name__ == '__main__':
     paragzip2(path, noprocesses, arg)
     timetook  = time.time() -timestart
 
-    print "finished in %s\nafter %ss" % path,timetook
+    print("finished in %s\nafter %ss" % path,timetook)
 

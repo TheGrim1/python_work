@@ -1,15 +1,17 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import os
 import commands
 import numpy as np
 
 hostname = commands.getoutput('hostname')
-print "hostname:", hostname
+print("hostname:", hostname)
 if hostname not in  ["coherence","cristal","nanofocus"]:
     print('illegal host name')
     sys.exit(1)
 
-import baslertools2
+from . import baslertools2
 
 
 sys.path.append('/data/id13/inhouse2/AJ/skript')

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ def plotmany(data1):
     
     print (len(data1))
     for i in range(len(data1)):
-        print "i = %s" % i
+        print("i = %s" % i)
         plt.figure(1)
         plt.subplot(len(data1),1,i)
         plt.plot(data1[i][0], data1[i][1])
@@ -55,14 +56,14 @@ def read_calorimeter_datafiles(src,filelist):
                 data.append([time,temp])
                 time          = []
                 temp          = []
-            except IndexError, TypeError: 
-                print "Error reading %s" % os.path.join(src,fname)
+            except IndexError as TypeError: 
+                print("Error reading %s" % os.path.join(src,fname))
                 
     return data
 
 def save_data(data):
 # writes a textfile with contents data (list of lists)
-    print "To Do saving"
+    print("To Do saving")
 
 
 

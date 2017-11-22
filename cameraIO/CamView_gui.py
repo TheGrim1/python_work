@@ -1,6 +1,8 @@
 '''
 many thanks to Carsten Richter for inspiration (copying id01's CamView)
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import sys, os
 import time
@@ -14,7 +16,7 @@ print("Using PyQt %s"%QtCore.QT_VERSION_STR)
 
 import numpy as np
 
-from baslertools_aj import launch_live_viewer
+from .baslertools_aj import launch_live_viewer
 
 class GoLiveAction(PlotActions.PlotAction):
     def __init__(self, plot, parent=None):
@@ -30,10 +32,10 @@ class GoLiveAction(PlotActions.PlotAction):
     def trigger(self):
         if self.isChecked():
             launch_live_viewer("id13/limaccds/eh2-vlm1")
-            print 'was checked'
+            print('was checked')
             
         else:
-            print 'was unchecked'
+            print('was unchecked')
         
 
 class CamPlot(plot.PlotWindow):

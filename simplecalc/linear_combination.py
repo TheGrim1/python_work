@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import sys,os
 import numpy as np
@@ -61,7 +62,7 @@ def do_component_analysis(data, components, verbose = False, force_positive = Tr
         ax1 = plt.gca()
         print("force_positive = %s" % force_positive)
         print("Relative weight of composition found: ")
-        print beta
+        print(beta)
         ax1.plot(data[:,0], data[:,1], linewidth = 4,color = 'black')                    
         color = ['r','g','b','darkblue','grey']
         for i in range(1,len(components[0,:])):

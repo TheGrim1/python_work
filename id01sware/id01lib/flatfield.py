@@ -1,8 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import numpy as np
 import pylab as pl
 import os,datetime
-import hdf5_writer as h5
+from . import hdf5_writer as h5
 from scipy.optimize import curve_fit
 
 """
@@ -224,9 +226,9 @@ class Flatfield:
 
 		# Finally, lets get the fitting parameters, i.e. the mean and standard deviation:
 		print('Fit Parameters:')
-		print('Peak ph cts: = ', self.hist_coeff[0])
-		print('Fitted mean = ', self.hist_coeff[1])
-		print('Fitted standard deviation = ', self.hist_coeff[2])
+		print(('Peak ph cts: = ', self.hist_coeff[0]))
+		print(('Fitted mean = ', self.hist_coeff[1]))
+		print(('Fitted standard deviation = ', self.hist_coeff[2]))
 
 		self.I_lims = [self.hist_coeff[1]-3*self.hist_coeff[2],self.hist_coeff[1]+3*self.hist_coeff[2]]
 
@@ -311,8 +313,8 @@ class Flatfield:
 		pl.legend()
 
 		# Finally, lets get the fitting parameters, i.e. the mean and standard deviation:
-		print('Fitted mean = ', coeff[1])
-		print('Fitted standard deviation = ', coeff[2])
+		print(('Fitted mean = ', coeff[1]))
+		print(('Fitted standard deviation = ', coeff[2]))
 
 		pl.savefig(self.ff_path+'stats_3_ct_rate_corr.pdf')
 		pl.clf()

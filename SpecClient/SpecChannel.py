@@ -3,12 +3,13 @@
 
 This module defines the SpecChannel class
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
-import SpecEventsDispatcher
-import SpecWaitObject
+from . import SpecEventsDispatcher
+from . import SpecWaitObject
 from .SpecClientError import SpecClientTimeoutError
 import time
 import gevent
@@ -130,14 +131,14 @@ class SpecChannel:
 
     def update(self, channelValue, deleted = False,force=False):
         """Update channel's value and emit the 'valueChanged' signal."""
-        if type(channelValue) == types.DictType and self.access1 is not None:
+        if type(channelValue) == dict and self.access1 is not None:
             if self.access1 in channelValue:
                 if deleted:
                     SpecEventsDispatcher.emit(self, 'valueChanged', (None, self.name, ))
                 else:
                     if self.access2 is None:
                         if force or self.value is None or self.value != channelValue[self.access1]: 
-                            if type(channelValue[self.access1])==types.DictType:
+                            if type(channelValue[self.access1])==dict:
                                 self.value = channelValue[self.access1].copy()
                             else:
                                 self.value = self._coerce(channelValue[self.access1])
@@ -152,11 +153,11 @@ class SpecChannel:
                                     SpecEventsDispatcher.emit(self, 'valueChanged', (self.value, self.name, ))
             return
 
-        if type(self.value) == types.DictType and type(channelValue) == types.DictType:
+        if type(self.value) == dict and type(channelValue) == dict:
             # update dictionary
             if deleted:
                 for key,val in channelValue.iteritems():
-                    if type(val) == types.DictType:
+                    if type(val) == dict:
                         for k in val:
                             try:
                                 del self.value[key][k]
@@ -171,7 +172,7 @@ class SpecChannel:
                             pass
             else:
                 for k1,v1 in channelValue.iteritems():
-                    if type(v1)==types.DictType:
+                    if type(v1)==dict:
                         try:
                             self.value[k1].update(v1)
                         except KeyError:
@@ -180,7 +181,7 @@ class SpecChannel:
                             self.value[k1]={None: self.value[k1]}
                             self.value[k1].update(v1)
                     else:
-                        if self.value.has_key(k1) and type(self.value[k1]) == types.DictType:
+                        if k1 in self.value and type(self.value[k1]) == dict:
                             self.value[k1][None] = v1
                         else:
                             self.value[k1] = v1

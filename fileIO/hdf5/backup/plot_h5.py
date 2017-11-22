@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/open_h5.py
 
@@ -14,13 +15,13 @@ def plot_h5(data,
             index=0, 
             title = "Title"):
     dimension = len(data.shape)
-    print "dimension of data to be plotted is %s" % dimension
+    print("dimension of data to be plotted is %s" % dimension)
     if dimension == 3:
         plt.imshow(data[index,:,:], interpolation = 'none')
     elif dimension == 2:
         plt.imshow(data[:,:], interpolation = 'none')
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
 #    plt.clim(0,0.001)
 
     plt.show()
@@ -43,7 +44,7 @@ def plotmany_h5(data,index):
     elif dimension == 2:
         toplot = data[:,:]
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
 
     ax1.pcolor(toplot,norm=LogNorm(vmin=max(data.min(),0.0001),vmax=max(data.max(),0.01)), cmap='PuBu')
     nimages = data.shape[0]

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/do_stuff.py
 
 #global
@@ -8,14 +10,14 @@ import numpy as np
 import time
 
 # local
-from avg_h5 import avg_h5
-from save_h5 import save_h5
+from .avg_h5 import avg_h5
+from .save_h5 import save_h5
 from plot_h5 import plot_h5, plotmany_h5
-from open_h5 import open_h5
+from .open_h5 import open_h5
 
 
 def setup_frames(predata, srcname, nfiles):
-    print "setting up files" 
+    print("setting up files") 
     srcpath        = os.path.dirname(srcname)
     srcfname       = os.path.basename(srcname)
     if os.path.exists(srcpath):
@@ -26,7 +28,7 @@ def setup_frames(predata, srcname, nfiles):
             destpath   = os.path.sep.join([srcpath, "restacked%s_%s"%(nfiles,time.time())]) 
             os.mkdir(destpath)
     else:
-        print "Invalid sourcepath: quitting" 
+        print("Invalid sourcepath: quitting") 
         sys.exit(1)
         
     destfilelist        = []
@@ -60,10 +62,10 @@ def main(filelist):
     predata     = open_h5(filelist[0])
     premax      = predata.max()
     treshold    = premax - 100
-    print "read first datafile, data has the shape " 
-    print predata.shape
+    print("read first datafile, data has the shape ") 
+    print(predata.shape)
     
-    print "found max %s, setting threshold for data to %s " % (premax , treshold)
+    print("found max %s, setting threshold for data to %s " % (premax , treshold))
 
     
 
@@ -74,45 +76,45 @@ def main(filelist):
     newdata     = np.zeros(shape=(predata.shape))
 
     if averageonly: 
-        print "average only"
+        print("average only")
         for fname in filelist:
-            print "file %s of %s" % (i,nfiles)
-            print fname
+            print("file %s of %s" % (i,nfiles))
+            print(fname)
 
             i += 1
             data = open_h5(fname, threshold = 65000)
 
-            print "maximum of this file:"
-            print data[:,:,:].max()
+            print("maximum of this file:")
+            print(data[:,:,:].max())
             
             
             for frame in  range(nframes):
 
-                print "adding frame %s" % (frame)
+                print("adding frame %s" % (frame))
                 newdata[frame,:,:] += data[frame,:,:]
             
     else:
         ### TODO : 
         hugedata        = np.zeros(shape=(nfiles, nframes,  predata.shape[1], predata.shape[2]))
-        print "creating restacked version of the data"
+        print("creating restacked version of the data")
         for fname in filelist:
-            print "file %s of %s" % (i,nfiles)
+            print("file %s of %s" % (i,nfiles))
             i += 1
             datafile = open_h5(fname)
         
             hugedata        = np.zeros(shape=(nfiles, nframes,  predata.shape[1], predata.shape[2]))           
             for frame in  range(nframes):
                 try:
-                    print "adding %s %s" % (fname, frame)
+                    print("adding %s %s" % (fname, frame))
                     datafile["/entry/data/data"].readdirect(data)         
                     newdata[i,:,:] += data[frame,:,:]
                 except KeyError:
-                    print " some indexfault in file %s, frame %s" % (destfilelist[frame],frame)
+                    print(" some indexfault in file %s, frame %s" % (destfilelist[frame],frame))
                     nfiles -=1
 
     newdata = newdata / nfiles
-    print "maximum of newdata:"
-    print newdata[:,:,:].max()
+    print("maximum of newdata:")
+    print(newdata[:,:,:].max())
 #    print "newdata has shape:"
 #    print newdata.shape
 
@@ -127,7 +129,7 @@ def main(filelist):
     srcfname    = os.path.basename(filelist[0])
     savefname   = srcfname[0:(srcfname.find("data_")+4)]
     fullfname   = os.path.sep.join([savepath, "restacked%s_%s_000000.h5"%(nfiles,savefname)]) 
-    print "saving file %s" % fullfname
+    print("saving file %s" % fullfname)
     save_h5(newdata, fullfname = fullfname)
 #            plot_h5(data, title = newfname)
         
@@ -136,7 +138,7 @@ def main(filelist):
 #            print "ERROR on %s" % fname
 #            pass
 
-    print "    /\ \n   /||\ \n    ||   \n    ||\nThat might have worked" 
+    print("    /\ \n   /||\ \n    ||   \n    ||\nThat might have worked") 
 
 if __name__ == '__main__':
 

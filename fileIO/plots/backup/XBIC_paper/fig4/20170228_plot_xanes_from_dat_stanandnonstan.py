@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 40})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -60,7 +61,7 @@ gaasmeas_norm[:,0] *= 1000
 e0gaas_gaasmeas = np.interp(0.5, gaasmeas_norm[:,1], gaasmeas_norm[:,0])
 measured_correction = e0gaas_gema - e0gaas_gaasmeas
 
-print measured_correction
+print(measured_correction)
 
 xanes[:,0] += measured_correction
 #xanes200[:,0] += measured_correction
@@ -214,11 +215,11 @@ xbic_stanavg[:,0] = xbic_stan[:,0]
 xanesavg[:,1] = np.sum(xanes[:,1::], axis = -1) /len(xanes[0,1::])
 xbicavg[:,1] = np.sum(xbic[:,1::], axis = -1)      /len(xbic[0,1::])
 xbic_stanavg[:,1] = np.sum(xbic_stan[:,1::], axis = -1) /len(xbic_stan[0,1::])
-print xbicavg
+print(xbicavg)
 xbic_stanavg[:,1]=xbic_stanavg[:,1]/np.max(xbic_stanavg[:,1])*1.6
 xbicavg[:,1]=xbicavg[:,1]*527432023/60*5
 # times times V2F gain, amplifier gain and arrcurr normalization (average) 
-print xbicavg
+print(xbicavg)
 
 ax1.plot(xanesavg[:,0], xanesavg[:,1], color = 'red', linewidth = 2)
 ax1.plot(xbic_stanavg[:,0], xbic_stanavg[:,1], color = 'blue', linewidth = 2)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import sys, os
 import fakenews
@@ -31,7 +32,7 @@ def open_data(filename, delimiter = ' ', quotecharlist= ['#'],verbose = False):
         except IndexError:
             if verbose:
                 print('discarding:')
-                print l
+                print(l)
 
     if verbose:
         print(data)

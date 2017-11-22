@@ -1,3 +1,4 @@
+from __future__ import print_function
 # script for reading edf into hdf5 using xrayutilities / pymca 
 # SJL - 20150114
 
@@ -41,16 +42,16 @@ def print_hdf5_item_structure(g, offset='    ') :
     """Prints the input file/group/dataset (g) name and begin iterations on its content"""
     
     if   isinstance(g,h5py.File) :
-        print(g.file, '(File)', g.name)
+        print((g.file, '(File)', g.name))
  
     elif isinstance(g,h5py.Dataset) :
-        print('(Dataset)', g.name, '    len =', g.shape) #, g.dtype
+        print(('(Dataset)', g.name, '    len =', g.shape)) #, g.dtype
  
     elif isinstance(g,h5py.Group) :
-        print('(Group)', g.name)
+        print(('(Group)', g.name))
  
     else :
-        print('WORNING: UNKNOWN ITEM IN HDF5 FILE', g.name)
+        print(('WORNING: UNKNOWN ITEM IN HDF5 FILE', g.name))
         sys.exit ( "EXECUTION IS TERMINATED" )
  
     if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
@@ -119,13 +120,13 @@ def create_hdf5(specfile='.spec', image_prefix='', image_suffix='.edf.gz',
         import tifffile
         if os.path.isdir(tiffdir):
             tiffdir = os.path.abspath(tiffdir)
-            print("path exists for tiff files: ", tiffdir)
+            print(("path exists for tiff files: ", tiffdir))
         else:
             try:
                 os.mkdir(tiffdir)
                 tiffdir = os.path.abspath(tiffdir)
             except:
-                print(tiffdir, 'cannot be created')
+                print((tiffdir, 'cannot be created'))
             
     #s = xu.io.SPECFile(specfile, path=specdir)
     sf = sfwr.Specfile(specdir+specfile)
@@ -199,7 +200,7 @@ def create_hdf5(specfile='.spec', image_prefix='', image_suffix='.edf.gz',
                 if image_suffix =='.edf.gz':
                     e = EdfFile.EdfFile(efile)#, path=specdir)\
                 else:
-                    print('oh dear what can the matter be? suffix is wrong exist?',efile)
+                    print(('oh dear what can the matter be? suffix is wrong exist?',efile))
                 #e.ReadData()
                 if mask:
                     ID01_h5['scan_%.4i/data/image_data'%scan][i,:,:] = e.GetData(0)*ID01_detmask['mask']
@@ -273,7 +274,7 @@ def generate_h5_10k(dir='./',prefix = 'data_',suffix = '.edf.gz',format = '%.4i'
                 ID01_h5.create_dataset('image_%i'%number, data=e.GetData(0),compression="gzip", compression_opts=9)
                 #ID01_h5.close('image_%i'%number)
             except:
-                print(efile, 'doesnt exist')
+                print((efile, 'doesnt exist'))
 
         ID01_h5.close()
         
@@ -287,13 +288,13 @@ def create_hdf5_mnecounter(specfile = '.spec',image_prefix = '',specdir = '',ima
         import tifffile
         if os.path.isdir(tiffdir):
             tiffdir = os.path.abspath(tiffdir)
-            print("path exists for tiff files: ", tiffdir)
+            print(("path exists for tiff files: ", tiffdir))
         else:
             try:
                 os.mkdir(tiffdir)
                 tiffdir = os.path.abspath(tiffdir)
             except:
-                print(tiffdir, 'cannot be created')
+                print((tiffdir, 'cannot be created'))
 
     #s = xu.io.SPECFile(specfile, path=specdir)
     sf = sfwr.Specfile(specdir+specfile)
@@ -389,13 +390,13 @@ def create_hdf5_kmap(specfile = '.spec',image_prefix = '',specdir = '',
         import tifffile
         if os.path.isdir(tiffdir):
             tiffdir = os.path.abspath(tiffdir)
-            print("path exists for tiff files: ", tiffdir)
+            print(("path exists for tiff files: ", tiffdir))
         else:
             try:
                 os.mkdir(tiffdir)
                 tiffdir = os.path.abspath(tiffdir)
             except:
-                print(tiffdir, 'cannot be created')
+                print((tiffdir, 'cannot be created'))
             
     #s = xu.io.SPECFile(specfile, path=specdir)
     sf = sfwr.Specfile(specdir+specfile)
@@ -510,7 +511,7 @@ def get_scan_images(h5fn,scan_no):
 def get_motor_pos(h5fn,scan_no):
     ID01_h5 = h5py.File(h5fn,'r')
     for item in list(ID01_h5['/scan_%.4i/data/spec_motors'%scan_no].attrs.keys()):
-        print(item + ":", ID01_h5['/scan_%.4i/data/spec_motors'%scan_no].attrs[item])
+        print((item + ":", ID01_h5['/scan_%.4i/data/spec_motors'%scan_no].attrs[item]))
         dict.append()
     ID01_h5.close()
     return 
@@ -526,13 +527,13 @@ def get_monitor(h5fn,scan_no,mon_name):
 def get_spec_scan(h5fn,scan_no):
     ID01_h5 = h5py.File(h5fn,'r')
     for item in list(ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs.keys()):
-        print(item + ":", ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs[item])
+        print((item + ":", ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs[item]))
     ID01_h5.close()
     
 def get_spec_scan(h5fn,scan_no):
     ID01_h5 = h5py.File(h5fn,'r')
     for item in list(ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs.keys()):
-        print(item + ":", ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs[item])
+        print((item + ":", ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs[item]))
     specdata = ID01_h5['/scan_%.4i/data/spec_scan'%scan_no][:]
     header = ID01_h5['/scan_%.4i/data/spec_scan'%scan_no].attrs['header']
     ID01_h5.close()
@@ -565,7 +566,7 @@ def add_dataset(h5fn,dataset,group="/",key = ""):
             #print group+key
             ID01_h5[group+key] = dataset
         except:
-            print("File/key doesnt exist: ",key)
+            print(("File/key doesnt exist: ",key))
             print_hdf5_item_structure(ID01_h5)
     #print "close the file"
     ID01_h5.close()  
@@ -640,7 +641,7 @@ def edfmf2hdf5(fn):
 
     h5file['user'].attrs.create('expt_id',input('input expt_id: '))
     for i in range(nImages):
-        print(i+1,':',nImages)
+        print((i+1,':',nImages))
         data = edf.GetData(i)
         dataset[i, :, :] = data
     hdf.flush()
@@ -729,7 +730,7 @@ def read_ff_h5(ff_path, fn):
 	try:
 		ff_h5 = h5py.File(ff_path+fn,'r')
 	except:
-		print("File does not exist: ", ff_path)
+		print(("File does not exist: ", ff_path))
 		print(os.listdir(ff_path))
 
 	ff = ff_h5['ff/ff'].value

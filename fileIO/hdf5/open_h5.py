@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/open_h5.py
 
@@ -15,8 +16,8 @@ def open_h5(fname,framelist=None,group="entry/data/data", threshold = 0, troi = 
         with h5py.File(fname, "r") as f:
 
             if verbose:
-                print 'found shape = '
-                print f[group].shape
+                print('found shape = ')
+                print(f[group].shape)
             if framelist == None:
                 framelist = slice(0,f[group].shape[0],1)
 
@@ -38,9 +39,9 @@ def open_h5(fname,framelist=None,group="entry/data/data", threshold = 0, troi = 
                     data  = np.where(data < threshold, data, 0)
                 return data
             except KeyError:
-                print "did not find %s in %s" % (group, fname)
+                print("did not find %s in %s" % (group, fname))
     else:
-        print "%s is not a .h5 file" %fname
+        print("%s is not a .h5 file" %fname)
 
 
 
@@ -58,8 +59,8 @@ def open_h5_old(fname,framelist=None,group="entry/data/data", threshold = 0, tro
 
     if fname.find(".h5") != -1:
         f       = h5py.File(fname, "r")
-        print 'found shape = '
-        print f[group].shape
+        print('found shape = ')
+        print(f[group].shape)
         if framelist == None:
             framelist = slice(0,f[group].shape[0],1)
 
@@ -74,9 +75,9 @@ def open_h5_old(fname,framelist=None,group="entry/data/data", threshold = 0, tro
                 data  = np.where(data < threshold, data, 0)
             return data
         except KeyError:
-            print "did not find %s in %s" % (group, fname)
+            print("did not find %s in %s" % (group, fname))
     else:
-        print "%s is not a .h5 file" %fname
+        print("%s is not a .h5 file" %fname)
 
 
 

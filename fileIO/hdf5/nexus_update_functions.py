@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import sys, os
 import h5py
@@ -70,7 +71,7 @@ def update_sample_info(nx_g, properties = {'auto_update' : True}):
         nx_g.attrs[attr] = value
 
     if properties['auto_update'] :
-        print 'auto update sample information is not yet implemented'
+        print('auto update sample information is not yet implemented')
 
     
     return nx_g
@@ -136,7 +137,7 @@ def nxparse_calibration(calib_fname):
         print('WARNING: using default dummy file:')
 
     print('reading calib file')
-    print calib_fname + '\n'
+    print(calib_fname + '\n')
 
     nx_calib.attrs['ponifile_original_path'] = calib_fname
     nx_calib.attrs['ponifile_relative_path'] = os.path.relpath(calib_fname)
@@ -189,8 +190,8 @@ def update_initial_spec(nx_g, properties = {'fname':None}):
         spec_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup.dat'
         print('WARNING: using default dummy file:')
         
-    print 'reading file:'
-    print spec_fname + '\n' 
+    print('reading file:')
+    print(spec_fname + '\n') 
 
     new_nx_g.attrs['specfile_original_path'] = spec_fname
     new_nx_g.attrs['specfile_relative_path'] = os.path.relpath(spec_fname)
@@ -226,8 +227,8 @@ def update_motors_from_doolog(nx_g, properties = {'fname':None}, verbose=False):
         doolog_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/doolog_001.log'
         print('WARNING: using default dummy file:')
         
-    print 'reading file:'
-    print doolog_fname + '\n' 
+    print('reading file:')
+    print(doolog_fname + '\n') 
 
     new_nx_g.attrs['doolog_original_path'] = doolog_fname
     new_nx_g.attrs['doolog_relative_path'] = os.path.relpath(doolog_fname)
@@ -248,7 +249,7 @@ def update_motors_from_doolog(nx_g, properties = {'fname':None}, verbose=False):
                             'photon',
                             'tuning']
     else:
-        raise ValueError, '%s is not a valid instrument name' %properties['instrument_name']
+        raise ValueError('%s is not a valid instrument name' %properties['instrument_name'])
                 
         
     ### what to update should be set, let's do it!
@@ -313,8 +314,8 @@ def update_from_xiasettings(nx_g, properties = {'fname':None},  verbose = False)
         xia_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/xia_xia00_0480_0000_0005.edf'
         print('WARNING: using default dummy file:')
 
-    print 'reading file:'
-    print xia_fname + '\n' 
+    print('reading file:')
+    print(xia_fname + '\n') 
 
     xiapath   = os.path.relpath(xia_fname)
     xiaprefix = ('_').join(os.path.basename(xia_fname).split('_')[::-1][3::][::-1])
@@ -462,19 +463,19 @@ def insert_dataset(nx_g,
     else:
         units = default_units(name)
 
-    print 'data'
-    print data
-    print 'kwargs'
-    print kwargs
+    print('data')
+    print(data)
+    print('kwargs')
+    print(kwargs)
     nx_g.insert(nx.NXfield(value = data, units = units, name = name))
     
     if 'axes' in kwargs:
         nx_g.attrs['signal'] = name
         axes = []
         for axis, properties in kwargs['axes']:
-            print 'appending axis %s' % axis
-            print 'with properties:'
-            print properties
+            print('appending axis %s' % axis)
+            print('with properties:')
+            print(properties)
             axes.append(axis)
             if 'link' in properties:
                 nx_g.makelink(nx_g.nxroot[properties['link']])

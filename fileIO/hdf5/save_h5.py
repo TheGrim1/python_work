@@ -1,3 +1,4 @@
+from __future__ import print_function
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/save_h5.py
 
 import sys, os
@@ -15,7 +16,7 @@ import time
 
 def nexus_basicwriter_test(dataset = None, fullfname='/tmp_14_days/johannes1/test2_nexus_hdf5.h5', title = 'default'):
 
-    print "Write a NeXus HDF5 file"
+    print("Write a NeXus HDF5 file")
 
     xaxis = np.atleast_1d(np.arange(100)/100.0*np.pi)
     yaxis = np.atleast_1d(np.arange(200)/200.0*np.pi)
@@ -115,12 +116,12 @@ def save_h5(dataset, fullfname, group = 'entry/data', dataname= 'data'):
     
     if not os.path.exists(savedir):
         os.mkdir(savedir)
-        print "making directory %s" % savedir
+        print("making directory %s" % savedir)
     else:
         if not os.path.exists(fullfname):
             savefile         = h5py.File(fullfname,"w")
             savegroup        = savefile.create_group(group)
-            print 'creating group %s' % group
+            print('creating group %s' % group)
 #    print h5dataset.shape
         else: # file allready exists
             savefile         = h5py.File(fullfname,"a")
@@ -128,7 +129,7 @@ def save_h5(dataset, fullfname, group = 'entry/data', dataname= 'data'):
                 savegroup = savefile.create_group(group)            
             except ValueError:
                 savegroup = savefile[group]
-                print 'group allready exists'
+                print('group allready exists')
                 
     if type(dataname) == list:
 #       print 'listsaving'
@@ -142,7 +143,7 @@ def save_h5(dataset, fullfname, group = 'entry/data', dataname= 'data'):
     else:
         #bulk saving
         savegroup.create_dataset(dataname, data = dataset, compression = "lzf", shuffle = True)
-        print 'saving dataset as %s' % dataname  
+        print('saving dataset as %s' % dataname)  
      
 
     savefile.flush()
@@ -160,8 +161,8 @@ def merge_h5(search_phrase='/data/id13/inhouse7/DATA',group='entry/data/data',sa
     fname_list = [fname for fname in out.split('\n') if fname.endswith('.h5')]
 
     if verbose:
-        print 'found filename list:'
-        print fname_list
+        print('found filename list:')
+        print(fname_list)
     
     nframes_total = 0
     nframes_list = [] # nframes_total(up to i-1), nframes(i)
@@ -176,7 +177,7 @@ def merge_h5(search_phrase='/data/id13/inhouse7/DATA',group='entry/data/data',sa
             nframes_total += nframes
 
             if verbose:
-                print 'found %s frames in %s' %(nframes,fname)
+                print('found %s frames in %s' %(nframes,fname))
 
     all_frames = np.memmap(filename=tmp_fname,
                            mode = 'w+',
@@ -187,19 +188,19 @@ def merge_h5(search_phrase='/data/id13/inhouse7/DATA',group='entry/data/data',sa
 
     for i,fname in enumerate(fname_list):
         if verbose:
-            print 'reading %s' %(fname)
+            print('reading %s' %(fname))
         [nframes_total, nframes] = nframes_list[i]
         all_frames[nframes_total:nframes_total+nframes] = open_h5(fname)
 
     if verbose:
-        print 'saving to file ',save_fname
+        print('saving to file ',save_fname)
     save_h5(all_frames,save_fname)  
     
             
     # neccessary cleanup for memmap
     memmap_variable = all_frames
     if type(memmap_variable) == np.core.memmap:
-        print 'cleaning up memmap'
+        print('cleaning up memmap')
         memmap_tmp_fname = memmap_variable.filename
         del memmap_variable
         gc.collect()
@@ -214,7 +215,7 @@ def test(filelist):
 
     fname     = filelist[0]
     starttime = time.time()
-    print 
+    print() 
     data      = open_h5(fname)
     opentime  = time.time()-starttime
     print('time to open %s'%opentime)
@@ -223,7 +224,7 @@ def test(filelist):
     savedir   = os.path.dirname(fname)
     savefname = "test_" + os.path.basename(fname)
     if save_h5(data,os.path.sep.join([savedir,savefname])):
-        print "hoorray"
+        print("hoorray")
                
     print('time to save %s'%(time.time()-starttime - opentime))
 
@@ -235,9 +236,9 @@ def main(args):
         save_fname=str(args[3])
         tmp_fname='/data/id13/inhouse8/THEDATA_I8_1/temp.tmp'
         verbose=True
-        print 'doing: ls ',search_phrase
-        print 'looking for frames in group ', group
-        print 'will merge and then save as ', save_fname
+        print('doing: ls ',search_phrase)
+        print('looking for frames in group ', group)
+        print('will merge and then save as ', save_fname)
         
         merge_h5(search_phrase, group, save_fname, tmp_fname, verbose)
     

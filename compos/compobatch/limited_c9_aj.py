@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 
 from os import path
 import numpy as np
@@ -14,7 +15,7 @@ from o8x3.compomatrix import compoflow
 from o8x3.compomatrix.compoflow import Element, Repository, error, StopCompoFlow
 
 # local import
-from limited_compute7_aj import cog_var
+from .limited_compute7_aj import cog_var
 
 class Hit_and_more(Element):
 

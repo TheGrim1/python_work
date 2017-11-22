@@ -29,6 +29,7 @@
     Example:
     python metropolis_func.py
 '''
+from __future__ import print_function
 
 import numpy as np
 #from scipy import *
@@ -149,7 +150,7 @@ def simulated_anneal(x,y,kTmult=0.99995,kT = 10):
         if kT < 1e-3: # stop cooling once the system is very cold.
             break
 
-    print("Starting distance: ", E_proposed, "Final distance: ",  E_current)
+    print(("Starting distance: ", E_proposed, "Final distance: ",  E_current))
     return x,y,ordering,iteration_history, energy_history,kT_history
 
 

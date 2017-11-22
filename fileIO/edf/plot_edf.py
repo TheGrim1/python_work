@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
 # global imports
 
@@ -7,7 +9,7 @@ import time
 from matplotlib.colors import LogNorm
 
 # local imports
-from open_edf import open_edf
+from .open_edf import open_edf
 
 def plot_edf(data,
             index    = 0,
@@ -25,7 +27,7 @@ def plot_edf(data,
         ax1.pcolor(data[:,:], norm=LogNorm(vmin=max(data.min(),0.0001),vmax=max(data.max(),0.01)), cmap='OrRd')
 #        ax1.imshow(data[:,:], interpolation = 'none')
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
 #    plt.clim(0,0.001)
 
 

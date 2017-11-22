@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from silx.io.spech5 import SpecH5
 import timeit
@@ -64,7 +65,7 @@ def open_scan(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc140
     
     i = 0
     for scan in scanlist:
-        print 'reading scan no %s' %scan
+        print('reading scan no %s' %scan)
 
         # #    timing:
         # start_time = timeit.default_timer()
@@ -85,7 +86,7 @@ def open_dscans(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1
     sfh5        = SpecH5(fname)
     grouptpl    = '%s.1/'
     speccommand = sfh5[grouptpl %scanlist[0]]['title']
-    print speccommand.split()
+    print(speccommand.split())
     scanlen     = int(speccommand.split()[5]) +1
     scan_positions = (float(speccommand.split()[3]) - float(speccommand.split()[4])) * np.arange(float(scanlen))/float(scanlen) + float(speccommand.split()[3])
     data        = np.zeros(shape = (len(scanlist),scanlen))
@@ -93,7 +94,7 @@ def open_dscans(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1
     
     i = 0
     for i,scan in enumerate(scanlist):
-        print 'reading scan no %s' %scan
+        print('reading scan no %s' %scan)
 
         # #    timing:
         # start_time = timeit.default_timer()

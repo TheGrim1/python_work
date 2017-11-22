@@ -1,3 +1,4 @@
+from __future__ import print_function
 # global imports
 import h5py
 import sys, os
@@ -296,16 +297,16 @@ class h5_scan:
             if not os.path.exists(datadir):
                 try:
                     os.mkdir(fname[:fname.find('/DATA')]+'/PROCESS/SESSION23/')
-                except OSError, msg:
+                except OSError as msg:
                     print(msg)
                     print('continuing')
                 try:
                     os.mkdir(fname[:fname.find('/DATA')]+'/PROCESS/SESSION23/integrated/')
-                except OSError, msg:
+                except OSError as msg:
                     print(msg)
                 try:
                     os.mkdir(datadir)
-                except OSError, msg:
+                except OSError as msg:
                     print(msg)
 
             fname    = os.path.sep.join([datadir,filename])
@@ -315,7 +316,7 @@ class h5_scan:
         
         if not os.path.exists(savedir):
             os.mkdir(savedir)
-            print "making directory %s" % savedir
+            print("making directory %s" % savedir)
             
         self.update_meta('path',fname)
         print('writing to file:\n%s'%fname)

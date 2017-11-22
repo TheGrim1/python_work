@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 
@@ -9,20 +10,20 @@ from syncotools import part
 
 def printusage():
 
-    print 'Usage: \npython syncodisk.py -<mode> <sourcepath> <destitation path of part1> <size of part1 in bytes> <path of part2> etc.'
-    print '\nTry to keep foldersizes well below half of your max disk size for optimal results'
-    print '\nto repeat only -<mode> and <sourcepath> (if different from current dir) are required'
-    print '\nIf "t" in <mode> - test mode\n  - rsync will not write anything'
-    print '\nIf "n" in <mode> - new run mode\n  - delete previous allocations. Note: no data files are deleted, previously transferred data my be duplicated to different parts.'
-    print '\nIf "d" in <mode> - default mode\n  - repeat allocations as found in <source dir> or make new allocation. Note: no data files are deleted, previously transferred data my be duplicated to different parts (but should not).'
-    print 'e.g. \n "python syncodisk.py -nt /data/id13/inhouse2/AJ/skript/fileIO/test /data/id13/inhouse2/AJ/skript/fileIO/disc0/ 200 /data/id13/inhouse2/AJ/skript/fileIO/disc1 200"'
+    print('Usage: \npython syncodisk.py -<mode> <sourcepath> <destitation path of part1> <size of part1 in bytes> <path of part2> etc.')
+    print('\nTry to keep foldersizes well below half of your max disk size for optimal results')
+    print('\nto repeat only -<mode> and <sourcepath> (if different from current dir) are required')
+    print('\nIf "t" in <mode> - test mode\n  - rsync will not write anything')
+    print('\nIf "n" in <mode> - new run mode\n  - delete previous allocations. Note: no data files are deleted, previously transferred data my be duplicated to different parts.')
+    print('\nIf "d" in <mode> - default mode\n  - repeat allocations as found in <source dir> or make new allocation. Note: no data files are deleted, previously transferred data my be duplicated to different parts (but should not).')
+    print('e.g. \n "python syncodisk.py -nt /data/id13/inhouse2/AJ/skript/fileIO/test /data/id13/inhouse2/AJ/skript/fileIO/disc0/ 200 /data/id13/inhouse2/AJ/skript/fileIO/disc1 200"')
     sys.exit(0)
         
 
 def sort_user_input(userargv):
 
-    print ""
-    print ""
+    print("")
+    print("")
 
     argv=[]
     userpaths = [] 
@@ -77,7 +78,7 @@ def define_destpaths(parts, mode, argv):
                 try:
                     destpaths.append([os.path.realpath(argv[i]),argv[i+1]])
                 except IndexError:
-                    print "I did not understand path %s /n with size %s" % (os.path.realpath(argv[i]),argv[i+1])
+                    print("I did not understand path %s /n with size %s" % (os.path.realpath(argv[i]),argv[i+1]))
                     printusage()
         except IndexError:
             printusage()
@@ -93,18 +94,18 @@ def initiate_parts(src, mode, destpaths, parts):
         found = False
         for part in parts:
             if os.path.realpath(part.partpath) == os.path.realpath(pathinfo[0]):
-                print "found path %s in part %s" % (part.partpath, part.partno)
+                print("found path %s in part %s" % (part.partpath, part.partno))
                 part.writesize = pathinfo[1]
                 found = True
         if not found:
-            print "creating new part no %s written to path %s" %(i, pathinfo[0])
+            print("creating new part no %s written to path %s" %(i, pathinfo[0]))
             parts.append(sync.create_newpart(src, pathinfo,i))
 
         i =+ 1
 
     pathtree          ={}
 
-    print "Scanning source folder %s\n ... (this can take a while) " % src
+    print("Scanning source folder %s\n ... (this can take a while) " % src)
 
     pathtree          = sync.scansource(src)
 
@@ -119,7 +120,7 @@ def initiate_parts(src, mode, destpaths, parts):
 #            parts[i] = scanpart(parts[i],pathtree)
 #            dump(parts[i].dirs)
 
-    print "Allocating folders from source to parts ... "
+    print("Allocating folders from source to parts ... ")
     (parts, pathtree) = sync.findsplit(parts,pathtree)
  
 
@@ -130,9 +131,9 @@ def initiate_parts(src, mode, destpaths, parts):
 
     sync.printparts(parts)
 
-    print "total number of bytes found:              %s" % pathtree[src]["info"]["branchsize"]
-    print "total number of bytes allocated to parts: %s" % tbwsize
-    print "-------------------------------------------------"
+    print("total number of bytes found:              %s" % pathtree[src]["info"]["branchsize"])
+    print("total number of bytes allocated to parts: %s" % tbwsize)
+    print("-------------------------------------------------")
 
     return parts
 

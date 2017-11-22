@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 
@@ -11,7 +12,7 @@ import h5py
 
 def save_plot(fig, savename):
 
-    print "saving plot as: \n%s" %savename    
+    print("saving plot as: \n%s" %savename)    
 
     if savename.endswith('.edf'):
         

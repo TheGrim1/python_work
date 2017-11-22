@@ -21,6 +21,8 @@
 #
 #   source /data/id01/inhouse/crichter/venv3.4/bin/activate
 #----------------------------------------------------------------------
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -30,7 +32,7 @@ PV = platform.python_version()
 
 ## local imports
 sys.path.append('C:\apps\aj_dev')
-import BaslerGrab as bg
+from . import BaslerGrab as bg
 
 if PV.startswith("2."):
     from urllib2 import urlopen

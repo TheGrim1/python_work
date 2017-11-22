@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,8 +16,8 @@ def plot_beamsize_to_ax(data,ax):
     ax.plot(data[:,0],data[:,1],'bo')
     beta = fit.do_gauss_fit(data,verbose=False)
     ax.plot((np.arange(600)-380), fit.gauss_func(beta, (np.arange(600)-380)), "r--", lw = 2)
-    print 'FWHM = ' , calc.get_fwhm(data)
-    print 'sigma = ', beta[2]
+    print('FWHM = ' , calc.get_fwhm(data))
+    print('sigma = ', beta[2])
 
 
 def plot_beamsize(data):
@@ -24,8 +25,8 @@ def plot_beamsize(data):
     plt.plot(data[:,0],data[:,1])
     beta = fit.do_gauss_fit(data,verbose=False)
     ax.plot(data[:,0], fit.gauss_func(beta, data[:,0]), "r--", lw = 2, label = 'data' )
-    print 'FWHM = ' , calc.get_fwhm(data)
-    print 'sigma = ', beta[2]
+    print('FWHM = ' , calc.get_fwhm(data))
+    print('sigma = ', beta[2])
     plt.show()
     
 def normalize_scan_data(data):

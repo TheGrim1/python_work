@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,time,sys
 import struct
 import numpy
@@ -36,17 +37,17 @@ class CameraProxy(object):
 
     def show_devinfo(self):
         device = self.device
-        print "tango device=",     device.name()
-        print "Exposure Time=",    device.acq_expo_time
-        print "camera_model=",     device.camera_model
-        print "camera_pixelsize=", device.camera_pixelsize
-        print "camera_type=",      device.camera_type
-        print "image_height=",     device.image_height
-        print "image_width=",      device.image_width
+        print("tango device=",     device.name())
+        print("Exposure Time=",    device.acq_expo_time)
+        print("camera_model=",     device.camera_model)
+        print("camera_pixelsize=", device.camera_pixelsize)
+        print("camera_type=",      device.camera_type)
+        print("image_height=",     device.image_height)
+        print("image_width=",      device.image_width)
         
-        print "last_image_acquired =", device.last_image_acquired
-        print "video_mode =", device.video_mode
-        print "video_live =", device.video_live
+        print("last_image_acquired =", device.last_image_acquired)
+        print("video_mode =", device.video_mode)
+        print("video_live =", device.video_live)
 
     def set_live(self):
         device = self.device
@@ -56,7 +57,7 @@ class CameraProxy(object):
         device = self.device
         image_data = device.video_last_image
         if not self.j % 50:
-            print "cycle:", self.j, "last_image_acquired =", device.video_last_image_counter
+            print("cycle:", self.j, "last_image_acquired =", device.video_last_image_counter)
         if image_data[0]=="VIDEO_IMAGE":
             header_fmt = ">IHHqiiHHHH"
             header_size= struct.calcsize(header_fmt)
@@ -65,7 +66,7 @@ class CameraProxy(object):
             self.shape = (height, width)
             raw_buffer = numpy.fromstring(image_data[1][header_size:], numpy.uint16)
         else:
-            print "ERROR : No header found"
+            print("ERROR : No header found")
             raise error("image acquisition failed")
 
 
@@ -185,7 +186,7 @@ def main():
     args = sys.argv[1:]
     devn = args[0]
     if not int(devn) in (1,2):
-        print "camera selection can be only 1 or 2"
+        print("camera selection can be only 1 or 2")
         sys.exit(1)
     devname = "id13/limaccds/eh2-vlm%1d" % int(devn)
     cp = CameraProxy(devname=devname)

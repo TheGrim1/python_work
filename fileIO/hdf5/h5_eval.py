@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import os,sys
 import ast
@@ -98,7 +99,7 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
     
 def do_yzth_eval(*inargs):
     print('inargs')
-    print inargs
+    print(inargs)
     print(type(inargs))
     fname    = inargs[0][0]
     verbose  = inargs[0][1]
@@ -149,11 +150,11 @@ def paraeval(fnamelist,
 
     if noprocesses == None:
         noprocesses = min(8,len(fnamelist))
-    print 'Creating pool with %d processes\n' % noprocesses
+    print('Creating pool with %d processes\n' % noprocesses)
     pool = Pool(processes=noprocesses)
     tasklist = []
     [tasklist.append([fname, verbose, test]) for fname in fnamelist]
-    print tasklist
+    print(tasklist)
     pool.map(do_yzth_eval,tasklist)
   
      

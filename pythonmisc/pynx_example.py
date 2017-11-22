@@ -1,4 +1,5 @@
-
+from __future__ import print_function
+g
 from pynx.ptycho.runner.id13 import PtychoRunnerScanID13, params
 print('Import OK')
 
@@ -68,7 +69,7 @@ if __name__=='__main__':
 
 ## from vincents email:
 
-def do_this_in_terminal:
+# def do_this_in_terminal:
     """
 1) on lid13gpu1, activate the PyNX virtual environment (now installed
 serf-wide on /sware):

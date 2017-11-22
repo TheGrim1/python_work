@@ -1,3 +1,4 @@
+from __future__ import print_function
 # use to gzipreconstruct (with convert16.py) files in place using more than one process
 # AJ 07.2016
 # not finished
@@ -52,17 +53,17 @@ def get_files(src,find=None):
 ### new stuff
 
 def usage():
-    print "python parrallelreco.py <no of processes (default 4)> <path>"
-    print "runs one process per file"
+    print("python parrallelreco.py <no of processes (default 4)> <path>")
+    print("runs one process per file")
     sys.exit(0)
 
 def confirm(path, noprocesses, arg):
 # yes or exit
     prompt = "Do you want to reconstruct %s with %s parallel processes with these arguements: \n [y/n] " 
     if raw_input(prompt % (path, noprocesses)) in ("y","yes"):
-        print "will do"
+        print("will do")
     else:
-        print "ok, quitting"
+        print("ok, quitting")
         sys.exit(0)
     
 
@@ -75,7 +76,7 @@ def task(path):
 #    args.append("-v9")
 #    args.append(path)
 #    args.append(path)               
-    print "doing: %s in process %s" % (path,os.getpid())
+    print("doing: %s in process %s" % (path,os.getpid()))
 
     flist  =  get_files(path,"*.edf")
 
@@ -89,10 +90,10 @@ def task(path):
 
 def setup_pool(path, noprocesses):
 
-    print 'Creating pool with %d processes\n' % noprocesses
+    print('Creating pool with %d processes\n' % noprocesses)
     pool = Pool(processes=noprocesses)
     
-    if type(path)=list:
+    if type(path)==list:
         folders = path
     else:
         folders  = get_folders(path)    
@@ -123,9 +124,9 @@ if __name__ == '__main__':
         usage()
 
 
-    print 'Using %d processes to reconstruct all folders in \n%s\n in parallel' % (noprocesses,"\n".join(path))
+    print('Using %d processes to reconstruct all folders in \n%s\n in parallel' % (noprocesses,"\n".join(path)))
  
-    print get_files(path)
+    print(get_files(path))
 
     confirm("\n".join(path), noprocesses, arg)
     paragzip(path, noprocesses, arg)

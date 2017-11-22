@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/save_as_jpg.py
 
 import os
@@ -8,7 +10,7 @@ import numpy as np
 
 # local imports:
 
-from open_h5 import open_h5_ROI
+from .open_h5 import open_h5_ROI
 from plot_h5_SSDPoster import plot_h5
 
 def save_as_png(fname, savename, framelist, ROI  = ((1222,470),(40,40))):
@@ -24,7 +26,7 @@ def save_as_png(fname, savename, framelist, ROI  = ((1222,470),(40,40))):
 
         plot_h5(data[i,:,:],savename = savefname)
 
-        print "saving figure as :\n%s" % savefname
+        print("saving figure as :\n%s" % savefname)
 
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from o8qq.qqudo1.api import ptiapi
 from o8qq.qqudo1.cumulative import cumulative1 as cumu1
 from cumulative import run_cumulative_imgs
@@ -19,9 +20,9 @@ def run_meta(spt, *p):
         os.mkdir(dname)
     except:
         try:
-            print dname, ":", path.exists(dname)
+            print(dname, ":", path.exists(dname))
         except:
-            print "fundamental error:", dname
+            print("fundamental error:", dname)
     k = 0
     l = 0
     numtpl = '%1d-%1d'
@@ -33,7 +34,7 @@ def run_meta(spt, *p):
         k = i * noimages
         l = (i + 1) * noimages - 1
         infiles.numbers = numtpl % (k,l)
-        print "new infile template:", infiles.numbers
+        print("new infile template:", infiles.numbers)
         program.outindex = i
         run_cumulative_imgs(spt)
         

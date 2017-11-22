@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Functions for aligning arrays
 # Original code from Xianhui Xiao APS Sector 2
 # Updated by Ross Harder

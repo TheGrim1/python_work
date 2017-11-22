@@ -4,6 +4,7 @@ Created on Wed Jul 26 12:02:05 2017
 
 @author: OPID13
 """
+from __future__ import print_function
 
 
 import sys, os
@@ -39,9 +40,9 @@ class stage():
     def connect(self,spechost = 'lid13lab1', 
                  specsession = 'motexplore', 
                  timeout = 100):
-        print 'connecting to %s' % spechost
+        print('connecting to %s' % spechost)
         self.spechost    = spechost
-        print 'specsession named %s'  % specsession
+        print('specsession named %s'  % specsession)
         self.specsession = specsession
         self.timeout     = timeout
         self.motors      = {}
@@ -55,18 +56,18 @@ class stage():
     def _add_motors(self,**kwargs):
         self.motors.update(kwargs)
         for function, name in kwargs.items():
-            print 'added motor for %s%s called %s%s in this spec session' %((10-len(function))*' ',function,(10-len(name))*' ',name)
+            print('added motor for %s%s called %s%s in this spec session' %((10-len(function))*' ',function,(10-len(name))*' ',name))
     
     def mvr(self, function, distance, move_in_pxl = False, view = 'side'):
         if move_in_pxl:
             distance = distance / self.calibration[view][function]
         cmd = SpecCommand.SpecCommand('mvr', self.specversion, self.timeout)
-        print 'mvr %s %s' %(function, distance)
+        print('mvr %s %s' %(function, distance))
         cmd(self.motors[function], distance)
 
     def mv(self, function, distance):
         cmd = SpecCommand.SpecCommand('mv', self.specversion, self.timeout)  
-        print 'mv %s %s' %(function, distance)
+        print('mv %s %s' %(function, distance))
         cmd(self.motors[function], distance)
 
     def cross_to(self, horz_pxl=None, vert_pxl=None, view = 'side'):
@@ -109,8 +110,8 @@ class stage():
                     self.calibration[view].update({motor:factor*calibration}) 
         
     def SpecCommand(self, command):
-        print 'sending %s the command:'% self.specversion
-        print command
+        print('sending %s the command:'% self.specversion)
+        print(command)
         cmd = SpecCommand.SpecCommand(command , self.specversion, self.timeout)  
         cmd()
     
@@ -119,14 +120,14 @@ class stage():
         self.cameras =  bg.initialize_cameras()
         if plot:
             bg.identify_cameras(self.cameras)
-            print 'top view = camera 0'
-            print 'side view = camera 1'
+            print('top view = camera 0')
+            print('side view = camera 1')
     
     def switch_cameras(self):
         self.cameras = self.cameas[::-1]
         bg.identify_cameras(self.cameras)
-        print 'top view = camera 0'
-        print 'side view = camera 1'
+        print('top view = camera 0')
+        print('side view = camera 1')
     
     def _get_view(self, view='top', troi = None):        
         
@@ -141,7 +142,7 @@ class stage():
                 return bg.grab_image(self.cameras[cam_no], bw=True)[troi_to_slice(troi)]
                 
         except AttributeError:
-            print 'cameras not properly initialized'
+            print('cameras not properly initialized')
  
         
     def plot(self, view = 'top', title = '', troi = None):
@@ -188,33 +189,33 @@ class stage():
                      backlashcorrection = backlashcorrection)
         
         if self._goto_COR(motor = motor):
-            print 'SUCCESS, now move your sample into the focus and repeat until COR is sufficiently aligned.' 
+            print('SUCCESS, now move your sample into the focus and repeat until COR is sufficiently aligned.') 
         
     def _get_imagestack(self, motor, view, plot, positions, troi = None, midcontrast = 0.5, backlashcorrection = True):
-        print 'prepping images... '
+        print('prepping images... ')
         prep_image = self._get_view(view)
         imagestack = np.zeros(shape = ([len(positions)]+list(prep_image.shape)))
 
         if backlashcorrection:
-            print 'doing backlashcorrection'
+            print('doing backlashcorrection')
             self.mv(motor, positions[0])
             self._backlash(motor,5)
                 
-        print 'starting rotation...'
+        print('starting rotation...')
         for i, pos in enumerate(positions):
 
             title = 'frame %s of %s at pos = %s'%(i+1, len(positions), pos)
-            print title
+            print(title)
             self.mv(motor, pos)
             if plot:
                 imagestack[i] = self.plot(view, title, troi = troi)
             else:
                 imagestack[i] = self._get_view(view, troi)
 
-        print 'returning %s' %motor
+        print('returning %s' %motor)
         self.mv(motor, positions[0])
 
-        print 'optimizing image contrast' 
+        print('optimizing image contrast') 
         imagestack = optimize_greyscale(imagestack)
         imagestack = np.where(imagestack < midcontrast*np.max(imagestack),0,imagestack)
 
@@ -247,7 +248,7 @@ class stage():
                                           motor  = motor,
                                           backlashcorrection = backlashcorrection)
                                           
-        print 'calculating COR'
+        print('calculating COR')
         if view == 'side':
             aligned, COR_pxl    = cen.COR_from_sideview(imagestack, thetas, mode)
         elif view == 'top':
@@ -274,12 +275,12 @@ class stage():
         #     print image.dtype
         #     it.array_to_imagefile(image,imagefname)        
         # ## until here
-        print 'should i plot? : ', (not (mode.upper() == 'COM' and view == 'side'))
+        print('should i plot? : ', (not (mode.upper() == 'COM' and view == 'side')))
         if plot and not (mode.upper() == 'COM' and view == 'side'):
-            print 'showing results'
+            print('showing results')
             self._show_results(imagestack, aligned, thetas)
         
-        print 'Done. Found COR at ', self.COR
+        print('Done. Found COR at ', self.COR)
         return self.COR
 
     def calibrate_axis(self,
@@ -309,7 +310,7 @@ class stage():
             elif motor == 'z':
                 axis = 0
             else:
-                print 'cannot calibrate motor %s with %s view!' % (motor, view)
+                print('cannot calibrate motor %s with %s view!' % (motor, view))
                 return False
         elif view == 'top':
             if motor == 'y':
@@ -317,10 +318,10 @@ class stage():
             elif motor == 'x':
                 axis = 1
             else:
-                print 'cannot calibrate motor %s with %s view!' % (motor, view)
+                print('cannot calibrate motor %s with %s view!' % (motor, view))
                 return False
             
-        print 'motor %s will be calibrated with a series of images in %s view' % (motor, view)
+        print('motor %s will be calibrated with a series of images in %s view' % (motor, view))
 
         if mode.upper() not in ['ELASTIX','COM','CC','TEST']:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for calibration')
@@ -351,9 +352,9 @@ class stage():
             elas_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             
             dummy = np.copy(imagestack)
             dummy = np.where(dummy < 0.5*np.max(dummy),0,dummy)
@@ -363,9 +364,9 @@ class stage():
             CC_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
 
             dummy = np.copy(imagestack)
             dummy = np.where(dummy < 0.5*np.max(dummy),0,dummy)
@@ -377,9 +378,9 @@ class stage():
             COM_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
 
         elif mode.upper() == 'ELASTIX':
             dummy = np.copy(imagestack)
@@ -390,9 +391,9 @@ class stage():
             elas_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(elas_sum)
             
         elif mode.upper() == 'CC':
@@ -404,9 +405,9 @@ class stage():
             CC_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(CC_sum)
             
         elif mode.upper() == 'COM':            
@@ -420,16 +421,16 @@ class stage():
             COM_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(COM_sum)
             
         else:
             raise NotImplementedError('%s is not an implemented mode. Try "test", "CC", "COM" or "elastix"' %mode)
             
         
-        print 'found calibration of %s pxl/step' % calibration
+        print('found calibration of %s pxl/step' % calibration)
         
         self._calibrate(motor, calibration, view = view)
         
@@ -470,9 +471,9 @@ class stage():
             elas_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             
             dummy = np.copy(imagestack)
             dummy = np.where(dummy < 0.5*np.max(dummy),0,dummy)
@@ -482,9 +483,9 @@ class stage():
             CC_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
 
             dummy = np.copy(imagestack)
             dummy = np.where(dummy < 0.5*np.max(dummy),0,dummy)
@@ -496,9 +497,9 @@ class stage():
             COM_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
 
         elif mode.upper() == 'ELASTIX':
             dummy = np.copy(imagestack)
@@ -509,9 +510,9 @@ class stage():
             elas_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(elas_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(elas_sum)
             
         elif mode.upper() == 'CC':
@@ -523,9 +524,9 @@ class stage():
             CC_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(CC_sum)
             
         elif mode.upper() == 'COM':            
@@ -539,16 +540,16 @@ class stage():
             COM_sum = dummy.sum(0)
             plt.show()
             shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
-            print mode['mode'] + ' found a shift of ', shift
+            print(mode['mode'] + ' found a shift of ', shift)
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
-            print mode['mode'] + ' found calibration of ', calibration
+            print(mode['mode'] + ' found calibration of ', calibration)
             plt.matshow(COM_sum)
             
         else:
             raise NotImplementedError('%s is not an implemented mode. Try "test", "CC", "COM" or "elastix"' %mode)
             
         
-        print 'found calibration of %s pxl/step' % calibration
+        print('found calibration of %s pxl/step' % calibration)
         
         self._calibrate(motor, calibration, view = view)
         
@@ -670,7 +671,7 @@ class motexplore_jul17(stage):
         self.calibration = {}
         self.calibration.update({'side':{}})
         self.calibration.update({'top':{}})
-        print 'setting default calibration for zoomed out microscopes'
+        print('setting default calibration for zoomed out microscopes')
         self._calibrate('y',-1495.4,'side')
         self._calibrate('y',1495.4,'top')
         self._calibrate('z',-914.02,'side')

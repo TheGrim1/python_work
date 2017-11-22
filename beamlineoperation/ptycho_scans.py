@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import h5py
 import numpy as np
@@ -10,13 +11,12 @@ import id01lib.ptycho.scan_utils as id01su
 
 
 def do_randomized_spiral_scan(self, *p, **kw):
-    print "credits to S.Leake and id01sware"
+    print("credits to S.Leake and id01sware")
     try:
         wds = p[0].split()
         if len(wds) not in (12,13):
-            print "usage: randomized_spiral_scan <xrange> <yrange>"
+            print("usage: randomized_spiral_scan <xrange> <yrange>")
             return
-        xrange = 
         
     except:
         ptb()
@@ -50,9 +50,9 @@ def main():
 
     import matplotlib.pyplot as plt
 
-    print 'green virgin spiral'
-    print 'red: randomize with 0.05 of a step'
-    print 'blue: randomize with 0.2 of a step'
+    print('green virgin spiral')
+    print('red: randomize with 0.05 of a step')
+    print('blue: randomize with 0.2 of a step')
     g = np.asarray(id01su.spiral_mesh_MIR((0,10,10),(0,10,10),0.3))
     r = np.asarray(id01su.spiral_mesh_MIR((0,10,5),(0,10,10),0.3)) + 0.05 * (np.random.random_sample(g.shape)-0.5)
     b = randomized_spiral((0,10,10),(0,10,10),0.3, randomization_factor = 0.2)
@@ -61,7 +61,7 @@ def main():
     plt.plot(b[0],b[1],'bo')
     plt.show()
 
-    print 'This is MAIN' 
+    print('This is MAIN') 
 
 
     

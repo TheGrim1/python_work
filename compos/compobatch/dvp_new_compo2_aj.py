@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import numpy as np
 from o8qq.qqudo1.api import utilapi as uti
 from o8qq.qqudo1.api import ptiapi
@@ -17,7 +19,7 @@ from o8x3.compute     import compute7 as compu
 #import hack_09jul2016_elc6 as elc_6
 from o8x3.adapt       import MyTools_inteface
 #local import
-from limited_c9_aj import Hit_and_more
+from .limited_c9_aj import Hit_and_more
 
 def generate_local(srckey, keys):
     keys = keys.split()
@@ -82,11 +84,11 @@ class NewCompo(mgr.CompoMgr1):
         self.flow1.run_through()
         self.post_flow()
 
-        print '-'*40
+        print('-'*40)
         for (i,l) in enumerate(fl1.layers):
             for (k,v) in l.dc.iteritems():
-                print "%10s = %s" % (k,str(v))
-        print "elapsed time:", _tmer.time()
+                print("%10s = %s" % (k,str(v)))
+        print("elapsed time:", _tmer.time())
 
 
     def _init_flow1(self):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 import SimpleXMLRPCServer
@@ -30,7 +31,7 @@ def start_server():
     nanofocus_ip = '160.103.33.55'
     server = SimpleXMLRPCServer.SimpleXMLRPCServer((lid13lab1_ip, 8000))
     server.register_instance(ServerFunctions())
-    print 'started XML server, waiting for instructions' 
+    print('started XML server, waiting for instructions') 
     server.serve_forever()
 
 
@@ -39,7 +40,7 @@ def start_server():
 def start_client():
     server = xmlrpclib.Server('http://160.103.33.180:8000')
     msg = 'Hello world!'  
-    print 'asking the server to print %s' %msg
+    print('asking the server to print %s' %msg)
     server.server_print(msg)
     
     

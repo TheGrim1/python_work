@@ -1,3 +1,4 @@
+from __future__ import print_function
 import collections
 import numpy as np
 
@@ -27,7 +28,7 @@ class LookupDict(collections.MutableMapping):
         '''
         update the internal position dictionary with curpos : {mot1_name:mot1_pos .. etc}
         '''
-        print "mockup:", currpos
+        print("mockup:", currpos)
         self.currpos.update(currpos)
 
     def wm(self, function):
@@ -73,10 +74,10 @@ class LookupDict_Phi_XZKappa(LookupDict):
             kappa_rad = - self.wm('kappa')/180.0*np.pi
             
         if key == 'x':
-            print "key y; kappa_rad =", kappa_rad
+            print("key y; kappa_rad =", kappa_rad)
             return self.store['x']*np.cos(kappa_rad) - self.store['z']*np.sin(kappa_rad)
         elif key == 'z':
-            print "key z; kappa_rad =", kappa_rad
+            print("key z; kappa_rad =", kappa_rad)
             return self.store['x']*np.sin(kappa_rad) + self.store['z']*np.cos(kappa_rad)
         else:
             return self.store[key]

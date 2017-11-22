@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 
@@ -19,7 +20,7 @@ def xy_to_troi(ystart,yend = None, xstart = None, xend = None):
             yend   =  ystart[1]
             ystart =  ystart[0]
         else:
-            raise KeyError, 'not a valid troi!'
+            raise KeyError('not a valid troi!')
     
     troi       = [[0,0],[0,0]]
     troi[0][1] = xstart

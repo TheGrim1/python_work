@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 class CamView_grabber(object):
     def __init__(self, **kwargs):
         if 'camera_type' not in kwargs:
@@ -6,7 +8,7 @@ class CamView_grabber(object):
             camera_type=kwargs['camera_type']
 
         if camera_type.upper() == 'USB':
-            import CamView_USBCameras as CVUSB
+            from . import CamView_USBCameras as CVUSB
             self.cameras = CVUSB.USBCameras()
         elif camera_type.upper() == 'ETH':
             if 'cameralist' not in kwargs:
@@ -14,7 +16,7 @@ class CamView_grabber(object):
                 print('WARNING: Ethernet Baslers need an adress!!')
             else:
                 cameralist=kwargs['cameralist']
-            import CamView_ETHCameras as CVETH
+            from . import CamView_ETHCameras as CVETH
             self.cameras = CVETH.ETHCameras(cameralist=cameralist)
         else:
             print('cameras of type %s not known'%camera_type)

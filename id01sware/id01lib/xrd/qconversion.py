@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import xrayutilities as xu
 import scipy.signal

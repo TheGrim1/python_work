@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from commands import getstatusoutput
 import time
@@ -15,17 +16,17 @@ samplelist    = ["sin002%s_zp" % i for i in indices]
 
 def reco():
     for j in range(len(samplelist)):
-        print "cycle:", j 
-        print "waiting %s s" % waittime 
+        print("cycle:", j) 
+        print("waiting %s s" % waittime) 
         time.sleep(waittime)
 
 #        internalnum = j
         eigerscannum = j + eigeroffset 
 
         cmd = TPL % (samplelist[j], eigerscannum)
-        print cmd
+        print(cmd)
         #raw_input("...")
-        print getstatusoutput(cmd)
+        print(getstatusoutput(cmd))
 
 if __name__ == '__main__':
     reco()

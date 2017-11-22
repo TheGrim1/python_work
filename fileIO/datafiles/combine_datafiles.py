@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,13 +34,13 @@ def main(args):
 
     ### do the reading
     datadict = {}
-    print filelist
+    print(filelist)
     for fpath in filelist:
         print("reading: %s" % fpath)
         fname = os.path.basename(fpath)
         dataset = open_data(fpath, delimiter = ',',quotecharlist = ['#','"'])[0]
         datadict.update({fname:np.copy(dataset)})
-        print('found dataset.shape = ' , dataset.shape)
+        print(('found dataset.shape = ' , dataset.shape))
             
 #    print dataset
     ### homogenize the x and y axis with interpolation

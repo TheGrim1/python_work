@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from matplotlib import pyplot as plt
 from scipy.optimize import leastsq
 import numpy as np
@@ -15,7 +17,7 @@ importpath = os.path.sep.join(importpath_list)
 sys.path.append(importpath)        
 from simplecalc import image_align as ia
 from simplecalc import rotated_series as rs
-from COR_fit import COR_from_yth, COR_from_xth
+from .COR_fit import COR_from_yth, COR_from_xth
         
 
 def COR_2d_elastix(imagestack, thetas, rotation = 0):
@@ -34,24 +36,24 @@ def COR_2d_elastix(imagestack, thetas, rotation = 0):
     xth = np.asarray(xth)
     yth = np.asarray(yth)
 
-    print 'center:   ', center
+    print('center:   ', center)
     CORx      = center - np.array(COR_from_xth(xth))
     CORy      = center - np.array(COR_from_yth(yth))
     COR_found = 0.5*(CORx + CORy)
-    print 'COR before backprojection:' 
-    print 'fit to x-values:  ', CORx
-    print 'fit to y-values:  ', CORy
-    print 'average:          ', COR_found
+    print('COR before backprojection:') 
+    print('fit to x-values:  ', CORx)
+    print('fit to y-values:  ', CORy)
+    print('average:          ', COR_found)
     
     ## this seems to be the right backprojection:
     COR       = 2*center - COR_found
-    print 'center of rotation found:'
-    print COR
+    print('center of rotation found:')
+    print(COR)
 
     d_thetas = [thetas[i] - found for i,found in enumerate(thetas_found)] 
-    print 'set angles   : ', thetas
-    print 'found angles : ', thetas_found
-    print 'error        : ', d_thetas
+    print('set angles   : ', thetas)
+    print('found angles : ', thetas_found)
+    print('error        : ', d_thetas)
 
     return COR
     
@@ -79,19 +81,19 @@ def COR_2d_crosscorrelation(imagestack,thetas, rotation = 0):
     xth = np.asarray(xth)
     yth = np.asarray(yth)
 
-    print 'center:   ', center
+    print('center:   ', center)
     CORx      = center - np.array(COR_from_xth(xth))
     CORy      = center - np.array(COR_from_yth(yth))
     COR_found = 0.5*(CORx + CORy)
-    print 'COR before backprojection:' 
-    print 'fit to x-values:  ', CORx
-    print 'fit to y-values:  ', CORy
-    print 'average:          ', COR_found
+    print('COR before backprojection:') 
+    print('fit to x-values:  ', CORx)
+    print('fit to y-values:  ', CORy)
+    print('average:          ', COR_found)
     
     ## this seems to be the right backprojection:
     COR       = 2*center - COR_found
-    print 'center of rotation found:'
-    print COR
+    print('center of rotation found:')
+    print(COR)
 
 
     return COR
@@ -110,8 +112,8 @@ def COR_from_sideview(imagestack, thetas, mode = 'com',return_shift = False):
         COM          = nd.measurements.center_of_mass(linestack[0])
         dummy, shift = ia.centerofmass_align(linestack)
         shift = shift.reshape((shift.shape[0],))
-        print('shift ',shift)
-        print('shift.shape: ',shift.shape)
+        print(('shift ',shift))
+        print(('shift.shape: ',shift.shape))
         #shift =  [dx for dx in shift]
         #print('shift ',shift)
         imageshift = np.asarray([[float(dx),0] for dx in shift])
@@ -121,12 +123,12 @@ def COR_from_sideview(imagestack, thetas, mode = 'com',return_shift = False):
         
         yth = [(x,thetas[i]) for i,x in enumerate(shift)]
         yth = np.asarray(yth)        
-        print 'COM in first frame:   ', COM
+        print('COM in first frame:   ', COM)
         COR    = np.array(COR_from_yth(yth))
-        print 'found COR:            ', COR
+        print('found COR:            ', COR)
         COR[0] = COM - COR[0]
-        print 'center of rotation' 
-        print 'fit to x-values:  ', COR
+        print('center of rotation') 
+        print('fit to x-values:  ', COR)
 
         
     elif  mode.upper() == 'ELASTIX':
@@ -136,8 +138,8 @@ def COR_from_sideview(imagestack, thetas, mode = 'com',return_shift = False):
         xth = np.asarray(xth)
         COR   = np.array(COR_from_xth(xth))
         COR[0] *= -1.0
-        print 'center of rotation' 
-        print 'fit to x-values:  ', COR
+        print('center of rotation') 
+        print('fit to x-values:  ', COR)
     
     elif mode.upper() == 'CC':
         dummy = np.copy(imagestack)
@@ -146,8 +148,8 @@ def COR_from_sideview(imagestack, thetas, mode = 'com',return_shift = False):
         xth = np.asarray(xth)
         COR   = np.array(COR_from_xth(xth))
         COR[0] *= -1.0
-        print 'center of rotation' 
-        print 'fit to x-values:  ', COR
+        print('center of rotation') 
+        print('fit to x-values:  ', COR)
     else:
         raise NotImplementedError( mode,' is not an implemented COR_from_sideview mode')
 
@@ -168,15 +170,15 @@ def COR_1d_COM(linestack, thetas, rotation=0, relative = False):
     
     thetas = np.array(thetas) + rotation
     
-    print 'COM in first frame:   ', COM
+    print('COM in first frame:   ', COM)
     COR    = np.array(COR_from_yth(yth))
-    print 'found COR:            ', COR
+    print('found COR:            ', COR)
     if relative:
         COR[0] *= -1.0
     else:
         COR[0] = COM[0] - COR[0]
-    print 'center of rotation' 
-    print 'fit to x-values:  ', COR
+    print('center of rotation') 
+    print('fit to x-values:  ', COR)
     
     return dummy, COR
 
@@ -195,14 +197,14 @@ def COR_2d_COM(imagestack,thetas, rotation = 0):
     xth=np.asarray(xth)
     yth=np.asarray(yth)
 
-    print 'COM:   ', COM
+    print('COM:   ', COM)
     CORx   = COM - np.array(COR_from_xth(xth))
     CORy   = COM - np.array(COR_from_yth(yth))
     COR    = 0.5*(CORx + CORy)
-    print 'center of rotation' 
-    print 'fit to x-values:  ', CORx
-    print 'fit to y-values:  ', CORy
-    print 'average:          ', COR
+    print('center of rotation') 
+    print('fit to x-values:  ', CORx)
+    print('fit to y-values:  ', CORy)
+    print('average:          ', COR)
     COR = COR
     
     return COR
@@ -224,16 +226,16 @@ def COR_from_topview(imagestack, thetas, mode = 'COM', align = True):
     'COM', 'CC', 'elastix'
     '''
     if mode.upper() == 'COM':
-        print 'calculating COR using the center of mass'
+        print('calculating COR using the center of mass')
         COR = COR_2d_COM(imagestack,thetas)
     elif mode.upper() == '2D_CROSSCORRELATION':
-        print 'calculating COR using cross correlation'
+        print('calculating COR using cross correlation')
         COR = COR_2d_crosscorrelation(imagestack,thetas)
     elif mode.upper() == 'ELASTIX':
-        print 'calculating COR using elastix'
+        print('calculating COR using elastix')
         COR = COR_2d_elastix(imagestack,thetas)
     else:
-        print 'available modes are: \nCOM, CC, and soon elatix'
+        print('available modes are: \nCOM, CC, and soon elatix')
         raise NotImplementedError('mode %s is not implemented' %mode)
         
     if align:
@@ -278,7 +280,7 @@ def test():
     ax3.plot(COR[1],COR[0],'rx')
     ax3.set_title('summed, realigned dataset, set COR = red, found COR green')
     
-    print 'given COR: ', COR
-    print 'found COR: ', COR_found
+    print('given COR: ', COR)
+    print('found COR: ', COR_found)
     
     return True

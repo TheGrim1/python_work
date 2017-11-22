@@ -1,3 +1,4 @@
+from __future__ import print_function
 from matplotlib import pyplot as plt
 from scipy.optimize import leastsq
 from o8x3.io import xyio
@@ -20,8 +21,8 @@ def readxy(fname, dname=None, skip=0):
         try:
             (x[i],y[i]) = (float(l.split()[0]),float(l.split()[1]))
             
-        except IndexError, bla:
-            print bla
+        except IndexError as bla:
+            print(bla)
     return (x,y)
 
 
@@ -31,15 +32,15 @@ def f(x, p):
 
 def rf(p, y, x):
     _x2 = x*x
-    print p, y, x
+    print(p, y, x)
     return y - (p[0] + p[1]*x + p[2]*_x2)
 
 def rfsin(p, y, x):
     return y - fsin(x, p)
 
 def fsin(x, p):
-    print "fsin x arrg:"
-    print x
+    print("fsin x arrg:")
+    print(x)
     A,ph,o = tuple(p)
 #    print "A,Ph,o=", A,ph,o
     return A*np.sin(x-ph) + o
@@ -62,15 +63,15 @@ def _test():
     y = np.array(y)
     p = np.array([5.0,-10.0,0.0], np.float64)
     pl = leastsq(rfsin, p, args=(y, x))
-    print "pl=", pl
+    print("pl=", pl)
     yl = fsin(XP, pl[0])
     A = pl[0][0]
     ph = pl[0][1]
     o = pl[0][2]
-    print "phase=",  divmod(pl[0][1]*180.0/np.pi, 360.0)
-    print "y-comp =", -A*np.sin(ph)
-    print "x-comp =", A*np.cos(ph)
-    print "That means: umvr nnx " +  str(A*np.cos(ph)) +" X  " + str(-A*np.cos(ph)) + " nny " +  str(-A*np.sin(ph)) + " Y " + str(A*np.sin(ph))
+    print("phase=",  divmod(pl[0][1]*180.0/np.pi, 360.0))
+    print("y-comp =", -A*np.sin(ph))
+    print("x-comp =", A*np.cos(ph))
+    print("That means: umvr nnx " +  str(A*np.cos(ph)) +" X  " + str(-A*np.cos(ph)) + " nny " +  str(-A*np.sin(ph)) + " Y " + str(A*np.sin(ph)))
 
     xplot = x*180.0/np.pi
     plt.ion()

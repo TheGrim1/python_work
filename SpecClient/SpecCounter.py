@@ -6,14 +6,15 @@ Classes:
 SpecCounter -- class representing a counter in Spec
 SpecCounterA -- class representing a counter in Spec, to be used with a GUI
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
-import SpecConnectionsManager
-import SpecEventsDispatcher
-import SpecWaitObject
-import SpecCommand
+from . import SpecConnectionsManager
+from . import SpecEventsDispatcher
+from . import SpecWaitObject
+from . import SpecCommand
 import math
 
 NOTINITIALIZED, NOTCOUNTING, COUNTING = range(3)

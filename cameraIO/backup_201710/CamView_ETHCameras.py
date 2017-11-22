@@ -1,10 +1,11 @@
+from __future__ import print_function
 import sys
 import os
 import commands
 import numpy as np
 
 hostname = commands.getoutput('hostname')
-print "hostname:", hostname
+print("hostname:", hostname)
 if hostname not in  ["coherence","cristal","nanofocus"]:
     print('illegal host name')
     sys.exit(1)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import ast,os,sys
 
 from o8qq.qqudo1.api import ptiapi
@@ -57,9 +58,9 @@ def run_meta(spt, *p):
         os.mkdir(dname)
     except:
         try:
-            print(dname, "\nexists: ", os.path.exists(dname))
+            print((dname, "\nexists: ", os.path.exists(dname)))
         except:
-            print("fundamental error on path:", dname)
+            print(("fundamental error on path:", dname))
             sys.exit()
     
 
@@ -70,11 +71,11 @@ def run_meta(spt, *p):
         k            = i + firstinternalno
         l            = i + firsteigerno 
 
-        print "\n===============================\n"
-        print "doing %s projection %s of %s on %s"  % (mode,i, nruns, infiletpl  % (k,l))
-        print "composite outfile = %s" %outfiletpl % (k,l)
-        print "in folder %s" % program.outfiles.dname
-        print "\n===============================\n"
+        print("\n===============================\n")
+        print("doing %s projection %s of %s on %s"  % (mode,i, nruns, infiletpl  % (k,l)))
+        print("composite outfile = %s" %outfiletpl % (k,l))
+        print("in folder %s" % program.outfiles.dname)
+        print("\n===============================\n")
 
         program.use_numbers     = numtpl      % (0,nframes-1)
         program.infiles.fname   = infiletpl   % (k,l)

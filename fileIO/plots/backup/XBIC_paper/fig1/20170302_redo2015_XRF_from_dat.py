@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 30})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -94,7 +95,7 @@ def main():
     fulldata = np.where(fulldata <= 1, 1, fulldata)
     ### plotting
     
-    print fulldata.shape
+    print(fulldata.shape)
     fig, axes = plt.subplots(nrows = 4, sharex = True)
 
     plt.rcParams.update({'font.size': 30})

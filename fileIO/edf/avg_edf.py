@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import time
 import numpy as np
@@ -15,7 +16,7 @@ def main(args):
 
     for fname in args:
         if fname.endswith('.edf'):
-            print "reading file %s" %fname
+            print("reading file %s" %fname)
 #            print "time before reading = "
 #            print time.time()
             frame = open_edf(fname)

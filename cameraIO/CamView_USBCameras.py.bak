@@ -1,0 +1,29 @@
+
+import cameraIO.BaslerGrab as bg
+from image_tools import uint8array_to_qimage
+
+
+class USBCameras(object):
+    def __init__(self):
+        self.cameras =  bg.initialize_cameras()
+    
+    def __getitem__(self,i):
+        return self.grab_image(cam_no = i,troi=None)
+
+    def grab_image(self, cam_no, troi=None):
+        try:        
+            if troi == None:
+                return bg.grab_image(self.cameras[cam_no], bw=True)
+            else:
+                return bg.grab_image(self.cameras[cam_no], bw=True)[troi_to_slice(troi)]
+                
+        except AttributeError:
+            print 'cameras not properly initialized' 
+
+    def grab_qimage(self, cam_no, troi=None):
+        array = self.grab_image(cam_no,troi)
+
+        #from https://www.swharden.com/wp/2013-06-03-realtime-image-pixelmap-from-numpy-array-data-in-qt/
+        array = numpy.require(array, numpy.uint8, 'C')
+        qimage = uint8array_to_qimage(im)
+        return qimage

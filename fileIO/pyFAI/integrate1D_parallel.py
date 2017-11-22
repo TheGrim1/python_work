@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 from multiprocessing import Pool
@@ -26,11 +27,11 @@ def integrator(inargs):
     timeit     = False
 
     my_pid = os.getpid()
-    print "doing: group %s in process %s" % (group, my_pid)
+    print("doing: group %s in process %s" % (group, my_pid))
     f = h5py.File(fname,'r')
 
     no_frames = f[group].shape[0]
-    print 'number of frames = %s' % no_frames
+    print('number of frames = %s' % no_frames)
     
     result = np.zeros(shape = (no_frames,2,no_qbins))
 
@@ -45,7 +46,7 @@ def integrator(inargs):
         t = time.time()
         
     for frame in range(no_frames):
-        print 'dataset %s, frame %s of %s' % (group, frame, no_frames)
+        print('dataset %s, frame %s of %s' % (group, frame, no_frames))
         data = f[group][frame]
         result[frame,0,:],result[frame,1,:] = ai.integrate1d(data,
                                                              no_qbins,
@@ -56,11 +57,11 @@ def integrator(inargs):
 
     if timeit:
         taken_time = time.time()-t
-        print '%s frames of dataset %s took %s s on process %s' % (no_frames,
+        print('%s frames of dataset %s took %s s on process %s' % (no_frames,
                                                                 group,
                                                                 taken_time,
-                                                                my_pid)
-        print 'thats %s files per s' % (no_frames / taken_time)
+                                                                my_pid))
+        print('thats %s files per s' % (no_frames / taken_time))
     
     f.close()
 
@@ -90,7 +91,7 @@ def integrate1d(args = ['/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc44
 
     ### gather info of the datasize
     
-    print 'opening file %s' % fname
+    print('opening file %s' % fname)
     f = h5py.File(fname,'r')
     basegroup = 'entry/data/'
     group_list = f[basegroup].keys()
@@ -123,12 +124,12 @@ def integrate1d(args = ['/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc44
     
     if timeing == True:
         taken_time = time.time()-t
-        print '%s frames took %s s' % (no_frames, taken_time)
-        print 'thats %s files per s' % (no_frames / taken_time)
+        print('%s frames took %s s' % (no_frames, taken_time))
+        print('thats %s files per s' % (no_frames / taken_time))
     
     ### initialize the save_file
     if os.path.exists(savefname):
-        print '%s already existed, removed'
+        print('%s already existed, removed')
         os.remove(savefname)
     
     nx_sf = nx.nxload(savefname, 'w')

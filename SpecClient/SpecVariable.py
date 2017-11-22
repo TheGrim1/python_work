@@ -2,13 +2,14 @@
 
 This module defines the class for Spec variable objects
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
-import SpecConnectionsManager
-import SpecEventsDispatcher
-import SpecWaitObject
+from . import SpecConnectionsManager
+from . import SpecEventsDispatcher
+from . import SpecWaitObject
 
 (UPDATEVALUE, FIREEVENT) = (SpecEventsDispatcher.UPDATEVALUE, SpecEventsDispatcher.FIREEVENT)
 

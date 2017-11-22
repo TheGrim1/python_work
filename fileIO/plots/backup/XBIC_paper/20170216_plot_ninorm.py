@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import sys, os
 import h5py
@@ -138,7 +139,7 @@ def main():
     for line in data1:
         savelines.append('\t'.join([str(x) for x in line] + ['\n']))
 
-    print savelines
+    print(savelines)
     f = open(savefile, 'w')
     f.writelines(savelines)
     f.close()

@@ -4,6 +4,7 @@ updated version of calorimeter_160918.py for faster shell usage
 see /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/first_for_AJ2a.org
 and /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/eval_template.org
 '''
+from __future__ import print_function
 
 import math
 import numpy as np
@@ -27,7 +28,7 @@ def plotmany(header, data, path,title = ""):
     plt.ylabel("temperature [$^\circ$C] %s" %title)
 
     savename = os.path.sep.join([path,header[1][0:header[1].find('.txt')]+'.png'])
-    print 'saving %s' %savename
+    print('saving %s' %savename)
     plt.savefig(savename)
     plt.show()
 
@@ -57,11 +58,11 @@ def subtract_test(oldheader ,data , empty):
         newdata[:,3]    = data[:,1]-empty[:,1]
 
     except ValueError:
-        print "Data and the normalisation (empty chip) don't have the same shape in %s" %(oldheader[1])
-        print "Interpolating"
+        print("Data and the normalisation (empty chip) don't have the same shape in %s" %(oldheader[1]))
+        print("Interpolating")
         
         newempty[:,0] = np.interp(data[:,0], empty[:,0], empty[:,1])
-        print newempty
+        print(newempty)
 
         
 
@@ -126,8 +127,8 @@ def change_time_to_temp(reference, header, data, upordown):
     
     datarange = [x for x in range(data.shape[0]) if data[x,0] >= timerange[0] and data[x,0] <= timerange[1]]
     
-    print "datarange = "
-    print datarange
+    print("datarange = ")
+    print(datarange)
 
     tandT   = np.zeros(shape=(len(datarange),2))
     newdata = np.zeros(shape=(len(datarange),data.shape[1]))
@@ -164,7 +165,7 @@ def save_data(header,data, title="Title", path= ""):
     
     try:
         savename = os.path.sep.join([path,header[1]])
-        print "writing file %s " %savename
+        print("writing file %s " %savename)
         
         f = open(savename, "w")
         try:
@@ -181,7 +182,7 @@ def save_data(header,data, title="Title", path= ""):
         finally:
             f.close()
     except ValueError:
-        print "could not write file %s , quitting" %  savename
+        print("could not write file %s , quitting" %  savename)
         sys.exit(0)
 
     return savename
@@ -190,7 +191,7 @@ def read_own_datafile(filelist):
     col   = 0
     fname = filelist[0]
     try:
-        print("reading processed datafile %s") % (fname)
+        print(("reading processed datafile %s") % (fname))
         f            = open(fname)
         cfg          = f.readlines()
 
@@ -214,7 +215,7 @@ def read_own_datafile(filelist):
             
         f.close()
     except IndexError: 
-        print "Error reading own datafile %s " % fname
+        print("Error reading own datafile %s " % fname)
 
     return header,data
 
@@ -254,7 +255,7 @@ def read_calorimeter_datafiles(filelist):
 
             f.close()
         except IndexError: 
-            print "Error reading %s " % fname
+            print("Error reading %s " % fname)
     
 #    print data
     return header,data
@@ -262,14 +263,14 @@ def read_calorimeter_datafiles(filelist):
 def interpolate_empty(empty,data):
     ''' returns empty with len(empty[:,0]) = len(data[:,0]) by interpolating missing values '''
     if not len(data[:,0]) == len(empty[:,0]):
-        print "Data and the normalisation (empty chip) don't have the same shape"
-        print "Interpolating"
-        print empty
+        print("Data and the normalisation (empty chip) don't have the same shape")
+        print("Interpolating")
+        print(empty)
         newempty        = np.zeros(shape=((data.shape)[0],2))
         newempty[:,1]   = np.interp(data[:,0], empty[:,0], empty[:,1])
         newempty[:,0]   = data[:,0]
         empty           = newempty
-        print empty
+        print(empty)
     return empty
 
 def do_empty(header,data1,savepath):
@@ -287,8 +288,8 @@ def do_empty(header,data1,savepath):
 def do_data(header,data1,savepath):
     searchresult =  [empty for empty in os.listdir(savepath) if (empty.find('avg_over')!=-1 and empty.find('_empty')!=-1 and empty.find('.txt')!=-1)]
     if len(searchresult)>1:
-        print '\nWARNING\nfound the following possible empty and averaged files:\n'
-        print searchresult
+        print('\nWARNING\nfound the following possible empty and averaged files:\n')
+        print(searchresult)
 
     emptyname = searchresult[0]
     emptyfile = os.path.sep.join([savepath,emptyname])
@@ -333,7 +334,7 @@ if __name__ == '__main__':
         if len(sys.argv) > 1:
             if sys.argv[1].find("-f")!= -1:
                 filename = sys.argv[2]
-                print "opeining file %s" % filname
+                print("opeining file %s" % filname)
                 f = open(filename) 
                 for line in f:
                     args.append(line.rstrip())
@@ -344,7 +345,7 @@ if __name__ == '__main__':
             for line in f:
                 args.append(line.rstrip())
     except:
-        print 'usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"'
+        print('usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"')
         sys.exit(1)
 #    print "args passed:"
     main(args)

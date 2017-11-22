@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/save_as_jpg.py
 
 import os
@@ -8,8 +10,8 @@ import numpy as np
 
 # local imports:
 
-from open_edf import open_edf
-from plot_edf import plot_edf
+from .open_edf import open_edf
+from .plot_edf import plot_edf
 
 def save_as_png(fname, savename):
     
@@ -23,7 +25,7 @@ def save_as_png(fname, savename):
 
     plot_edf(data[:,:],savename = savefname)
 
-    print "saving figure as :\n%s" % savefname
+    print("saving figure as :\n%s" % savefname)
         
 
 

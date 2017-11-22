@@ -1,3 +1,4 @@
+from __future__ import print_function
 import fabio
 import sys
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ def main(filelist):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print 'usage: python integrate.py <your new maskname.edf> <at least 2 mask files .edf>'
+        print('usage: python integrate.py <your new maskname.edf> <at least 2 mask files .edf>')
         sys.exit(0)
     else:
         main(sys.argv[1:])

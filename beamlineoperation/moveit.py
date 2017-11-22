@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from os import path
 from commands import getstatusoutput
@@ -10,15 +11,15 @@ def move_no(i, n):
         os.mkdir(dname)
     except:
         try:
-            print dname, ":", path.exists(dname)
+            print(dname, ":", path.exists(dname))
         except:
-            print "fundamental error:", dname
+            print("fundamental error:", dname)
     for j in xrange(n):
-        print "cycle:", j
+        print("cycle:", j)
         cmd = TPL % (i,j,i)
-        print cmd
+        print(cmd)
         #raw_input("...")
-        print getstatusoutput(cmd)
+        print(getstatusoutput(cmd))
 
 def test():
     #move_no(110, 17061)

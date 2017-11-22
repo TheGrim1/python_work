@@ -1,2 +1,3 @@
-import metropolis_func
-import scan_utils
+from __future__ import absolute_import
+from . import metropolis_func
+from . import scan_utils

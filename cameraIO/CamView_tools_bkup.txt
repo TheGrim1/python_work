@@ -499,9 +499,9 @@ class stage():
         if mode.upper() not in ['ELASTIX','COM','CC']:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
 
-        if type(COR_motors) = type(None):
-            mot0 = self.stagegeomety['COR_motors'][motor][0]])
-            mot1 = self.stagegeomety['COR_motors'][motor][1]])
+        if type(COR_motors) == type(None):
+            mot0 = self.stagegeomety['COR_motors'][motor][0])
+            mot1 = self.stagegeomety['COR_motors'][motor][1])
         else:
             mot0 = COR_motors[0]
             mot1 = COR_motors[1]

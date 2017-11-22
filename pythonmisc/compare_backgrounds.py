@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 
@@ -39,24 +40,24 @@ def sum_trois(args):
         slice_list.append(troi_to_slice(troi))
 
 
-    print 'opening file %s' % fname
+    print('opening file %s' % fname)
     f = h5py.File(fname,'r')
     basegroup = 'entry/data/'
     group_list = f[basegroup].keys()
     group_list.sort()
-    print 'found datasets:'
-    print group_list
+    print('found datasets:')
+    print(group_list)
 
  
     result = np.zeros(shape = (len(troi_list),meshshape[0] * meshshape[1]))
 
     for group_no, group in enumerate(group_list):
         noframes = f[basegroup+group].shape[0]
-        print '='*50
-        print 'dataset = %s' %group
-        print 'number of frames = %s' % noframes
+        print('='*50)
+        print('dataset = %s' %group)
+        print('number of frames = %s' % noframes)
         for frame in range(noframes):
-            print 'dataset %s, frame %s of %s' % (group, frame, noframes)
+            print('dataset %s, frame %s of %s' % (group, frame, noframes))
             for sl_no, sl in enumerate(slice_list):
                 data = f[basegroup+group][frame][sl]
                 result[sl_no, group_no*frames_per_file + frame] = data.sum()

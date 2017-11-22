@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys,os
 import numpy as np
 import scipy.ndimage as nd
@@ -34,7 +35,7 @@ def get_backgroundmask(data_fname,threshold,frame_list=None):
     minproj = np.zeros(shape=data[0].shape)
     minproj += threshold
     for i, frame in enumerate(data):
-        print'projecting frame %s of %s'%(i,data.shape[0])
+        print('projecting frame %s of %s'%(i,data.shape[0]))
         minproj = np.where(frame<minproj, frame, minproj)
 
     mask = np.where(minproj>=threshold,1,0)
@@ -55,7 +56,7 @@ def decide_on_single_frame(args):
     MIN_DISTANCE = FILTER_PARAMETERS['MIN_DISTANCE']
     pid = os.getpid()
     if verbose:
-        print 'filtering frame %s of %s in process %s' %(iframe, NFRAMES, pid)
+        print('filtering frame %s of %s in process %s' %(iframe, NFRAMES, pid))
 
 
     data = open_h5(data_fname,[iframe])[0]
@@ -84,11 +85,11 @@ def decide_on_single_frame(args):
         for j in range(1,npeaks):
             if np.sum(np.where(labeled_image==j,1,0)) > MAX_PXL_PER_PEAK:
                 if verbose:
-                    print 'peaks too large in frame ', iframe
+                    print('peaks too large in frame ', iframe)
                 return [iframe,2]
     else:
         if verbose:
-            print 'rejected frame ' , iframe
+            print('rejected frame ' , iframe)
         return [iframe,0]
 
         
@@ -105,7 +106,7 @@ def decide_on_single_frame(args):
     npeaks_far_apart = len([x for x in peaklist_after if x[0]>0])
     npeaks_removed = (npeaks - npeaks_far_apart)
     if verbose:
-        print 'removed %s peaks that were close together' % npeaks_removed
+        print('removed %s peaks that were close together' % npeaks_removed)
         # print 'peaks before:'
         # print peaklist
         # print 'peaks after:'
@@ -115,11 +116,11 @@ def decide_on_single_frame(args):
     if npeaks_far_apart > MIN_NPEAKS:
         # print 'finally found enough peaks'
         if verbose:
-            print 'selected frame ', iframe
+            print('selected frame ', iframe)
         return [iframe,1]
     else:
         if verbose :
-            print 'rejected frame ' , iframe
+            print('rejected frame ' , iframe)
         return [iframe,0]
 
 
@@ -132,7 +133,7 @@ def filter_for_peaks_per_file(args):
     NPROCESSES=20
 
     f = h5py.File(data_fname, 'r')
-    print 'reading file ',data_fname
+    print('reading file ',data_fname)
     NFRAMES = f['entry/data/data'].shape[0]    
     FILTER_PARAMETERS['NFRAMES'] = NFRAMES
     f.close()
@@ -156,16 +157,16 @@ def filter_for_peaks_per_file(args):
     
     selected_frames = [x[0] for x in frame_descision_list if x[1] ==1]
     if len(selected_frames)==0:
-        print 'no frames found to match critea'
+        print('no frames found to match critea')
     else:
-        print 'found frames ', selected_frames
+        print('found frames ', selected_frames)
     
         if os.path.exists(selected_fname):
-            print 'overwriting :'
-            print selected_fname
+            print('overwriting :')
+            print(selected_fname)
             os.remove(selected_fname)
         save_h5(open_h5(data_fname,selected_frames), selected_fname)
-    print 'finished with ', data_fname
+    print('finished with ', data_fname)
     
 def filter_many_parallel(data_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/DATA/AUTO-TRANSFER/eiger4/COF505_dry_heflush_270_data_%06d.h5',
                          save_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/filter_results/COF505_dry_heflush_270_peaksearchfilterd_%06d.h5',
@@ -193,12 +194,12 @@ def filter_many_parallel(data_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06
     d_name=data_tpl%i
     s_name = save_tpl %i       
 
-    print d_name
+    print(d_name)
     time.sleep(1)
     task_list_files = []
     #while i <20:
     while os.path.exists(d_name):
-        print 'adding file to tasklist ',d_name
+        print('adding file to tasklist ',d_name)
         task_list_files.append([d_name, s_name, mask, FILTER_PARAMETERS,subprocess_parallel, verbose])
         i+=1
         d_name=data_tpl%i
@@ -266,7 +267,7 @@ def test():
 
         
         data = open_h5(data_fname,[i])[0]
-        print 'filtering frame %s of %s' %(i, NFRAMES)
+        print('filtering frame %s of %s' %(i, NFRAMES))
 
         # mask
         frame = np.where(mask,0,data)
@@ -283,32 +284,32 @@ def test():
         
         # deciding which to keep
         if npeaks > MIN_NPEAKS:
-            print 'found enough peaks'
+            print('found enough peaks')
             take_this_frame = True
             for j in range(1,npeaks):
                 npxl_j = np.where(labeled_image==j)[0].shape[0]
                 if npxl_j > MAX_PXL_PER_PEAK:
                     take_this_frame = False
-                    print 'found %s pxl in peak %s'%(npxl_j, j)
+                    print('found %s pxl in peak %s'%(npxl_j, j))
                     toolarge_frame_list.append(i)
                     break
             if take_this_frame:
-                print 'selected this frame'
+                print('selected this frame')
                 selected_frame_list.append(i)
         all_filtered[i] = filtered
 
     selected=all_filtered
         
     if os.path.exists(selected_fname):
-        print 'overwriting :'
-        print selected_fname
+        print('overwriting :')
+        print(selected_fname)
         os.remove(selected_fname)
     save_h5(selected, selected_fname)
         
     # neccessary cleanup for memmap
     memmap_variable = all_filtered
     if type(memmap_variable) == np.core.memmap:
-        print 'cleaning up memmap'
+        print('cleaning up memmap')
         memmap_tmp_fname = memmap_variable.filename
         del memmap_variable
         gc.collect()
@@ -332,8 +333,8 @@ if __name__=='__main__':
     data_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/DATA/AUTO-TRANSFER/eiger4/COF505_dry_heflushb_332_data_%06d.h5'
     save_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/filter_results/COF505_dry_heflushb_332_superfiltered3_%06d.h5'
     mask_fname ='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/calib1_detx0/mask_Eiger_largecenter.edf'
-    print data_tpl
-    print save_tpl
+    print(data_tpl)
+    print(save_tpl)
     time.sleep(1)
     filter_many_parallel(data_tpl=data_tpl,save_tpl=save_tpl,mask_fname=mask_fname,verbose=True,parallel=True)
 
@@ -342,8 +343,8 @@ if __name__=='__main__':
     save_tpl='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/filter_results/COF505_dry_heflush_270_superfiltered3_%06d.h5'
     mask_fname ='/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/calib1_detx0/mask_Eiger_largecenter.edf'
 
-    print data_tpl
-    print save_tpl
+    print(data_tpl)
+    print(save_tpl)
     time.sleep(1)
     
     filter_many_parallel(data_tpl=data_tpl,save_tpl=save_tpl,mask_fname=mask_fname,verbose=True,parallel=True)

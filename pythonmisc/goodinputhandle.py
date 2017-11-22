@@ -1,7 +1,8 @@
+from __future__ import print_function
 import sys
 
-def main(args)
-    print args
+def main(args):
+    print(args)
 
 if __name__ == '__main__':
     

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/open_h5.py
 
@@ -28,7 +29,7 @@ def open_edf(filename, threshold = 0.0, troi = None):
 
         return data
     else:
-        print "%s is not a .edf file?" %filename
+        print("%s is not a .edf file?" %filename)
 
 
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/do_stuff.py
 
 #global
@@ -5,10 +7,10 @@ import os
 import sys
 
 # local
-from avg_h5 import avg_h5
-from save_h5 import save_h5
+from .avg_h5 import avg_h5
+from .save_h5 import save_h5
 from plot_h5 import plot_h5, plotmany_h5
-from open_h5 import open_h5
+from .open_h5 import open_h5
 
 def main(filelist):
 #    print filelist
@@ -16,8 +18,8 @@ def main(filelist):
     nfiles = len(filelist) 
     for fname in filelist:
         try:
-            print "averaging %s" %fname
-            print "%s of %s" % (i,nfiles)
+            print("averaging %s" %fname)
+            print("%s of %s" % (i,nfiles))
             i += 1
             data     = open_h5(fname)
 #        plot_h5(data, index = 1)
@@ -27,7 +29,7 @@ def main(filelist):
             save_h5(data, fullfname = newfname)
 #            plot_h5(data, title = newfname)
         except:
-            print "ERROR on %s" % fname
+            print("ERROR on %s" % fname)
             pass
 
 if __name__ == '__main__':

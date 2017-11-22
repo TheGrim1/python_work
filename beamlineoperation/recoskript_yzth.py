@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from commands import getstatusoutput
 import sys
@@ -22,20 +23,20 @@ def reco_no(args):
     #print("sleeping " + initialwait)
     time.sleep(initialwait)
     
-    print range(start,stop,2)
+    print(range(start,stop,2))
     for j in range(start,stop,2):
         internalnum = j
         eigerscannum = j + eigerno
-        print "cycle:", j
-        print "waiting: ",waittime
+        print("cycle:", j)
+        print("waiting: ",waittime)
         time.sleep(waittime)
         cmd = TPL % (eigerprefix, internalnum, eigerscannum)
-        print cmd
+        print(cmd)
         #raw_input("...")
-        print getstatusoutput(cmd)
+        print(getstatusoutput(cmd))
 
 def usage():
-    print "usage:\npython recoskript_yzth <eigerprefix> <internal counter start> <stop> <eigeroffset to internal counter> <waittime>"
+    print("usage:\npython recoskript_yzth <eigerprefix> <internal counter start> <stop> <eigeroffset to internal counter> <waittime>")
 
 if __name__ == '__main__':
     if len(sys.argv) != 6:

@@ -1,4 +1,5 @@
 """Helper module for managing scans"""
+from __future__ import print_function
 
 import copy
 import cStringIO
@@ -83,7 +84,7 @@ def simple_eval(source):
     """a safe version of the builtin eval function, """
     src = cStringIO.StringIO(source).readline
     src = tokenize.generate_tokens(src)
-    return _atom(src.next, src.next())
+    return _atom(src.next, next(src))
 
 
 class SpecScanA:
@@ -200,7 +201,7 @@ class SpecScanA:
 
 
     def __newScan(self, scanParams):
-        if DEBUG: print "SpecScanA.__newScan", scanParams
+        if DEBUG: print("SpecScanA.__newScan", scanParams)
 
         if not scanParams:
             if self.scanning:
@@ -218,7 +219,7 @@ class SpecScanA:
 
         self.scanParams = simple_eval(scanParams)
 
-        if type(self.scanParams) != types.DictType:
+        if type(self.scanParams) != dict:
             return
 
         try: 
@@ -240,12 +241,12 @@ class SpecScanA:
 
 
     def newScan(self, scanParameters):
-        if DEBUG: print "SpecScanA.newScan", scanParameters
+        if DEBUG: print("SpecScanA.newScan", scanParameters)
         pass
 
 
     def __newScanData(self, scanData):
-        if DEBUG: print "SpecScanA.__newScanData", scanData
+        if DEBUG: print("SpecScanA.__newScanData", scanData)
         if self.paused and scanData:
             self.__status = 'scanning'
             self.scanResumed()
@@ -256,12 +257,12 @@ class SpecScanA:
 
 
     def newScanData(self, scanData):
-        if DEBUG: print "SpecScanA.newScanData", scanData
+        if DEBUG: print("SpecScanA.newScanData", scanData)
         pass
 
 
     def __newScanPoint(self, scanData):
-        if DEBUG: print "SpecScanA.__newScanPoint", scanData
+        if DEBUG: print("SpecScanA.__newScanPoint", scanData)
         if self.paused and scanData:
             self.__status = 'scanning'
             self.scanResumed()
@@ -279,21 +280,21 @@ class SpecScanA:
                 if self.__callbacks.get("newPoint"):
                     cb = self.__callbacks["newPoint"]()
                     if cb is not None:
-                        if len(cb.im_func.func_code.co_varnames) > 4:
+                        if len(cb.__func__.__code__.co_varnames) > 4:
                             cb(i, x, y, scanData)
                         else:
                             cb(i, x, y)
             finally:
                 # hack to know if we should call newScanPoint with
                 # scanData or not (for backward compatiblity)
-                if len(self.newScanPoint.im_func.func_code.co_varnames) > 4:
+                if len(self.newScanPoint.__func__.__code__.co_varnames) > 4:
                     self.newScanPoint(i, x, y, scanData)
                 else:
                     self.newScanPoint(i, x, y)
 
 
     def newScanPoint(self, i, x, y, counters_value):
-        if DEBUG: print "SpecScanA.newScanPoint", i, x, y, counters_value
+        if DEBUG: print("SpecScanA.newScanPoint", i, x, y, counters_value)
         pass
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import fabio
 import sys
 import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ def main(filename):
     ax.set_aspect('equal') 
     plt.show()  
 
-def plot(data, vmin=0, vmax=10)
+def plot(data, vmin=0, vmax=10):
     fig1 = plt.figure(figsize=(10,10), dpi=80)
     plt.imshow(data, vmin, vmax, cmap='gray')
     #plt.axis([0, 517, 0, 517])  
@@ -27,7 +28,7 @@ def plot(data, vmin=0, vmax=10)
 
 if __name__ == '__main__':
     if len(sys.argv) !=2 :
-        print 'usage: python plotedf.py <your .edf>'
+        print('usage: python plotedf.py <your .edf>')
         sys.exit(0)
     else:
         main(sys.argv[1])

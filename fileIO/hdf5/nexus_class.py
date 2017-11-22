@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import sys, os
 import h5py
@@ -72,7 +73,7 @@ class nx_id13:
                                            'sample_info'         :sample_dict})
 
         else:
-            print 'TODO get these components form some configuration file'
+            print('TODO get these components form some configuration file')
             
         
     def create_file(self, fname = None):
@@ -133,7 +134,7 @@ class nx_id13:
 
 
         self.set_default_links()
-        print self.nx_f.tree
+        print(self.nx_f.tree)
         self.close_file()            
         nxt.timestamp(self.nx_f)
 
@@ -158,8 +159,8 @@ class nx_id13:
                             verbose = verbose)
             self.nx_f[local_nxpath].attrs['sigal'] = 'data'
         
-        print 'linked default dataset:'
-        print self.nx_f['entry/data'].tree
+        print('linked default dataset:')
+        print(self.nx_f['entry/data'].tree)
 
     def _link_detector(self,
                        local_nxpath='entry/data',
@@ -167,12 +168,12 @@ class nx_id13:
                        verbose = True):
             
         if verbose:
-            print 'getting default detector path'
+            print('getting default detector path')
 
         data_nxpath = self.get_detector_path(default_detector)
 
         if verbose:
-            print 'got ', data_nxpath
+            print('got ', data_nxpath)
         
         self.nx_f['entry/data'] = self.nx_f[data_nxpath]
         
@@ -185,7 +186,7 @@ class nx_id13:
         only marginally tested
         '''
         if verbose:
-            print 'getting scanned axes links'  
+            print('getting scanned axes links')  
         axesnames = self.get_scanned_axesnames()
         
         axes = []
@@ -197,7 +198,7 @@ class nx_id13:
         self.nx_f[local_nxpath].attrs['axes'] = axesnames
         
         if verbose:
-            print 'found and linked : ', axes
+            print('found and linked : ', axes)
 
 
 

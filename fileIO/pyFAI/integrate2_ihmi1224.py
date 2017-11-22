@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import matplotlib.pyplot as plt
 import fabio
@@ -7,13 +8,13 @@ def plot_h5(data,
             index=0, 
             title = "Title"):
     dimension = len(data.shape)
-    print "dimension of data to be plotted is %s" % dimension
+    print("dimension of data to be plotted is %s" % dimension)
     if dimension == 3:
         plt.imshow(data[index,:,:], interpolation = 'none')
     elif dimension == 2:
         plt.imshow(data[:,:], interpolation = 'none')
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
     plt.clim(0,10)
 
     plt.show()
@@ -32,11 +33,11 @@ def main(file_list):
         
         plot_h5(regrouped[0])
 
-        print "regrouped[1].shape %s" % regrouped[1].shape
+        print("regrouped[1].shape %s" % regrouped[1].shape)
    
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print 'usage: python integrate.py <your_files.edf>'
+        print('usage: python integrate.py <your_files.edf>')
         sys.exit(0)
     else:
         main(sys.argv[1:])

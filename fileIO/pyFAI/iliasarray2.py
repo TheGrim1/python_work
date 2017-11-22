@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 def input():
@@ -10,19 +11,19 @@ def input():
 
 
 def calc(arguments):
-    print 'array dimension = (' +arguments['height']+','+str(int(arguments['lastindex'])-int(arguments['firstindex'])+1)+')'
+    print('array dimension = (' +arguments['height']+','+str(int(arguments['lastindex'])-int(arguments['firstindex'])+1)+')')
     roiarr=''
     
     for l in range(0,int(arguments['height'])):
         roiarr = roiarr + str(int(arguments['firstindex'])+l*int(arguments['linelength'])) +'-' + str(int(arguments['lastindex'])+l*int(arguments['linelength'])) +','
         
-    print roiarr  
+    print(roiarr)  
     
 if __name__=="__main__":
     if len(sys.argv) != 5:
         calc(input())
     else:
-        print 'using  ' + sys.argv[1] + ' as first index, '+ sys.argv[2] + ' as last index , '+ sys.argv[3] +' as the heigt of the array. ' + sys.argv[4]+' is the length of each line in the original plot:'
+        print('using  ' + sys.argv[1] + ' as first index, '+ sys.argv[2] + ' as last index , '+ sys.argv[3] +' as the heigt of the array. ' + sys.argv[4]+' is the length of each line in the original plot:')
         arguments={}
         arguments['firstindex'] = sys.argv[1]
         arguments['lastindex'] = sys.argv[2]

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy.ndimage as nd
 import sys, os
@@ -85,7 +86,7 @@ def create_rotated_xprojection(array, thetas, amplitude = 30):
         dx         = amplitude * np.sin(theta/180.0*np.pi)
         shift      = np.zeros(shape = array.ndim)
         shift[1]   = dx
-        print shift, array.shape
+        print(shift, array.shape)
         rotated[i] = nd.shift(array,shift)
         
     

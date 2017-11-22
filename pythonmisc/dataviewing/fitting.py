@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy.odr
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ def do_linear_fit(data):
     betastd = output.sd_beta
 
 #    print "poly", fit_np
-    print "fit result [pxl/frame]: \n", beta[0]
+    print("fit result [pxl/frame]: \n", beta[0])
 
     plt.plot(data[:,0], data[:,1], "bo")
 #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
@@ -42,7 +43,7 @@ def do_quadratic_fit(data):
     beta = output.beta
     betastd = output.sd_beta
 #    print "poly", fit_np
-    print "fit result y = %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2])
+    print("fit result y = %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2]))
     plt.plot(data[:,0], data[:,1], "bo")
 #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
     plt.plot(data[:,0], quadratic_func(beta, data[:,0]), "r--", lw = 2)
@@ -63,7 +64,7 @@ def do_cubic_fit(data):
     beta = output.beta
     betastd = output.sd_beta
 #    print "poly", fit_np
-    print "fit result y = %s x3 + %s x + %s  " % (beta[0],beta[1],beta[2])
+    print("fit result y = %s x3 + %s x + %s  " % (beta[0],beta[1],beta[2]))
     plt.plot(data[:,0], data[:,1], "bo")
 #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
     plt.plot(data[:,0], cubic_func(beta, data[:,0]), "r--", lw = 2)
@@ -85,7 +86,7 @@ def do_exp_fit(data):
     beta = output.beta
     betastd = output.sd_beta
 #    print "poly", fit_np
-    print "fit result y = %s e^(x * %s) + %s" % (beta[0],beta[1],beta[2])
+    print("fit result y = %s e^(x * %s) + %s" % (beta[0],beta[1],beta[2]))
     plt.plot(data[:,0], data[:,1], "bo")
 #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
     plt.plot(data[:,0], exp_func(beta, data[:,0]), "r--", lw = 2)

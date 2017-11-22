@@ -1,3 +1,4 @@
+from __future__ import print_function
 import h5py
 import numpy as np
 import sys, os
@@ -24,7 +25,7 @@ def get_shape(fnamelist,framelist=None,group="entry/data/data", troi = None):
             # print('read troi, datashape is now %s' % datashape)
             
         else:
-            print "%s is not a .h5 file" %fname
+            print("%s is not a .h5 file" %fname)
     if not framelist == None:
         datashape[2] = len(framelist)
         # print('framelist given, datashape is now %s' % datashape)
@@ -156,7 +157,7 @@ def get_full_dataset(fname,
 
     todolist.sort()
     keylist = key.split('/')
-    print todolist
+    print(todolist)
     scan    = h5_scan()
     scan.read_self(todolist[0])
     onedata = get_data_recursive(scan.data, keylist, verbose = verbose)
@@ -212,7 +213,7 @@ def open_full_dataset(fname,
 
 
     print('newshape:')
-    print newshape
+    print(newshape)
 
     if verbose:
         print('reading %s files: ' % len(todolist))
