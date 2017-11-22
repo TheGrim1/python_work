@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+import os
+import argparse
+from silx.io import specfile
+import silx.third_party.EdfFile as EdfFile
+import numpy as np
+from id01lib import id01h5
+
+parser = argparse.ArgumentParser(
+            description='Script to sum up all detector images of a PSCAN to get the `large beam` picture.')
+
+parser.add_argument('specfile', type=str, nargs=1,
+            help='Path to _fast_ .spec file as produced by pscando.')
+
+parser.add_argument('scanno', type=int, nargs='?', default=0,
+            help='Number of the scan in the spec file')
+
+parser.add_argument('--imgroot', type=str, 
+        help='Optional location of images.')
+
+#parser.add_argument('-m', '--monitor', type=str, default='cnt1',
+#                    help='Name of counter for prim. beam normalization.')
+
+
+args = parser.parse_args()
+
+###################################################
+
+imgroot = args.imgroot
+sf = specfile.SpecFile(args.specfile[0])
+scan = sf[args.scanno]
+header = scan.header
+impath = [s for s in header if s.startswith(b"#C imageFile")]
+if not impath:
+    raise ValueError("No images found")
+
+impath = impath[0]
+impath = impath.split()[2:]
+impath = dict((s.strip(b"]").split(b"[") for s in impath))
+
+folder = impath[b"dir"] if imgroot is None else imgroot
+generic_path = os.path.join(folder, impath[b"prefix"] + impath[b"idxFmt"] + impath[b"suffix"])
+
+idx = int(impath[b"nextNr"])
+print(generic_path)
+all_paths = id01h5.FastEdfCollect(generic_path.decode(), idx)
+
+
+
+
+def correct_image(image):
+    """
+        Mind the gap.
+    """
+    image *= 9
+    image[255:258] = image[255]/3
+    image[258:261] = image[260]/3
+    image[:,255:258] = (image[:,255]/3)[:,None]
+    image[:,258:261] = (image[:,260]/3)[:,None]
+
+
+
+def get_sum(edf):
+    for imnum in range(edf.GetNumImages()):
+        img = edf.GetData(imnum).astype(np.uint32)
+        correct_image(img)
+        if not imnum:
+            imsum = img
+        else:
+            imsum += img
+    return imsum
+
+def _get_edf_sums(fname):
+    #ikmap = int(fname.strip(".edf.gz")[-5:])
+    imsum = get_sum(EdfFile.EdfFile(fname, access='r', fastedf=True))
+    print("Processed %s."%fname)
+    return imsum
+
+imsum = None
+for path in all_paths:
+    #print path
+    if imsum is None:
+        imsum = _get_edf_sums(path)
+    else:
+        imsum += _get_edf_sums(path)
+
+
+from silx.gui import qt
+#from silx.gui.plot.StackView import StackView, StackViewMainWindow
+from silx.gui.plot import ImageView
+app = qt.QApplication([])
+
+#sv = StackViewMainWindow()# yinverted=True)
+iv = ImageView()
+iv.setColormap("jet", autoscale=True, normalization="log")
+iv.setImage(imsum)
+#print(sv.isYAxisInverted())
+#sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
+#              "3rd dim (0-299)"])
+iv.setYAxisInverted(True)
+iv.show()
+
+app.exec_()

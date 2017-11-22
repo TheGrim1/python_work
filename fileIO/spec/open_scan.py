@@ -103,7 +103,7 @@ def open_dscans(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1
             at_positions.append(float(sfh5[grouptpl %scan]['instrument']['positioners'][sorting_motor]))
 
         # print (np.asarray(sfh5[grouptpl % scan]['measurement']['Detector']))
-        data[i]     = np.asarray(sfh5[grouptpl % scan]['measurement']['Detector'])
+        data[i]     = np.asarray(sfh5[grouptpl % scan]['measurement'][counter])
         
        
     return data , np.asarray(at_positions), scan_positions 

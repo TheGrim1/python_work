@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #----------------------------------------------------------------------
 # Description:
-# Author: Carsten Richter <carsten.richter@desy.de>
+# Author: Carsten Richter <carsten.richter@esrf.fr>
 # Created at: Tue May 23 16:52:07 CEST 2017
 # Computer: rnice8-0208 
 # System: Linux 3.16.0-4-amd64 on x86_64

@@ -15,6 +15,56 @@ import scipy.optimize as optimize
 import matplotlib.pyplot as plt
 import math
 
+
+def sin_func(p, t):
+    '''
+    p[0] = amp
+    p[1] = phase
+    p[2] = offset
+    p[0]*np.sin(t - p[1]) + p[2]
+    '''
+    return p[0]*np.sin(t - p[1]) + p[2]
+
+def do_sin_fit(data, verbose = False):
+
+    _func = sin_func
+    Model = scipy.odr.Model(_func)
+    Data = scipy.odr.RealData(data[:,0], data[:,1])
+    amp_guess = np.max(data[:,1]) - np.min(data[:,1])
+    phase_guess = 0
+    offset_guess = 0.5*(np.max(data[:,1]) + np.min(data[:,1]))
+    if verbose:
+        print 'amp_guess = ', amp_guess
+        print 'phase_guess = ', phase_guess
+        print 'offset_guess = ', offset_guess
+
+    Odr = scipy.odr.ODR(Data, Model, [amp_guess, phase_guess, offset_guess], maxit = 10000000)
+    Odr.set_job(fit_type=2)    
+    output = Odr.run()
+    #output.pprint()
+    beta    = output.beta
+    betastd = output.sd_beta
+
+    if verbose :
+        fig, ax = plt.subplots()
+    #    print "poly", fit_np
+        print "fit result amp: \n", beta[0]
+        print "fit result phase: \n", beta[1]
+        print "fit result offset: \n", beta[2]
+
+        ax.plot(data[:,0], data[:,1], "bo")
+        # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
+        ax.plot(data[:,0], _func(beta, data[:,0]), "r--", lw = 2)
+        # ax.plot(data[:,0], _func([max_guess, min_guess, inflection_guess, sigma_guess ], data[:,0]), "g--", lw = 2)
+
+        plt.tight_layout()
+
+        plt.show()
+        
+    return beta
+
+
+
 def general_logistic_func(p, t):
     '''
     only works for "increasing" function

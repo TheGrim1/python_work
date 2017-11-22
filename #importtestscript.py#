@@ -1,0 +1,79 @@
+1import os
+import commands
+
+if __name__=='__main__':
+    
+    print 'lets import stuff: '
+
+  
+
+    try:
+        from PyQt4 import QtGui as Q
+        from PyQt4 import QtCore
+        print("Using PyQt %s"%QtCore.QT_VERSION_STR)
+    except Exception as e:
+        print 'Error importing PyQt4'
+        print(e)
+
+    try:
+        import PyTango
+        print 'PyTango version found: ', PyTango.release.Release.version
+    except Exception as e:
+        print 'Error importing PyTango'
+        print(e)
+
+    try:
+        import Tix
+        print 'tkinter version found: ', Tix.tkinter.TK_VERSION
+    except Exception as e:
+        print 'Error importing Tix'
+        print(e)
+    
+    try:
+        import silx
+        print'silx version found: ', silx.version
+    except Exception as e:
+        print 'Error importing silx'        
+        print(e)
+    
+    try:
+        import numpy as np
+        print 'numpy version found: ', np.version.version
+    except Exception as e:
+        print 'Error importing numpy'
+        print(e)
+    
+    try:
+        import scipy
+        print 'scipy version found: ', scipy.version.version
+    except Exception as e:
+        print 'Error importing scipy'
+        print(e)
+
+    try:
+        import SpecClient
+        print 'SpecClient found at: ', os.path.realpath(SpecClient.__file__)
+    except Exception as e:
+        print 'Error importing SpecClient'
+        print(e)
+
+
+    try:
+        import h5py
+        print 'h5py version found: ', h5py.version.version
+        
+        h5fname = '/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/DATA/AUTO-TRANSFER/eiger4/COF505_dry_heflushb_331_data_000001.h5'
+        if not os.path.exists(h5fname):
+            h5fname = '/hz/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/DATA/AUTO-TRANSFER/eiger4/COF505_dry_heflushb_331_data_000001.h5'
+            
+
+        with h5py.File(h5fname, 'r') as f:
+            dataread = np.asarray(f['entry/data/data'][0])
+    
+        print 'could read dataset with lzf compression and bitshuffle'
+        
+    except Exception as e:
+        print 'Error importing h5py'
+        print(e)
+    
+        

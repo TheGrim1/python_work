@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #----------------------------------------------------------------------
 # Description:
 # Author: Carsten Richter <carsten.richter@esrf.fr>
@@ -31,14 +31,6 @@ for p_i in range(len(sys.path)):
 
 
 import time
-import platform
-from io import BytesIO
-PV = platform.python_version()
-
-if PV.startswith("2."):
-    from urllib2 import urlopen
-elif PV.startswith("3."):
-    from urllib.request import urlopen
 import numpy as np
 print("Using numpy %s"%np.__version__)
 from scipy import linalg, ndimage
@@ -48,21 +40,26 @@ from PyQt4 import QtGui as Q
 from PyQt4 import QtCore
 print("Using PyQt %s"%QtCore.QT_VERSION_STR)
 
+import platform
+PV = platform.python_version()
 _use_console = True
+_use_console = _use_console and PV.startswith("3.")
+
 import silx
 print("Using silx %s"%silx.version)
 from silx.gui import plot
 from silx.gui.plot import PlotActions
+import silx.gui.icons
 from silx.image import sift
 if _use_console:
     from silx.gui import console
 
-try:
-    import id01lib
-    iconpath = os.path.dirname(os.path.join(id01lib.__file__))
-    iconpath = os.path.join(iconpath, "media", "camview.png")
-except:
-    iconpath = None
+
+import id01lib
+from id01lib import image
+iconpath = os.path.dirname(os.path.join(id01lib.__file__))
+iconpath = os.path.join(iconpath, "media", "camview.png")
+
 
 #_default_url = "http://220.221.164.165:8000/jpg/image.jpg"
 #_default_url = "http://skycam.mmto.arizona.edu/skycam/latest_image.png"
@@ -81,30 +78,12 @@ _hints["Get COR"] = ('Identifies features on both images, estimates '
                      'Center Of Rotation.')
 _hints["POI to COR"] = ('Move selected Point Of Interest into Center Of '
                       'Rotation')
+_hints["Get Sharpness"] = ('Compute a measure for the sharpness of the image '
+                        'in arbitrary units. Uses the latest image.')
 _hints["selectPOI"] = 'Select Point of Interest (POI)'
-
-
-
-
-def enhance_image(image, alpha=30):
-    assert image.ndim==2, 'Wrong input shape.'
-    #image = image.astype(float)
-    isort = np.sort(image, axis=None)
-    imin, imax = (np.array([0.05, 0.95]) * len(isort)).astype(int)
-    Imin, Imax = isort[[imin,imax]]
-    image = np.clip(image, Imin, Imax)
-    #print(Imin, Imax)
-    #image -= image.min()
-    #blurred = ndimage.gaussian_filter(image, 1)
-    #sharpened = image + alpha * (image - blurred)
-    #return sharpened
-    return image
-
-def fetch_img_array(url):
-    response = urlopen(url, timeout=4)
-    img = Image.open(BytesIO(response.read()))
-    img = np.array(img).sum(-1) #grayscale
-    return img
+_hints["Navg"] = 'Number of subsequent camera images to average'
+_hints["enhance"] = 'Strech contrast of the camera image'
+_hints["saveit"] = 'Save the new image to the current directory'
 
 
 
@@ -118,6 +97,22 @@ class CrosshairAction(PlotActions.CrosshairAction):
             self.plot.setInteractiveMode("select")
         else:
             self.plot.setInteractiveMode(**self.plot._defaultMode)
+
+
+
+class ClearPointsAction(PlotActions.PlotAction):
+    def __init__(self, plot, parent=None):
+        super(ClearPointsAction, self).__init__(
+                            plot,
+                            icon='image-select-erase',
+                            text='Clear SIFT keypoints',
+                            tooltip='Clear keypoints found by SIFT',
+                            triggered=self.trigger,
+                            parent=parent)
+
+    def trigger(self):
+        self.plot.update_keypoints(None)
+
 
 
 class CamPlot(plot.PlotWindow):
@@ -141,6 +136,11 @@ class CamPlot(plot.PlotWindow):
         if not data is None:
             self.addImage(data, resetzoom=True)
         self.setGraphTitle(title)
+        
+        
+        clearpoints = ClearPointsAction(self)
+        self.toolBar().addAction(clearpoints)
+        self._clearpoints = clearpoints
         
         
         #r = self.getDataRange()
@@ -199,6 +199,14 @@ class CamPlot(plot.PlotWindow):
             return roidata
         else:
             return imdata
+    
+    def update_keypoints(self, xy=None):
+        plotcfg = dict(legend="keypoints", color=(.3,1.,.3,.8), symbol=".",
+                       resetzoom=False, linestyle=" ")
+        if xy is None:
+            self.remove(plotcfg['legend'])
+        else:
+            self.addCurve(xy[0], xy[1], **plotcfg)
 
 
 
@@ -217,24 +225,44 @@ class ControlWidget(Q.QWidget):
         layout = Q.QHBoxLayout(self)
         self.splitter = splitter = Q.QSplitter(QtCore.Qt.Horizontal) 
         layout.addWidget(splitter)
-        reg = self.registerWidget
-        
-        
+        _reg = self.registerWidget
+        _onlyint = Q.QIntValidator()
         self.form = form = Q.QFrame(self)
         form.setFrameShape(Q.QFrame.StyledPanel)
         form.layout = Q.QFormLayout(form)
 
         hbox = Q.QHBoxLayout()
-        url = reg(Q.QLineEdit(_default_url), "url")
-        enhance = reg(Q.QCheckBox('enhance', self), "enhanced")
+        url = _reg(Q.QLineEdit(_default_url), "url")
+        enhance = Q.QCheckBox('enhance', self)
+        enhance.setStatusTip(_hints['enhance'])
+        enhance = _reg(enhance, "enhanced")
+
+        saveit = Q.QCheckBox('save', self)
+        saveit.setStatusTip(_hints['saveit'])
+        saveit = _reg(saveit, "saveit")
+
+        
+        Navg = Q.QLineEdit("1")
+        Navg.setValidator(_onlyint)
+        Navg.setStatusTip(_hints['Navg'])
+        Navg.setMaxLength(3)
+        Navg.setFixedWidth(25)
+        Navg = _reg(Navg, "Navg")
+        
+        hbox.addWidget(Q.QLabel("URL"))
         hbox.addWidget(url)
+        hbox.addSpacing(5)
+        hbox.addWidget(Q.QLabel("Navg"))
+        hbox.addWidget(Navg)
+        hbox.addSpacing(5)
         hbox.addWidget(enhance)
-        form.layout.addRow(Q.QLabel("URL"), hbox)
+        hbox.addWidget(saveit)
+        form.layout.addRow(hbox)
 
         hbox = Q.QHBoxLayout()
-        for k in ("E&xposure", "Get CO&R", "POI to COR"):
+        for k in ("E&xposure", "Get CO&R", "POI to COR", "Get Sharpness"):
             name = k.replace("&","")
-            btn = reg(Q.QPushButton(k, self), name)
+            btn = _reg(Q.QPushButton(k, self), name)
             btn.setStatusTip(_hints[name])
             hbox.addWidget(btn)
         form.layout.addRow(hbox)
@@ -245,21 +273,21 @@ class ControlWidget(Q.QWidget):
         for i in range(1,3):
             motor = _default_motors[i-1]
             hbox = Q.QHBoxLayout()
-            MBtn = reg(Q.QLineEdit(motor), "Mot%i"%i)
+            MBtn = _reg(Q.QLineEdit(motor), "Mot%i"%i)
             MBtn.setMinimumWidth(40)
             hbox.addWidget(MBtn)
             hbox.addWidget(Q.QLabel("Step"))
-            hbox.addWidget(reg(Q.QLineEdit("0.05"), "Step%i"%i))
+            hbox.addWidget(_reg(Q.QLineEdit("0.05"), "Step%i"%i))
             CBtn = Q.QPushButton("Calib. Mot. #%i"%i, self)
             CBtn.setStatusTip(_hints["calibration"]%i)
-            hbox.addWidget(reg(CBtn, "Cal%i"%i))
-            hbox.addWidget(reg(Q.QLineEdit("#####"), "CalRes_%i"%i))
+            hbox.addWidget(_reg(CBtn, "Cal%i"%i))
+            hbox.addWidget(_reg(Q.QLineEdit("#####"), "CalRes_%i"%i))
             form.layout.addRow(Q.QLabel("Motor #%i"%i), hbox)
         
         
         [self.Input["CalRes_%i"%i].setMinimumWidth(100) for i in (1,2)]
         
-        form.layout.addRow(reg(Q.QTextEdit(""), "output"))
+        form.layout.addRow(_reg(Q.QTextEdit(""), "output"))
         self.Input["output"].setReadOnly(True)
         textFont = Q.QFont("Monospace", 9)
         textFont.setStyleHint(Q.QFont.Monospace)
@@ -286,8 +314,6 @@ class ControlWidget(Q.QWidget):
         splitter.setSizes([500,500])
         
         self.setLayout(layout)
-        
-    
     
     def registerWidget(self, QtObject, name):
         self.Input[name] = QtObject
@@ -355,8 +381,6 @@ class Window(Q.QMainWindow):
         pleft.toolBar().addAction(crosshair)
         pleft.crosshair = crosshair
         
-        
-        
         pleft.setCallback( lambda event: self.handle_event(event, "l"))
         pright.setCallback(lambda event: self.handle_event(event, "r"))
         
@@ -374,6 +398,7 @@ class Window(Q.QMainWindow):
         control.Input["Exposure"].clicked.connect(self.update_plots)
         control.Input["Get COR"].clicked.connect(self.get_center_of_rotation)
         control.Input["POI to COR"].clicked.connect(self.poi_to_cor)
+        control.Input["Get Sharpness"].clicked.connect(self.calc_sharpness)
         control.Input["Cal1"].clicked.connect(lambda: self.calibrate(1))
         control.Input["Cal2"].clicked.connect(lambda: self.calibrate(2))
         
@@ -406,13 +431,19 @@ class Window(Q.QMainWindow):
 #                for p in [self.plotLeft, self.plotRight]:
 #                    p.update_roi(event)
 
-    def update_plots(self, smth=None):
+    def update_plots(self):
+        iso_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
         url = self.control.Input["url"].text()#.toAscii()
         url = str(url)
-        self.echo("Fetching %s ..."%url)
+        Navg = int(self.control.Input["Navg"].text())#.toAscii()
+        if Navg < 1:
+            self.echo("Error: need Navg > 0")
+            return
+        Ntext = "once" if Navg is 1 else "%i times"%Navg
+        self.echo("Exposure - %s"%iso_time)
+        self.echo("Fetching %s %s..."%(url, Ntext))
         try:
-            #img = sum([fetch_img_array(url) for i in range(15)])
-            img = fetch_img_array(url)
+            img = image.url2array(url, Navg)
             self.echo("Image shape: (%i, %i)"%img.shape)
         except Exception as emsg:
             self.echo("...failed: %s"%emsg)
@@ -420,7 +451,18 @@ class Window(Q.QMainWindow):
         
         do_enhance = self.control.Input["enhanced"].checkState()
         if do_enhance:
-            img = enhance_image(img)
+            img = image.stretch_contrast(img)
+
+        do_save = self.control.Input["saveit"].checkState()
+        if do_save:
+            try:
+                impath = "CamView_%s.png"%iso_time
+                im = Image.fromarray(img*255./img.max())
+                im = im.convert("RGB")
+                im.save(impath)
+                self.echo("Saved image to: %s"%os.path.abspath(impath))
+            except Exception as emsg:
+                self.echo("Saving failed: %s"%emsg)
         
         imLeft = self.plotLeft.getImage()
         imRight = self.plotRight.getImage()
@@ -460,13 +502,14 @@ class Window(Q.QMainWindow):
         imLeft = self.plotLeft.get_roi_data().astype(float)
         imRight = self.plotRight.get_roi_data().astype(float)
         
+        if not imLeft.size or not imRight.size:
+            self.echo("Error: ROI outside image data.")
+            return
+        
         roi = self.plotLeft.roi
         dx, dy = np.array(roi)[:,0] if roi is not None else (0,0)
         
         #print(imLeft.shape, imRight.shape, roi)
-        if not imLeft.size or not imRight.size:
-            self.echo("Error: ROI outside image data.")
-            return
         
         #sigma = float(self.control.Input["sigma"].text().toFloat()[0])
         sigma = 1.6 # default value
@@ -520,8 +563,13 @@ class Window(Q.QMainWindow):
                         color=(1.,.3,.3,1.), text="COR")
         self.plotLeft.addMarker(cor[0], cor[1], **plotcfg)
         self.plotRight.addMarker(cor[0], cor[1], **plotcfg)
-        
     
+    
+    def calc_sharpness(self):
+        imLeft = self.plotLeft.get_roi_data().astype(float)
+        sharpness = image.contrast(imLeft)
+        self.echo("Computed sharpness of the left image ROI: %f"%sharpness)
+        
     def plot_matchpoints(self, res):
         roi = self.plotLeft.roi
         dx, dy = np.array(roi)[:,0] if roi is not None else (0,0)
@@ -531,10 +579,8 @@ class Window(Q.QMainWindow):
         yk1 = res["matching"].y[:,0] + dy
         yk2 = res["matching"].y[:,1] + dy
         
-        plotcfg = dict(legend="keypoints", color=(.3,1.,.3,.8), symbol=".",
-                       resetzoom=False, linestyle=" ")
-        self.plotLeft.addCurve(xk1, yk1, **plotcfg)
-        self.plotRight.addCurve(xk2, yk2, **plotcfg)
+        self.plotLeft.update_keypoints((xk1, yk1))
+        self.plotRight.update_keypoints((xk2, yk2))
     
     
     def poi_to_cor(self):
@@ -547,7 +593,7 @@ class Window(Q.QMainWindow):
             self.echo("Error: No center of rotation found.")
             return
             
-        diff = poi - cor
+        diff = cor - poi
         self.echo("Distance: (%.2f, %.2f) px"%tuple(diff))
         
         calibration = []

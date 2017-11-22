@@ -4,6 +4,7 @@ import numpy as np
 import PIL.Image as Image
 import os
 
+from PyQt4.QtGui import QImage, qRgb
 
 def imagefile_to_array(imagefname):
     """
@@ -135,3 +136,29 @@ def save_series(data, savename="default.png", savename_list = None, verbose=True
             
             
     return True
+
+
+
+
+
+def uint8array_to_qimage(im, copy=False):
+    '''from https://gist.github.com/smex/5287589
+    '''
+    gray_color_table = [qRgb(i, i, i) for i in range(256)]
+
+    if im is None:
+        return QImage()
+
+    if im.dtype == np.uint8:
+        if len(im.shape) == 2:
+            qim = QImage(im.data, im.shape[1], im.shape[0], im.strides[0], QImage.Format_Indexed8)
+            qim.setColorTable(gray_color_table)
+            return qim.copy() if copy else qim
+
+        elif len(im.shape) == 3:
+            if im.shape[2] == 3:
+                qim = QImage(im.data, im.shape[1], im.shape[0], im.strides[0], QImage.Format_RGB888);
+                return qim.copy() if copy else qim
+            elif im.shape[2] == 4:
+                qim = QImage(im.data, im.shape[1], im.shape[0], im.strides[0], QImage.Format_ARGB32);
+                return qim.copy() if copy else qim

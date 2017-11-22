@@ -1,0 +1,12 @@
+import 
+
+
+
+def write_selected_h5(savename):
+    
+
+
+if __name__()=='__main__':
+
+    savename = '/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/hitfind_tl_frames.h5'
+    write_selected_h5(savename)

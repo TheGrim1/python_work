@@ -1,0 +1,18 @@
+import sys, os
+import silx
+from silx.gui import plot
+
+from PyQt4 import QtGui as Q
+from PyQt4 import QtCore
+print("Using PyQt %s"%QtCore.QT_VERSION_STR)
+
+def run():
+    app = Q.QApplication(sys.argv)
+    #app.setStyle("CleanLooks")
+    GUI = Window()
+    sys.exit(app.exec_())
+    #app.exec_()
+
+if __name__=="__main__":
+    
+    run()

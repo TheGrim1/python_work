@@ -11,7 +11,9 @@ setup(
     author_email='id01@esrf.fr',
     url='https://gitlab.esrf.fr/zatterin/id01sware',
     packages = ['id01lib',
-                'id01lib.ptycho'
+                'id01lib.ptycho',
+                'id01lib.plot',
+                'id01lib.xrd'
                 ],
     package_data = {
         "id01lib": ["media/*"]},
@@ -23,6 +25,8 @@ setup(
     scripts = [
                 'bin/CamView',
                 'bin/pscan_live',
+                'bin/pscan_detector_average',
+                'bin/kmap_showroi',
                 'bin/id01_microscope_contrast',
                 'bin/id01_microscope_cofm',
                 ],

@@ -30,12 +30,12 @@ default_en = 8000.0  # x-ray energy in eV
 # vertical(del)/horizontal(nu) z-y+ (although in reality slightly tilted!
 # (0.6deg when last determined (Oct2012))
 
-default_cch = [ 320,209] # y then x according to the image on onze
+default_cch = [278.329,208.072] # y then x according to the image on onze
 # cch describes the "zero" position of the detector. this means at "detector
 # arm angles"=0 the primary beam is hitting the detector at some particular
 # position. these two values specify this pixel position
 
-default_chpdeg = [132,132]  # channel per degree for the detector
+default_chpdeg = [241.318,241.318]  # channel per degree for the detector
 # psic_nano  ID01META_STATIC_instrument["EXPH"]
 
 # chpdeg specify how many pixels the beam position on the detector changes

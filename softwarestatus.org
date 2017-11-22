@@ -1,0 +1,68 @@
+* lid13gpu1:
+Debian 8.8
+** has:
+tkinter version found:  8.6
+silx version found:  0.5.0
+numpy version found:  1.8.2
+scipy version found:  0.14.0
+h5py version found:  2.6.0
+could read dataset with lzf compression and bitshuffle
+
+** has not:
+ImportError: No module named PyTango
+
+* nanofoucs:
+Debian 8.8 
+** has:
+Using PyQt 4.8.6
+tkinter version found:  8.6
+silx version found:  0.5.0-dev0
+numpy version found:  1.8.2
+scipy version found:  0.14.0
+h5py version found:  2.6.0
+could read dataset with lzf compression and bitshuffle
+
+** has not:
+No module named PyTango
+
+* cristal:
+Debian 8.8 
+** has:
+Using PyQt 4.8.6
+tkinter version found:  8.6
+silx version found:  0.5.0
+numpy version found:  1.8.2
+scipy version found:  0.14.0
+h5py version found:  2.5.0
+could read dataset with lzf compression and bitshuffle
+
+** has not:
+No module named PyTango
+
+* coherence:
+debian 7.5
+** has:
+Using PyQt 4.8.2
+PyTango version found:  7.2.3
+tkinter version found:  8.5
+numpy version found:  1.6.2
+scipy version found:  0.10.1
+h5py version found:  2.4.0
+
+** has not:
+No module named silx
+no bitshuffle
+
+* microfocus
+Debian 6.0.10
+** has
+Using PyQt 4.6.3
+PyTango version found:  7.2.2
+tkinter version found:  8.5
+numpy version found:  1.4.1
+scipy version found:  0.7.2
+h5py version found:  2.0.1
+
+** has not
+No module named silx
+can't read data (Dataset: Read failed) h5py version too low, also no bitshuffle

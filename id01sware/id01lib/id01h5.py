@@ -19,7 +19,7 @@
 """
  New proposed hdf5 file structure
  To be discussed...
- 
+
  Adopted from silx SpecH5 combined with Edf Converter
   /
       1.1/
@@ -77,6 +77,7 @@ import os
 import sys
 import gzip
 import h5py
+import time
 import itertools
 import collections
 import numpy as np
@@ -86,7 +87,7 @@ from silx.io import specfile
 import silx.third_party.EdfFile as EdfFile
 import silx.io.fabioh5
 from silx.io.spectoh5 import write_spec_to_h5
-EdfImage = silx.io.fabioh5.fabio.edfimage.EdfImage
+#EdfImage = silx.io.fabioh5.fabio.edfimage.EdfImage
 
 
 
@@ -110,7 +111,7 @@ _edf_header_types = {
     'DataType': bytes,
     'Dim_1': int,
     'Dim_2': int,
-    'HeaderID': bytes,
+    #'HeaderID': bytes, # do not use it according to PB
     'Image': int,
     'Offset_1': int,
     'Offset_2': int,
@@ -161,12 +162,13 @@ def _spech5_deepcopy(scan, origin="/"):
         if not s:
             return
         if isinstance(obj, silx.io.spech5.SpecH5Dataset):
-            scan.create_dataset(name=s, 
-                                shape=obj.shape,
-                                data=obj.value, 
-                                dtype=obj.dtype,
-                                chunks=obj.chunks
-                                )
+            if s not in scan:
+                scan.create_dataset(name=s,
+                                    shape=obj.shape,
+                                    data=obj.value,
+                                    dtype=obj.dtype,
+                                    chunks=obj.chunks
+                                    )
         else:
             if s not in scan:
                 scan.create_group(s)
@@ -177,8 +179,8 @@ def _spech5_deepcopy(scan, origin="/"):
 def _read_edf_first_acq_nr(edfpath):
     """
         To find whether an .edf file is the only one of a pscan
-        or if it is split up into several 
-        
+        or if it is split up into several
+
         This is faster than opening the .edf file using `EdfFile`
     """
     if isinstance(edfpath, bytes):
@@ -212,16 +214,16 @@ class Scan(h5py.Group):
             _makedefaults(instrument, DefaultMeasurement)
 
             #header = self.create_group('others')
-    
-    
-    def addEdfFile(self, edf, detectornum=None, compr_lvl=6):
+            # todo set default start_time?
+
+    def addEdfFile(self, edf, detectornum=None, subdir="instrument", compr_lvl=6):
         """
             Adds an 2D or 3D EDF image to the stack of
-            images or creates a new stack. 
-            If the detector number is not specified, 
-            the images will be appended to the first 
+            images or creates a new stack.
+            If the detector number is not specified,
+            the images will be appended to the first
             detector matching the shape.
-            
+
             Accepts .edf in hdf5 format as it is provided
             after opening with silx.
         """
@@ -229,47 +231,47 @@ class Scan(h5py.Group):
             pass
         elif isfile(edf):
             edf = EdfFile.EdfFile(edf, fastedf=True)
-        
+
         if not edf.NumImages:
             return
-        
-        newshape = (edf.NumImages, edf.Images[0].Dim1, edf.Images[0].Dim2)
+
+        newshape = (edf.NumImages, edf.Images[0].Dim2, edf.Images[0].Dim1)
         if self.debug:
             print("Loaded image. Shape %ix%ix%x"%newshape)
         d = collections.defaultdict(list) # all data (images + meta)
-        
+
         for i in range(edf.NumImages):
             d["data"].append(edf.GetData(i))
             for (k,v) in itertools.chain(edf.GetHeader(i).items(), edf.GetStaticHeader(i).items()):
-                d[k].append(v) 
-        
+                d[k].append(v)
+
         d["data"] = np.array(d["data"]) # now only metadata
         #for k in d:
         #    d[k] = np.array(d[k])
         data = d.pop("data")
-        
+
         if detectornum is None:
             i = 0
             while True:
                 key = "detector_%i"%i
-                if not key in self["instrument"]:
+                if not key in self[subdir]:
                     break
-                if self["instrument"][key]["data"].shape[1:] == newshape[1:]:
+                if self[subdir][key]["data"].shape[1:] == newshape[1:]:
                     break
             detectornum = i
         else:
             key = "detector_%i"%detectornum
-        
-        if not key in self["instrument"]:
-            detector = self["instrument"].create_group(key)
-            detector.create_dataset("data", 
+
+        if not key in self[subdir]:
+            detector = self[subdir].create_group(key)
+            detector.create_dataset("data",
                                   newshape,
                                   maxshape=(None,newshape[1],newshape[2]),
                                   compression="gzip",
                                   compression_opts=compr_lvl,
                                   dtype=data.dtype) # Todo: think about chunks
             detector["data"][...] = data
-            
+
             # rocess metadata
             others = detector.create_group("others")
             #_makedefaults(others, det["others"]) # creates non-resizable stuff
@@ -285,7 +287,8 @@ class Scan(h5py.Group):
                         if mdtype is np.string_:
                             mdtype = value.dtype
                 else:
-                    mdtype = bytes
+                    continue
+                    #mdtype = bytes
 
                 others.create_dataset(name,
                                       (len(value),),
@@ -295,11 +298,12 @@ class Scan(h5py.Group):
             # silx compatability:
             #self.copy("instrument/%s"%key, "measurement/image_%i"%detectornum)
             # hard link:
-            self["measurement/image_%i"%detectornum] = self["instrument/%s"%key]
-            
+            if subdir == 'instrument': # spech5 default
+                self["measurement/image_%i"%detectornum] = self["%s/%s"%(subdir,key)]
+
         else:
             # do the resizing
-            detector = self["instrument"][key]
+            detector = self[subdir][key]
             newlen = detector["data"].shape[0] + newshape[0]
             detector["data"].resize((newlen,newshape[1],newshape[2]))
             detector["data"][-newshape[0]:] = data
@@ -308,6 +312,8 @@ class Scan(h5py.Group):
             # process metadata
             others = detector["others"]
             for name, value in d.items(): # copy all metadata
+                if name not in others:
+                    continue
                 if name in _edf_header_types:
                     mdtype = _edf_header_types[name]
                     #if not mdtype in (bytes, np.string_):
@@ -316,16 +322,18 @@ class Scan(h5py.Group):
                 others[name].resize((newlen,)) # strictly 1d
                 others[name][-len(value):] = value
 
+        return detector.name # may be useful
+
 
 
     def addEdfH5Image(self, Edfh5File, detectornum=None, compr_lvl=6):
         """
             Adds an 2D or 3D EDF image to the stack of
-            images or creates a new stack. 
-            If the detector number is not specified, 
-            the images will be appended to the first 
+            images or creates a new stack.
+            If the detector number is not specified,
+            the images will be appended to the first
             detector matching the shape.
-            
+
             Accepts .edf in hdf5 format as it is provided
             after opening with silx.
         """
@@ -333,7 +341,7 @@ class Scan(h5py.Group):
         det = Edfh5File["/scan_0/instrument/detector_0"]
         data = det["data"]
         shape = data.shape
-        
+
         if detectornum is None:
             i = 0
             while True:
@@ -345,45 +353,90 @@ class Scan(h5py.Group):
             detectornum = i
         else:
             key = "detector_%i"%detectornum
-        
+
         if not key in self["instrument"]:
             detector = self["instrument"].create_group(key)
-            detector.create_dataset("data", 
+            detector.create_dataset("data",
                                   shape,
                                   maxshape=(None,shape[1],shape[2]),
                                   compression="gzip",
                                   compression_opts=compr_lvl,
                                   dtype=data.dtype)
             detector["data"][...] = data
-            others = detector.create_group("others") 
+            others = detector.create_group("others")
             #_makedefaults(others, det["others"]) # creates non-resizable stuff
             for name in det["others"]: # copy all metadata
                 value = det["others"][name]
-                others.create_dataset(name, 
+                others.create_dataset(name,
                                       value.shape,
                                       maxshape=(None,),
                                       dtype=value.dtype)
                 others[name][...] = value
-            
+
             #self.copy("instrument/%s"%key, "measurement/image_%i"%detectornum) # silx compatability
             self["measurement/image_%i"%detectornum] = self["instrument/%s"%key]
-            
+
         else:
             # do the resizing
             detector = self["instrument"][key]
             newlen = detector["data"].shape[0] + shape[0]
             detector["data"].resize((newlen,shape[1],shape[2]))
             detector["data"][-shape[0]:] = data
-            
+
             others = detector["others"]
             for name, value in det["others"].items(): # copy all metadata
                 newlen = others[name].shape[0] + value.shape[0]
                 others[name].resize((newlen,)) # strictly 1d
                 others[name][-value.shape[0]:] = value
-    
-    def fetch_edf_spec(self, pathonly=False, verbose=True, **edf_kw):
+
+
+    def make_roi(self, xmin, xmax, ymin, ymax, image='image_0', store=False,
+                       roinum=None):
+        """
+            Saves to scan["measurement/image_X_roiY"] if store==True
+        """
+        if isinstance(image, int):
+            image = "image_%i"%image
+        measurement = self.get("measurement")
+        if measurement is None:
+            raise ValueError("No measurement found.")
+        data = self["measurement"].get(image, None)
+        if data is None:
+            raise ValueError("Image `%s` not found in scan."%image)
+        xmin, xmax = map(int, sorted((xmin, xmax)))
+        ymin, ymax = map(int, sorted((ymin, ymax)))
+        roi = data[:,ymin:ymax, xmin:xmax].sum((1,2)) # y is the first image dimension
+        if store:
+            if roinum is not None:
+                if not isinstance(roinum, int):
+                    roiname = roinum
+                else:
+                    roiname = "%s_roi%i"%(image, roinum)
+            else:
+                i = 0
+                while True:
+                    roiname = "%s_roi%i"%(image, i)
+                    if not roiname in self["measurement"]:
+                        break
+                    i+=1
+            new = self["measurement"].create_dataset(roiname, data=roi)
+            print("Created dataset %s"%new.name)
+        return roi
+
+    def fetch_edf_spec(self, pathonly=False, verbose=True, imgroot=None,
+                             **edf_kw):
         fast = self.attrs["_fast"]
         header = self["instrument/specfile/scan_header"].value.splitlines()
+        fheader = self["instrument/specfile/file_header"].value.splitlines()
+        specpath = self.attrs["_specfile"]
+        # this is useful to get relative paths in case the complete data 
+        # has been moved:
+        for line in fheader:
+            if line.startswith("#F"):
+                orig_spec_path = line.lstrip("#F ")
+                break
+        orig_folder = os.path.dirname(orig_spec_path)
+        ##
         if fast:
             #impath = [s for s in header if b"imageFile" in s][0]
             impath = [s for s in header if s.startswith(b"#C imageFile")]
@@ -392,8 +445,14 @@ class Scan(h5py.Group):
             impath = impath[0]
             impath = impath.split()[2:]
             impath = dict((s.strip(b"]").split(b"[") for s in impath))
+            if imgroot is None:
+                imgroot = impath[b"dir"]
+                # prefer relative because data is often moved:
+                imgroot = os.path.relpath(imgroot, orig_folder)
+                imgroot = os.path.join(os.path.dirname(specpath), imgroot)
+                imgroot = os.path.abspath(imgroot)
             generic_path = os.path.join(
-                    impath[b"dir"],
+                    imgroot,
                     impath[b"prefix"] + impath[b"idxFmt"] + impath[b"suffix"]
                             )
             idx = int(impath[b"nextNr"])
@@ -403,14 +462,23 @@ class Scan(h5py.Group):
         else:
             impath = [s for s in header if s.startswith(b"#ULIMA_")][0]
             detname, impath = impath.split()
-            detname = detname[7:]
-            inr = self["measurement/mpx4inr"]
+            # prefer relative because data is often moved:
+            impath = os.path.relpath(impath, orig_folder)
+            impath = os.path.join(os.path.dirname(specpath), impath)
+            impath = os.path.abspath(impath)
+            detname = detname[7:] # discard "#ULIMA_"
+            if imgroot is not None:
+                impath = os.path.join(imgroot, os.path.basename(impath))
+
+            inr = self["measurement/%sinr"%detname] #TODO: different detectors
             if not inr.len():
                 return []
             startnr = int(inr[0])
+            assert "_%05d"%startnr in impath, \
+                 "Error: %sinr not in image path"%detname
             impath = impath.decode().replace("_%05d"%startnr, "_%05d")
             all_paths = [impath%i for i in inr]
-        
+
         all_paths = np.array(all_paths, dtype=np.string_)
         #dt = h5py.special_dtype(vlen=bytes)
         self["measurement"].create_dataset("image_files",
@@ -442,33 +510,37 @@ class Scan(h5py.Group):
 
 class Sample(h5py.Group):
     scans = []
+    timefmt = "%Y-%m-%dT%H:%M:%S"
     def __init__(self, bind, description=None):
         super(Sample, self).__init__(bind)
         if not description is None:
             self.attrs["description"] = description
-        
-    
+
+
     def lastScan(self): # deprecated
         return (sorted(self.scans)[-1]) if self.scans else 0
-    
+
     def addScan(self, number=None, *datafiles):
         """
             Trying to maintain Silx compatability.
-            
+
             number : int, str
                 number of the scan
-            
-            *datafiles : different kinds of data files to be processed 
+
+            *datafiles : different kinds of data files to be processed
                          by silx
         """
         if number is None:
             number = self.lastScan() + 1
         if isinstance(number, int):
-            name = '%i.0'%number
+            name = '%i.1'%number
         else:
             name = number
-            number = int(name.split(".")[0])
-        
+            try:
+                number = int(name.split(".")[0])
+            except ValueError:
+                number = -1
+
         if name not in self:
             with h5py._hl.base.phil:
                 # new scan
@@ -476,32 +548,31 @@ class Sample(h5py.Group):
                 gid = h5py.h5g.create(self.id, name, lcpl=lcpl)
                 scan = Scan(gid)
                 scan.attrs["_is_a_scan"] = True
-                if name.decode().split(".")[1]=="0":
-                    self.scans.append(number)
+                self.scans.append(number)
         else:
             # select scan
             scan = Scan(self[name].id)
-        
+
         for f in datafiles:
             if isinstance(f, EdfFile.EdfFile):
                 scan.addEdfFile(f) # fast !
-            
+
             elif hasattr(f, "_File__fabio_image") and \
                  isinstance(f._File__fabio_image, EdfImage): #already an h5 file?
                 scan.addEdfH5Image(f) # slow!
-            
+
             elif isfile(f):
                 if f.lower().endswith(".edf") or f.lower().endswith(".edf.gz"):
                     scan.addEdfFile(f)
-        
+
         return scan
-    
+
     addScanData = addScan # the same method for two purposes
-    
-    
-    
-    def addSpecScan(self, specscan, number=None, 
-                          fetch_edf=True, verbose=True, **edf_kw):
+
+
+
+    def addSpecScan(self, specscan, number=None, overwrite=False,
+                          fetch_edf=True, imgroot=None, verbose=True, **edf_kw):
         if not isinstance(specscan, silx.io.spech5.SpecH5Group):
             raise ValueError("Need `silx.io.spech5.SpecH5Group` as spec scan input.")
         filename = specscan.file.filename
@@ -509,14 +580,14 @@ class Sample(h5py.Group):
         fast = "_fast_" in os.path.basename(filename)
         root = specscan.name.split("/")[1]
         specnumber = int(root.split(".")[0]) #+ (1 if fast else 0)
-        
+
         if number is None:
             if fast:
                 number = int(os.path.splitext(filename)[0][-5:])
             else:
                 number = specnumber
-        
-        
+
+
         if isinstance(number, int):
             if fast:
                 name = '%i.0.kmap_%05i'%(number, specnumber)
@@ -524,31 +595,37 @@ class Sample(h5py.Group):
                 name = '%i.1'%number
         else:
             name = number
-        
+
         #print(specnumber)
         scan = self.addScan(name)
-        
+
         if "title" in scan:
-            print("Warning: omitting %s (already exists)."%(name))
-            return
-        
+            if overwrite:
+                self.pop(name)
+                scan = self.addScan(name)
+            else:
+                print("Warning: Scan already exists %s in %s. Omitting"\
+                        %(name, self.name))
+                return
+
         scan.attrs["_fast"] = fast
-        
+        scan.attrs["_specfile"] = filename
+
         if verbose:
             print("Importing spec scan %s from %s to %s..."%(root, filename, scan.name))
-        
+
         #specscan.copy(specname, self, name=name) #copying does not work with spech5
         # will be replaced by spectoh5.SpecToHdf5Writer:
         specscan.visititems(_spech5_deepcopy(scan, specscan.name))
-        
+
         if fetch_edf:
-            scan.fetch_edf_spec(verbose=verbose, **edf_kw)
-        
+            scan.fetch_edf_spec(verbose=verbose, imgroot=imgroot, **edf_kw)
+
         return scan
-    
-    
-    
-    def importSpecFile(self, specfile, numbers=(), newnumbers=(), **addSpec_kw):
+
+
+
+    def importSpecFile(self, specfile, numbers=(), newnumbers=(), exclude=[], **addSpec_kw):
         if isfile(specfile):
             s5f = silx.io.open(specfile)
         elif isinstance(specfile, silx.io.spech5.SpecH5):
@@ -558,31 +635,131 @@ class Sample(h5py.Group):
                 raise TypeError("File not found: %s"%specfile)
             else:
                 raise TypeError("Input type not supported: %s"%str(type(specfile)))
-        
+
         if not numbers:
-            numbers = range(1, len(s5f)+1)
+            numbers = s5f.keys()
         if isinstance(numbers[0], int):
-            gen = (s5f[i-1] for i in numbers)
+            scannos = [(i-1) for i in numbers]
         else:
-            gen = (s5f[i] for i in numbers)
-        
-        
-        for i, scan in enumerate(gen):
+            scannos = numbers
+
+
+        for i, scanno in enumerate(scannos):
+            if scanno in exclude:
+                continue
+            try:
+                scan = s5f[scanno]
+            except Exception as emsg:
+                print("Warning: Could not load scan %s - %s:"%(specfile,str(scanno)))
+                print("    %s. Skipping..."%emsg)
+                continue
             self.addSpecScan(scan,
                              newnumbers[i] if newnumbers else None,
                              **addSpec_kw)
-    
-    
-    
+
+
+    def import_single_frames(self, image_dir, prefix="",
+                                              compr_lvl=6,
+                                              dest="_images_before"):
+        """
+            This is a way to store the frames recorded during `ct` into the
+            hdf5 file. In the future there should be a reference to these
+            frames in the spec file.
+        """
+        # first get all existing scans with startdate and image files
+        times = collections.OrderedDict()
+        imgfiles = []
+        firstimg = dict()
+        for name, scan in self.items():
+            starttime = scan.get("start_time", False)
+            if not starttime:
+                continue
+            starttime = time.mktime(time.strptime(starttime.value, self.timefmt))
+            times[name] = starttime
+            scanimages = scan.get('measurement/image_files', [])
+            if not scanimages:
+                continue
+            imgfiles.extend(map(os.path.basename, scanimages))
+
+        _alltimes = np.array(times.values())
+        _allscans = list(times)
+
+        # now process all images in image_dir that are not in imgfiles
+        # and therefore not part of any scan
+        ii = 0
+        paths = []
+        for fname in set(os.listdir(image_dir)).difference(imgfiles):
+            if not fname.startswith(prefix):
+                continue
+            if fname.lower().endswith(".edf.gz") or \
+               fname.lower().endswith(".edf"):
+                path = os.path.join(image_dir, fname)
+                edf = EdfFile.EdfFile(path, fastedf=True)
+                try:
+                    edfheader = edf.GetHeader(edf.NumImages-1)
+                except:
+                    print("Warning: corrupted file %s"%path)
+                    continue
+                if not "time_of_day" in edfheader:
+                    nextname = "others"
+                else:
+                    time_last = float(edfheader['time_of_day'])
+                    nexttime = _alltimes[_alltimes>time_last]
+                    if not len(nexttime):
+                        continue
+                    nexttime = nexttime.min()
+                    nextname = _allscans[np.where(_alltimes==nexttime)[0].item()]
+
+                if nextname not in self:
+                    scan = self.addScan(nextname)
+                else:
+                    scan = self[nextname]
+
+                if dest not in scan:
+                    destg = scan.create_group(dest)
+                destg = scan[dest]
+
+                skipit = False
+                for grp in destg.values():
+                    if path in grp.get("image_files", []):
+                        skipit = True
+                if skipit:
+                    continue
+
+                ii += 1
+                print("Adding single frame #%i (%s) to %s"
+                      %(ii, fname, nextname))
+
+                detname = scan.addEdfFile(edf, subdir=dest,
+                                               compr_lvl=compr_lvl)
+
+                detector = destg[detname]
+                if "image_files" not in detector:
+                    mdtype = h5py.special_dtype(vlen=bytes)
+                    detector.create_dataset("image_files",
+                                           (1,),
+                                           maxshape=(None,),
+                                           dtype=mdtype)
+                else:
+                    oldlen = detector['image_files'].shape[0]
+                    detector['image_files'].resize((oldlen + 1,)) # strictly 1d
+                detector['image_files'][-1] = path
+
+            else:
+                continue # todo: implement other types
+
+        return paths
+
+
     def __getitem__(self, name):
         o = super(Sample, self).__getitem__(name)
         if o.attrs.get("_is_a_scan", False):
             return Scan(o.id)
         else:
             return o
-    
 
-   
+
+
 class ID01File(h5py.File):
     """
         Typical ID01 hdf5 file container
@@ -596,10 +773,10 @@ class ID01File(h5py.File):
         s.attrs["_is_a_sample"] = True
         #self._samples.append(s.id)
         return s
-    
+
     def __getitem__(self, name):
         """
-            Messing around with h5py class definitions to 
+            Messing around with h5py class definitions to
             change the dress of the group instances
         """
         o = super(ID01File, self).__getitem__(name)
@@ -609,7 +786,7 @@ class ID01File(h5py.File):
             return Scan(o.id)
         else:
             return o
-    
+
 
 
 
@@ -636,16 +813,16 @@ def FastEdfCollect(generic_path, idx):
 
 if __name__=="__main__":
     ### TEST:
-    
+
     datadir = "/data/visitor/ma3331/id01/"
     fastspecfile = "knno-47-008-GSO_fast_%05i.spec"%13
     fastpath = os.path.join(datadir, fastspecfile)
     specpath = "/data/visitor/ma3331/id01/knno-47-008-GSO.spec"
-    
-    
+
+
     if not isfile(fastpath):
         raise IOError("File not found: %s"%fastpath)
-    
+
     sf = specfile.SpecFile(fastpath)
     for scan in sf:
         impath = [s for s in scan.scan_header if "imageFile" in s][0]
@@ -655,10 +832,10 @@ if __name__=="__main__":
                                     impath["prefix"] + impath["idxFmt"] + impath["suffix"])
         idx = int(impath["nextNr"])
         print(generic_path, idx)
-    
-    
-    
-    
+
+
+
+
     test = ID01File("/tmp/test2.h5")
     test.clear()
     a = test.addSample("GS2", "irgendwas")
@@ -667,7 +844,7 @@ if __name__=="__main__":
     b = a["1.0"]
     c = test.addSample("GS3", "irgendwas")
     print(a["1.0/instrument"])
-    
+
     b.debug = True
     if 0:
         paths = FastEdfCollect(generic_path, 11)
@@ -677,16 +854,11 @@ if __name__=="__main__":
         dat = test["GS2/1.0/instrument/detector_0"]["data"]
         print(b==b2) # should be true
         print(b["instrument/detector_0/others/time"].value) # some metadata
-    
+
     #a.importSpecFile(specpath)
-    
+
     a.importSpecFile(fastpath)
     #sm = e["scan_0/instrument/detector_0"]["others"]
     #print sm.keys() # all columns of metadata
-    
+
     test.close()
-    
-
-
-
-

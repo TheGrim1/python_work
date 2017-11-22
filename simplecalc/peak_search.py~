@@ -1,0 +1,42 @@
+import sys,os
+import numpy as np
+import scipy.ndimage as nd
+
+# local imports
+path_list = os.path.dirname(__file__).split(os.path.sep)
+importpath_list = []
+if 'skript' in path_list:
+    for folder in path_list:
+        importpath_list.append(folder)
+        if folder == 'skript':
+            break
+importpath = os.path.sep.join(importpath_list)
+print importpath
+
+from fileIO.hdf5.open_h5 import open_h5
+from fileIO.hdf5.save_h5 import save_h5
+
+
+
+def test():
+    data_fname = '/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/COF505_dry_heflushe_270_hitfoundframes100_000001.h5'
+    tmp_fname = '/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/temp.tmp'
+    selected_fname = '/data/id13/inhouse8/THEDATA_I8_1/d_2017-09-06_inh_sc1481/PROCESS/aj_log/COF505_dry_heflushe_270_peksearchfilterd_000001.h5'
+
+    frame_list = range(10)
+    
+    # change to do this frame by frame later
+    data = open_h5(data_fname,frame_list)
+    selected = np.memmap(shape = data.shape)
+
+    for i,frame in enumerate(data):
+        selected[i] = nd.gaussian_filter(frame,10)
+    
+    save_h5(selected, selected_fname)
+        
+
+
+if __name__=='__main__':
+    test()
+
+    

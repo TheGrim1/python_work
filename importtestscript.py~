@@ -1,0 +1,19 @@
+
+
+
+
+
+
+if __name__=='__main__':
+    
+    print 'lets import stuff':
+
+    
+        import numpy
+        print 'numpy version found: ', numpy.version.version
+    except Exception as e: print(e)
+    
+    try:
+        import scipy
+        print 'scipy version found ', scipy.version.version
+    except Exception as e: print(e)

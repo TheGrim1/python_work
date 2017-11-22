@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+import os
+import silx
+#print silx.version
+from silx.io import specfile
+from id01lib.plot import Normalize, zval
+import pylab as pl
+from matplotlib import colors
+from matplotlib.ticker import LogFormatter
+
+
+import collections
+import argparse
+import re
+
+_motordef = dict(pix="adcY",
+                 piy="adcX",
+                 piz="adcZ")
+
+_printmotors = ['eta', 'phi', 'del', 'nu', 'thx', 'thy', 'thz']
+
+parser = argparse.ArgumentParser(
+            description='Simple visualization of a 3d KMAP from .spec file.')
+
+parser.add_argument('DIR', type=str, nargs='+',
+            help='KMAP directories as produced by pscandokmapmeta (KMAP_*).')
+
+parser.add_argument('-r', '--roi', type=str,
+            default='mpx4int',
+            help=('Name of ROI to plot. Default: \'mpx4int\'. ' 
+                  'Comma separated to add multiple ROIs, e.g. \'roi1,roi2,roi3\'.'))
+
+parser.add_argument('-n', '--norm', type=str, default='log',
+        help='Color normalization of image plot: \'log\', \'lin\',  [\'power\'].')
+
+parser.add_argument('-g', '--gamma', type=float, default=0.2,
+        help='gamma value for power normalization of color.')
+
+parser.add_argument('--cmap', type=str, default='jet', 
+        help='Name of matplotlib color map. Default: jet.')
+
+parser.add_argument('--numcols', type=int, default=8, 
+                    help='Number of columns in mesh of color plots.')
+
+parser.add_argument('-m', '--monitor', type=str, default='cnt1',
+                    help='Name of counter for prim. beam normalization.')
+
+
+args = parser.parse_args()
+
+
+Dirnames = args.DIR
+
+plotcol = [args.roi]
+numcols = args.numcols
+
+gamma = float(args.gamma)
+if args.norm == 'lin':
+    args.norm = 'linear'
+
+formatter = None
+if args.norm=="log":
+    _norm = lambda vmin, vmax: colors.LogNorm(vmin, vmax)
+    #formatter = LogFormatter(10, labelOnlyBase=True)
+elif args.norm=="power":
+    #_norm = lambda d: colors.PowerNorm(gamma, d[d>0].min(), d.max())
+    _norm = lambda vmin, vmax: Normalize.Normalize(vmin=vmin, vmax=vmax, stretch="power", exponent=gamma, clip=False)
+    formatter = LogFormatter(10, labelOnlyBase=False)
+else:
+    _norm = lambda vmin, vmax: colors.Normalize(vmin, vmax)
+
+#print args.cmap, dir(pl.cm)
+cmap = args.cmap if args.cmap in dir(pl.cm) else 'jet'
+#print cmap
+
+
+Dir = map(os.path.abspath, Dirnames)
+
+
+
+######################################
+
+#print "\n".join(Dir)
+
+if not isinstance(Dir, list):
+    Dir = [Dir]
+
+flist = [os.path.join(D, ("spec/%s_fast_00001.spec"%os.path.split(D)[-1])) for D in Dir]
+
+if not os.path.isfile(flist[0]):
+    flist = [os.path.join(D, "spec/default_fast_00001.spec") for D in Dir]
+
+
+if not isinstance(flist, list):
+    flist = [flist]
+
+#print flist
+DATA = collections.defaultdict(list)
+MOT = collections.defaultdict(list)
+
+
+for f in flist:
+    sf = specfile.SpecFile(f)
+    cols = sf.labels(0)
+    print f
+    for sc in sf:
+        #print sc.number
+        try:
+            if sc.data_column_by_name("mpx4int").max() < 1e2:
+                continue
+        except:
+            continue
+        for col in cols:
+            DATA[col].append(sc.data_column_by_name(col))
+        for mot in sc.motor_names:
+            MOT[mot].append(sc.motor_position_by_name(mot))
+    #print DATA[col][-1].shape
+
+
+h = sc.scan_header_dict["S"].split()
+#assert h[1] == "pscando"
+motor1 = h[2]
+motor2 = h[6]
+
+_re_comment = "HEADING\[ascan\s+\w+[\d\.\s]+\]"
+pscan_comment = re.findall(_re_comment, sc.scan_header_dict["C"])[0]
+motor3 = pscan_comment.split()[1]
+_printmotors.remove(motor3)
+size3 = pscan_comment.split()[-2]
+pscan_cmd = pscan_comment.split("[")[1][:-1]
+#print motor3, size3
+#C pscan - fastscan / lines[2500] ncols[7] mode[psi] HEADING[ascan  eta 52.3 54.3  20 0.5]
+
+arraysizey = int(h[5])
+arraysizex = int(h[9])
+scansize = len(DATA[col])
+
+
+skip = 0
+for d in DATA:
+    print d,
+    if len(DATA[d])>1:
+        l1 = len(DATA[d][-1])
+        l2 = len(DATA[d][-2])
+        if l1 != l2:
+            DATA[d].pop(-1)
+            skip = 1
+    DATA[d] = pl.vstack(DATA[d])
+    DATA[d] = DATA[d].reshape(scansize-skip,arraysizex, arraysizey)
+    print DATA[d].shape
+
+
+scansize = scansize - skip
+numrows = int(pl.ceil(float(scansize)/numcols))
+#print list(DATA)
+
+
+figtitle = ", ".join(map(os.path.basename, Dir))
+if args.monitor in DATA:
+    figtitle += ";  normalized to %s"%args.monitor
+figtitle += os.linesep
+figtitle += ", ".join(["%s=%.3f"%(m,MOT[m][0]) for m in _printmotors])
+figtitle += os.linesep + " ".join(h)
+figtitle += ";    " + pscan_cmd
+print figtitle
+
+isort = pl.argsort(MOT[motor3])
+for col in plotcol:
+    if "," in col:
+        ds = col.split(",")
+        DATA[col] = sum(DATA[k] for k in ds if len(DATA[k]))
+    if col not in DATA:
+        print col
+        raise ValueError("Column not in data: %s"%col)
+    x = DATA[_motordef[motor1]]
+    y = DATA[_motordef[motor2]]
+    d = DATA[col]
+    if args.monitor in DATA:
+        d /= DATA[args.monitor]
+    tks = pl.linspace(d.min()**(gamma), d.max()**(gamma), 7)**(1./gamma)
+    print tks
+    #norm = Normalize.Normalize(vmin=d.min(), vmax=d.max(), stretch=args.norm, exponent=gamma)
+    imin, imax = int(d.size*0.001),  int(d.size*0.999)
+    Imin, Imax = pl.sort(d.ravel())[[imin, imax]]
+    #Imin = d.min()
+    print("Column: %s, Imin: %g, Imax: %g"%(col, Imin, Imax))
+    #nrow = int(pl.ceil(pl.sqrt(scansize)*9./16))
+    fig, Ax = pl.subplots(numrows, numcols, sharex=True, sharey=True, figsize=(20,10), num=col, squeeze=False)
+    fig.set_facecolor("w")
+    fig.suptitle(figtitle)
+    fig.subplots_adjust(hspace=0.05, wspace=0.25, left=0.05, right=0.95)
+    ax = Ax.ravel()
+    norm = _norm(Imin if args.norm is not 'power' else d.min(), Imax)
+    #print norm(d).min(), norm(d).max()
+    for i in range(scansize):
+        #ax[i].imshow(d[i].T, cmap='jet', interpolation='none', origin='lower', vmax=Imax)
+        #im =ax[i].pcolormesh(x[isort[i]], y[isort[i]], d[isort[i]], cmap=cmap, vmin=Imin, vmax=Imax)
+        im = ax[i].pcolormesh(x[isort[i]], y[isort[i]], d[isort[i]], cmap=cmap, norm=norm)#, vmin=Imin, vmax=Imax)
+        ax[i].set_xlim(x[isort[i]].min(),x[isort[i]].max())
+        ax[i].set_ylim(y[isort[i]].min(),y[isort[i]].max())
+        ax[i].set_aspect('equal', adjustable="box-forced")
+        ax[i].set_title("%s = %.3f"%(motor3, MOT[motor3][isort[i]]), fontsize=10)
+        #im.set_norm(norm)
+        #zval.format_axes(ax[i])
+        
+        if args.norm == "power":
+            cb = pl.colorbar(im, ax=ax[i], fraction=0.046, pad=0.04, ticks=tks, format=formatter)
+        else:
+            cb = pl.colorbar(im, ax=ax[i], fraction=0.046, pad=0.04)
+        #cb.set_norm(norm)
+    
+    for a in Ax[:,0]:
+        a.set_ylabel(motor2)
+    for a in Ax[-1]:
+        a.set_xlabel(motor1)
+
+    #fig.suptitle(col)
+    #fig.subplots_adjust(wspace=0.05, hspace=0.05, left=0.05, right=0.95)
+    #fig.savefig(os.path.join(Dir[0].rstrip("/")+"_%s.png"%col))
+    #fig.tight_layout()
+
+
+pl.show()
+

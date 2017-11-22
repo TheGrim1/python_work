@@ -4,6 +4,8 @@ import sys, os
 import h5py
 import numpy as np
 from nexusformat.nexus import *
+import commands
+import gc
 
 # local import for testing:
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
@@ -148,8 +150,67 @@ def save_h5(dataset, fullfname, group = 'entry/data', dataname= 'data'):
 
     return True
 
-def main(filelist):
-## test saving and opening
+def merge_h5(search_phrase='/data/id13/inhouse7/DATA',group='entry/data/data',save_fname='bla.h5',tmp_fname='/data/id13/inhouse8/THEDATA_I8_1/temp.tmp',verbose=True):
+    '''
+    uses commands.getoutput('ls %s' %search_phrase)
+    and 
+    merges all frames in the found .h5 files into on saved as save_name
+    '''
+    out = commands.getoutput('ls %s' %search_phrase)
+    fname_list = [fname for fname in out.split('\n') if fname.endswith('.h5')]
+
+    if verbose:
+        print 'found filename list:'
+        print fname_list
+    
+    nframes_total = 0
+    nframes_list = [] # nframes_total(up to i-1), nframes(i)
+    
+    for i,fname in enumerate(fname_list):
+
+        with h5py.File(fname, "r") as f:
+            data_shape = f[group].shape
+            data_dtype = f[group].dtype
+            nframes = data_shape[0]
+            nframes_list.append([nframes_total, nframes])
+            nframes_total += nframes
+
+            if verbose:
+                print 'found %s frames in %s' %(nframes,fname)
+
+    all_frames = np.memmap(filename=tmp_fname,
+                           mode = 'w+',
+                           shape = tuple((nframes_total,data_shape[1],data_shape[2])),
+                           dtype = data_dtype)
+
+    frame_counter = 0
+
+    for i,fname in enumerate(fname_list):
+        if verbose:
+            print 'reading %s' %(fname)
+        [nframes_total, nframes] = nframes_list[i]
+        all_frames[nframes_total:nframes_total+nframes] = open_h5(fname)
+
+    if verbose:
+        print 'saving to file ',save_fname
+    save_h5(all_frames,save_fname)  
+    
+            
+    # neccessary cleanup for memmap
+    memmap_variable = all_frames
+    if type(memmap_variable) == np.core.memmap:
+        print 'cleaning up memmap'
+        memmap_tmp_fname = memmap_variable.filename
+        del memmap_variable
+        gc.collect()
+        os.remove(memmap_tmp_fname)
+
+    
+    return True
+
+
+def test(filelist):
+    ## test saving and opening
 
     fname     = filelist[0]
     starttime = time.time()
@@ -166,6 +227,20 @@ def main(filelist):
                
     print('time to save %s'%(time.time()-starttime - opentime))
 
+
+def main(args):
+    if args[0] == 'merge':
+        search_phrase = str(args[1])
+        group = str(args[2])
+        save_fname=str(args[3])
+        tmp_fname='/data/id13/inhouse8/THEDATA_I8_1/temp.tmp'
+        verbose=True
+        print 'doing: ls ',search_phrase
+        print 'looking for frames in group ', group
+        print 'will merge and then save as ', save_fname
+        
+        merge_h5(search_phrase, group, save_fname, tmp_fname, verbose)
+    
 if __name__ == '__main__':
     
     usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc. 
@@ -186,5 +261,5 @@ if __name__ == '__main__':
         for line in f:
             args.append(line.rstrip())
     
-#    print args
+    # print args
     main(args)

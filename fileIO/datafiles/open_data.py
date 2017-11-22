@@ -1,6 +1,10 @@
 import numpy as np
 import sys, os
-import matplotlib.pyplot as plt
+import fakenews
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = fakenews.Dummy()
 
 def open_data(filename, delimiter = ' ', quotecharlist= ['#'],verbose = False):
     '''reads <filename> as a <delimiter> seperated datafile and returns the data as np.array \n ignores lines staring with something in quotecharlist '''

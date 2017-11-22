@@ -12,31 +12,33 @@ def open_h5(fname,framelist=None,group="entry/data/data", threshold = 0, troi = 
     'This function opens the specified hdf5 file at default group = entry/data/data and returns the frames asa 3D numpy array. Default framelist is None (gives all frames), default threshold is none'
 
     if fname.find(".h5") != -1:
-        f       = h5py.File(fname, "r")
-        if verbose:
-            print 'found shape = '
-            print f[group].shape
-        if framelist == None:
-            framelist = slice(0,f[group].shape[0],1)
-
-        else:
-            if len(framelist) == 1:
-                framelist = slice(framelist[0],framelist[0]+1,1)                
-        if troi == None:
-            troi = ((0,0),(f[group].shape[1],f[group].shape[2]))
+        with h5py.File(fname, "r") as f:
 
             if verbose:
-                print('reading troi:')
-                print(troi)
-            
-        try:
-            data = f[group][framelist][:,troi_to_slice(troi)[0],troi_to_slice(troi)[1]]
-            
-            if threshold >= 1.0:
-                data  = np.where(data < threshold, data, 0)
-            return data
-        except KeyError:
-            print "did not find %s in %s" % (group, fname)
+                print 'found shape = '
+                print f[group].shape
+            if framelist == None:
+                framelist = slice(0,f[group].shape[0],1)
+
+            else:
+                if len(framelist) == 1:
+                    framelist = slice(framelist[0],framelist[0]+1,1)                
+            if troi == None:
+                troi = ((0,0),(f[group].shape[1],f[group].shape[2]))
+
+                if verbose:
+                    print('reading troi:')
+                    print(troi)
+
+            try:
+                
+                data = f[group][framelist][:,troi_to_slice(troi)[0],troi_to_slice(troi)[1]]
+
+                if threshold:
+                    data  = np.where(data < threshold, data, 0)
+                return data
+            except KeyError:
+                print "did not find %s in %s" % (group, fname)
     else:
         print "%s is not a .h5 file" %fname
 
