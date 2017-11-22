@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import sys, os
 import numpy as np
 import gc
@@ -20,7 +22,7 @@ def write_selected_h5(mask_fname, data_fname_tlp, frames_per_file, save_fname):
     frame_list = []
     for ind, val in enumerate(mask.flatten()):
         if val>100:
-            file_ind = ind / frames_per_file +1
+            file_ind = old_div(ind, frames_per_file) +1
             frame_ind = ind % frames_per_file
             data_fname = data_fname_tpl % file_ind
             frame_list.append([data_fname,[frame_ind]])

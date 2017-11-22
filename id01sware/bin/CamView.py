@@ -19,6 +19,10 @@
 #   source /data/id01/inhouse/crichter/venv3.4/bin/activate
 #----------------------------------------------------------------------
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os
 
 os.environ.pop("http_proxy", None) # for ID01
@@ -494,7 +498,7 @@ class Window(Q.QMainWindow):
         output = "Offset estimated for %s movement of %f: (%.2f, %.2f) px" \
              %(motorName, motorStep, offset[0], offset[1])
         self.echo(output)
-        dv_vs_dm = offset / motorStep
+        dv_vs_dm = old_div(offset, motorStep)
         
         
         self.control.Input["CalRes_%i"%motorNum].setText("%.2f, %.2f"%tuple(dv_vs_dm))

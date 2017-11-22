@@ -1,5 +1,9 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import sys,os
 import h5py
 import numpy as np
@@ -86,7 +90,7 @@ def main():
     
     order      = [(y - x) for [y,x] in dataheader[1::]]
 
-    order      = zip(order,range(1,len(order)+1))
+    order      = list(zip(order,list(range(1,len(order)+1))))
 
     dataordered= np.zeros(shape=data1.shape)
     order      = sorted(order)
@@ -99,12 +103,12 @@ def main():
     data1[:,1::] = dataordered[:,1::]
     dataheader = newheader
     positionlabel = ['position x=%s, y = %s, l = %s' % (x,y,l) for [[y,x],l] in dataheader[1::]]
-    colorref = [(l-0.5)/10.0 for  [[y,x],l] in dataheader[1::]]
+    colorref = [old_div((l-0.5),10.0) for  [[y,x],l] in dataheader[1::]]
     cmap = plt.get_cmap('jet')
  
     fewdata      = np.zeros(shape = (data1.shape[0],11))
     fewdata[:,0] = data1[:,0]
-    fewheader = [dataheader[0]] + range(10)
+    fewheader = [dataheader[0]] + list(range(10))
     
 #    print(fewheader)
     fewnorm       = [0]*10
@@ -120,7 +124,7 @@ def main():
 
     for i, norm in enumerate(fewnorm):
         if norm !=0:
-            fewdata[:,i+1] *= 1.0/norm
+            fewdata[:,i+1] *= old_div(1.0,norm)
 #        print fewdata[20,i+1]
 
 
@@ -155,11 +159,11 @@ def main():
     
 #    ax1.legend()
     for i in range(len(data1[1,1::])):
-        ax1.plot(energy2d, data1[:,i+1]+i/10.0, 'b-',color = cmap(colorref[i]), linewidth = 2)
+        ax1.plot(energy2d, data1[:,i+1]+old_div(i,10.0), 'b-',color = cmap(colorref[i]), linewidth = 2)
 
 
-    xticks = range(int(energyrange[0]*1000),int(energyrange[1]*1000),5)
-    ax1.set_xticks([x/1000.0 for x in xticks])
+    xticks = list(range(int(energyrange[0]*1000),int(energyrange[1]*1000),5))
+    ax1.set_xticks([old_div(x,1000.0) for x in xticks])
     ax1.set_xticklabels(['{:d}'.format(int(x * 1000)) for x in ax1.get_xticks()])
     ax1.set_xlabel('energy [eV]')
     ax1.set_ylabel('standardized Ga XRF signal')
@@ -181,16 +185,16 @@ def main():
     lincom, lincomheader = open_data(lincomfname,delimiter = '\t')
     print(lincomheader)
     
-    lincom[:,0] = lincom[:,0]/1000.0
+    lincom[:,0] = old_div(lincom[:,0],1000.0)
     energystart = np.searchsorted(lincom[:,0], energyrange[0], 'right')
     energyend   = np.searchsorted(lincom[:,0], energyrange[1], 'left')
     lincom       = lincom[energystart:energyend,:]
   
     ### measured_correction can't be calculated live or saved in the data because the results may be circularily used!
-    measured_correction = 2.59453867829 / 1000
+    measured_correction = old_div(2.59453867829, 1000)
     
     for i in range(len(data1[1,1::])):
-        ax1.plot(energy2d + measured_correction, data1[:,i+1]+i/10.0, 'b-',color = cmap(colorref[i]), linewidth = 2)
+        ax1.plot(energy2d + measured_correction, data1[:,i+1]+old_div(i,10.0), 'b-',color = cmap(colorref[i]), linewidth = 2)
 
 
     ### start add indication of edge shift
@@ -212,8 +216,8 @@ def main():
     energyrange = [10.365, 10.390]
     ax1.set_xlim(energyrange[0],energyrange[1])    
     ax1.set_ylim(0,2.5)
-    xticks = range(int(energyrange[0]*1000),int(energyrange[1]*1000),5)
-    ax1.set_xticks([x/1000.0 for x in xticks])
+    xticks = list(range(int(energyrange[0]*1000),int(energyrange[1]*1000),5))
+    ax1.set_xticks([old_div(x,1000.0) for x in xticks])
     ax1.set_xticklabels(['{:d}'.format(int(x * 1000)) for x in ax1.get_xticks()])
     ax1.set_xlabel('energy [eV]')
     ax1.set_ylabel('standardized and offset Ga XRF signal')

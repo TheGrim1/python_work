@@ -5,7 +5,11 @@ see /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/first_
 and /data/id13/inhouse2/AJ/skript/pythonmisc/dataviewing/calorimeter/logs/eval_template.org
 '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -101,7 +105,7 @@ def avg_data(oldheader,data):
     avg       = np.zeros(shape=(data.shape[0],2))
     avg[:,0]  = data[:,0]
     ncols     = data.shape[1]-1
-    avg[:,1]  = data[:,1:].sum(1)/ncols
+    avg[:,1]  = old_div(data[:,1:].sum(1),ncols)
 
     newheader = []
     newheader.append(oldheader[0])

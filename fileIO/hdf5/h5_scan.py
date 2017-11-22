@@ -1,5 +1,7 @@
 from __future__ import print_function
 # global imports
+from builtins import range
+from builtins import object
 import h5py
 import sys, os
 import matplotlib.pyplot as plt
@@ -22,7 +24,7 @@ from fileIO.hdf5.h5_tools import filter_relevant_peaks
 # replaced with:
 from simplecalc.gauss_fitting import do_variable_gaussbkg_pipeline
 
-class h5_scan:
+class h5_scan(object):
     '''
     **** 'roi_real' - roi of peak in real space
     **** 'roi_q'    - roi of peak in q (1/nm)
@@ -325,9 +327,9 @@ class h5_scan:
         #     os.remove(fname)
         savefile         = h5py.File(fname,"w")
         group            = savefile.create_group('entry/data')
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             if type(self.data[key]) == dict or type(self.data[key]) == str:
-                dt         = h5py.special_dtype(vlen=unicode)
+                dt         = h5py.special_dtype(vlen=str)
                 dataset    = json.dumps(self.data[key])
                 group.create_dataset(key,data = dataset,dtype = dt)
             else:
@@ -347,7 +349,7 @@ class h5_scan:
             fname    = os.path.realpath(fname)
             readfile = h5py.File(fname, "r")
             readdata = readfile['entry/data/']
-            for key in readdata.keys():
+            for key in list(readdata.keys()):
                 if readdata[key].dtype == 'O':
                     self.data.update({key: ast.literal_eval((readdata[key].value))})
                 else:

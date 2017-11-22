@@ -64,7 +64,7 @@ class LookupDict_Phi_XZKappa(LookupDict):
         self.motors = motors
         self.store = dict()
         self.update(lookup['phi'])
-        if 'z' not in self.store.keys():
+        if 'z' not in list(self.store.keys()):
             self.update({'z':np.zeros(shape = self.store['x'].shape)})
 
     def __getitem__(self, key):

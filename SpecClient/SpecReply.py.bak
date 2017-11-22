@@ -3,11 +3,12 @@
 
 This module defines the SpecReply class
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
-import SpecEventsDispatcher
+from . import SpecEventsDispatcher
 
 REPLY_ID_LIMIT = 2**30
 current_id = 0

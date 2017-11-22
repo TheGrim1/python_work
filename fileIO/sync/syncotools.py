@@ -1,4 +1,10 @@
 from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import os
 import sys
 import subprocess
@@ -8,12 +14,12 @@ import timeit
 import datetime
 import ast
 import operator
-import thread
+import _thread
 import threading
 
 ''' Main vehicle for syncodisk:'''
 
-class part():
+class part(object):
     # Each filter instance is going to be written to one destination specified in .partpath
     # the individual paths that will be synced are saved in self.filterfname in .srcpath
     def __init__(self):
@@ -133,7 +139,7 @@ def dump(obj, nested_level=0, output=sys.stdout):
     spacing = '   '
     if type(obj) == dict:
         print('%s{' % ((nested_level) * spacing), file=output)
-        for k, v in obj.items():
+        for k, v in list(obj.items()):
             if hasattr(v, '__iter__'):
                 print('%s%s:' % ((nested_level + 1) * spacing, k), file=output)
                 dump(v, nested_level + 1, output)
@@ -303,7 +309,7 @@ def foldersize(path):
 #   print "%s-%s-%s" %(Y,m,d)
 
     a2=a[2].split(":") 
-    h    = int(a2[0]) - int(a[3])/100
+    h    = int(a2[0]) - old_div(int(a[3]),100)
     if h < 0:
         h += 24
         d -= 1

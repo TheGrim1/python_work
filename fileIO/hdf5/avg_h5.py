@@ -1,10 +1,13 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 ### average over an h5 datasets first index, saves each dataset that was averaged as avg_data.h5
 # backup:
 # cp avg_h5.py /data/id13/inhouse2/AJ/skript/fileIO/hdf5/avg_h5.py
 
 # global imports
+from builtins import range
+from past.utils import old_div
 import h5py
 import sys
 import os
@@ -23,7 +26,7 @@ def avg_h5(data,
     newshape        = [data.shape[x] for x in range(len(data.shape)) if x != index]
     newdata         = np.zeros(shape = newshape)
     np.sum(data, axis = index, out = newdata)
-    newdata *= (1.0 / n)
+    newdata *= (old_div(1.0, n))
     newdata         = newdata.reshape(newshape)
 
     return newdata

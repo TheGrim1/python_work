@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import range
 import h5py
 import numpy as np
 import sys, os
@@ -76,7 +77,7 @@ def summarize_peaks(peaks, verbose = False):
 
     nopeaks  = len(peaks[:,0])
     
-    for k, peak1 in enumerate(peaks[range(nopeaks-1),:]):
+    for k, peak1 in enumerate(peaks[list(range(nopeaks-1)),:]):
         if peak1[0] ==0:
             pass
         else:
@@ -126,7 +127,7 @@ def get_data_recursive(dictionary,
     else:
         if verbose:
             print('from dictionary.keys() :')
-            print(dictionary.keys())
+            print(list(dictionary.keys()))
             print('returning data at key %s' %keylist[0])
 #            print(data)
         data = dictionary[keylist[0]]

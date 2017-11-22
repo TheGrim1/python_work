@@ -5,8 +5,13 @@ Created on Wed Jul 26 12:02:05 2017
 @author: OPID13
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,7 +38,7 @@ import fileIO.plots.plot_array as pa
 import fileIO.datafiles.save_data as save_data
 import fileIO.datafiles.open_data as open_data
 
-class stage():
+class stage(object):
     def __init__(self):
         pass
         
@@ -55,12 +60,12 @@ class stage():
                    
     def _add_motors(self,**kwargs):
         self.motors.update(kwargs)
-        for function, name in kwargs.items():
+        for function, name in list(kwargs.items()):
             print('added motor for %s%s called %s%s in this spec session' %((10-len(function))*' ',function,(10-len(name))*' ',name))
     
     def mvr(self, function, distance, move_in_pxl = False, view = 'side'):
         if move_in_pxl:
-            distance = distance / self.calibration[view][function]
+            distance = old_div(distance, self.calibration[view][function])
         cmd = SpecCommand.SpecCommand('mvr', self.specversion, self.timeout)
         print('mvr %s %s' %(function, distance))
         cmd(self.motors[function], distance)
@@ -260,7 +265,7 @@ class stage():
         # updating the absolute position of the COR in motor units:
         for i, COR_mot in enumerate(COR_motors):
             self.COR[motor][i] = self.wm(COR_mot) + \
-                                 (COR_pxl[i]/ self.calibration[view][COR_mot])
+                                 (old_div(COR_pxl[i], self.calibration[view][COR_mot]))
 
             
         # ## useful for debugging
@@ -458,7 +463,7 @@ class stage():
             if type(resolution) == type(None):
                 raise ValueError('please define either a <resolution> or a list <thetas>')
             else:
-                thetas = [x*resolution for x in range(int(360/resolution))]
+                thetas = [x*resolution for x in range(int(old_div(360,resolution)))]
 
             imagestack = self._get_imagestack(view = view,
                                               plot = plot,
@@ -585,7 +590,7 @@ class stage():
             if type(resolution) == type(None):
                 raise ValueError('please define either a <resolution> or a list <thetas>')
             else:
-                thetas = [x*resolution for x in range(int(360/resolution))]
+                thetas = [x*resolution for x in range(int(old_div(360,resolution)))]
 
         if mode.upper() not in ['ELASTIX','COM','CC']:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
@@ -659,7 +664,7 @@ class motexplore_jul17(stage):
 
         # initializing the default COR at the current motor positions
         self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in self.stagegeomety['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeomety['COR_motors'].items())]
         
         # lists of motors that have the same calibration:
         # the second list can be a known difference factor, usually useful if it is -1 for eg.

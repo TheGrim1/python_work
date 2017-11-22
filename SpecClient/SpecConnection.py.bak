@@ -9,6 +9,7 @@ SpecClientNotConnectedError -- exception class
 SpecConnection
 SpecConnectionDispatcher
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
@@ -22,10 +23,10 @@ import string
 import logging
 import time
 from .SpecClientError import SpecClientNotConnectedError
-import SpecEventsDispatcher
-import SpecChannel
-import SpecMessage
-import SpecReply
+from . import SpecEventsDispatcher
+from . import SpecChannel
+from . import SpecMessage
+from . import SpecReply
 import traceback
 import sys
 

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import range
 import numpy as np
 import sys, os
 import matplotlib.pyplot as plt
@@ -78,7 +79,7 @@ def xanes_standardize(h5fname,
     
     ### cloning the previos group except for data
     
-    for name, dataset in h5f[group].items():
+    for name, dataset in list(h5f[group].items()):
         if not name.find('data') and not name.find('energy'):
             savegroup.create_dataset(name, data = dataset)
 
@@ -125,4 +126,4 @@ if __name__ == '__main__':
 def stugff():
     fname200 = '/tmp_14_days/johannes1/results/MG154_fluoXAS_1_200ms_Ga/MG154_fluoXAS_1.replace.h5'
     f200 = h5py.File(fname,'r')
-    f200.items()
+    list(f200.items())

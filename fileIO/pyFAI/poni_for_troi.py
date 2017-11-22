@@ -1,3 +1,4 @@
+from builtins import str
 import numpy
 import sys, os
 
@@ -11,7 +12,7 @@ def initiate_ponidict():
 
 def ponidict_full(ponidict):
     full = True
-    for item in ponidict.items():
+    for item in list(ponidict.items()):
         if item[1] == 'empty':
             full = False
     return full
@@ -43,7 +44,7 @@ def read_poni(filename):
 def write_poni(ponidict,filename):
 
     ponilines = []
-    for item in ponidict.items():
+    for item in list(ponidict.items()):
         ponilines.append(item[0] + ": " + str(item[1])+ "\n")
         
     f = open(filename,'w')

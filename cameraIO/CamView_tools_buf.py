@@ -5,8 +5,13 @@ Created on Wed Jul 26 12:02:05 2017
 @author: OPID13
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,7 +39,7 @@ import fileIO.plots.plot_array as pa
 import fileIO.datafiles.save_data as save_data
 import fileIO.datafiles.open_data as open_data
 
-class stage():
+class stage(object):
     def __init__(self):
         pass
         
@@ -55,13 +60,13 @@ class stage():
                    
     def _add_motors(self,**kwargs):
         self.motors.update(kwargs)
-        for function, name in kwargs.items():
+        for function, name in list(kwargs.items()):
             print('added motor for %s%s called %s%s in this spec session' %((10-len(function))*' ',function,(10-len(name))*' ',name))
 
     def _correct_with_lookup(self, function, start_pos, end_pos):
         print('correcting movement of %s with motors:' % function)
-        if function in self.lookup.keys():
-            for mot in self.lookup[function].keys():
+        if function in list(self.lookup.keys()):
+            for mot in list(self.lookup[function].keys()):
                 if mot != function:
                     start_correction = np.interp(start_pos, self.lookup[function][function], self.lookup[function][mot])
                     end_correction   = np.interp(end_pos, self.lookup[function][function], self.lookup[function][mot])
@@ -75,7 +80,7 @@ class stage():
             move_in_pxl = False, view = 'side',
             move_using_lookup = False):
         if move_in_pxl:
-            distance = distance / self.calibration[view][function]
+            distance = old_div(distance, self.calibration[view][function])
 
         start_pos = self.wm(function)
 
@@ -346,7 +351,7 @@ class stage():
         COR_motors = self.stagegeomety['COR_motors'][motor]
         # updating the absolute position of the COR in motor units:
         for i, COR_mot in enumerate(COR_motors):
-            dpos = dpxl[i] / self.calibration[view][COR_mot]
+            dpos = old_div(dpxl[i], self.calibration[view][COR_mot])
             self.COR[motor][i] = self.wm(COR_mot) + dpos
                        
         # ## useful for debugging
@@ -544,8 +549,8 @@ class stage():
 
 ##### lookuptable functionality
     def _save_lookup(self, function, savename):
-        data   = np.zeros(shape = (len(self.lookup[function][function]),len(self.lookup[function].keys())))
-        unsorted_header = self.lookup[function].keys()
+        data   = np.zeros(shape = (len(self.lookup[function][function]),len(list(self.lookup[function].keys()))))
+        unsorted_header = list(self.lookup[function].keys())
         header    = []
         header.append(unsorted_header.pop(unsorted_header.index(function)))
         header   += unsorted_header
@@ -589,7 +594,7 @@ class stage():
             if type(resolution) == type(None):
                 raise ValueError('please define either a <resolution> or a list <thetas>')
             else:
-                thetas = [x*resolution for x in range(int(360/resolution))]
+                thetas = [x*resolution for x in range(int(old_div(360,resolution)))]
 
         if mode.upper() not in ['ELASTIX','COM','CC']:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
@@ -651,7 +656,7 @@ class stage():
                 plt.plot(self.cross_pxl[1], self.cross_pxl[0],'rx')
             plt.show()
 
-        if motor not in self.lookup.keys():
+        if motor not in list(self.lookup.keys()):
             self.lookup[motor] = {}
         ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!         
         
@@ -666,8 +671,8 @@ class stage():
             d0 = np.interp(thetas, self.lookup[motor][motor], self.lookup[motor][mot0])
             d1 = np.interp(thetas, self.lookup[motor][motor], self.lookup[motor][mot1])
             new_thetas = list(thetas)
-            new_mot0   = list(shift[:,1]/self.calibration[view][mot0] + d0)
-            new_mot1   = list(shift[:,0]/self.calibration[view][mot1] + d1)
+            new_mot0   = list(old_div(shift[:,1],self.calibration[view][mot0]) + d0)
+            new_mot1   = list(old_div(shift[:,0],self.calibration[view][mot1]) + d1)
 
 
             for i, new_theta in enumerate(new_thetas):
@@ -692,8 +697,8 @@ class stage():
             # just overwrite the old lookup
             print('writing new lookuptable')
             new_thetas = thetas
-            new_mot1   = shift[:,0]/self.calibration[view][new_mot1]
-            new_mot0   = shift[:,1]/self.calibration[view][new_mot0]
+            new_mot1   = old_div(shift[:,0],self.calibration[view][new_mot1])
+            new_mot0   = old_div(shift[:,1],self.calibration[view][new_mot0])
             
         self.lookup[motor].update({motor: np.asarray(new_thetas)})
         self.lookup[motor].update({mot0: np.asarray(new_mot0)})
@@ -771,7 +776,7 @@ class motexplore_jul17(stage):
         self.connect(specsession = specsession)
         # initializing the default COR at the current motor positions
         self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in self.stagegeomety['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeomety['COR_motors'].items())]
         
         # lists of motors that have the same calibration:
         # the second list can be a known difference factor, usually useful if it is -1 for eg.

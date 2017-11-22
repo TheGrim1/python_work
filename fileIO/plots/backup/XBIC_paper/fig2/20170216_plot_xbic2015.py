@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import sys, os
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import h5py
@@ -49,7 +52,7 @@ h5f2015.close()
 # plotting
 
 ## masking the wire:
-mask2015 = np.atleast_2d(define_a_line_as_mask(xbic2015[:,:,1].shape, inclination=-82.0/54, yintersect=105, width=4))
+mask2015 = np.atleast_2d(define_a_line_as_mask(xbic2015[:,:,1].shape, inclination=old_div(-82.0,54), yintersect=105, width=4))
 
 bias2015 = [-1, -0.5, -0.7, -0.6, -0.3, 0, 0.3, 0.6, 1.0, 2.0]
 
@@ -76,17 +79,17 @@ for i in range(ga2015.shape[2]):
     maskedxbic[:,:,i] = (np.where(mask2015,xbic2015[:,:,i],0))
     maskedas[:,:,i]   = (np.where(mask2015,as2015[:,:,i],0))
 
-rotatedmask = nd.interpolation.rotate(mask2015,math.atan(-82.0/54)*180/math.pi)
-rotatedga   = nd.interpolation.rotate(ga2015,math.atan(-82.0/54)*180/math.pi)
-rotatedas   = nd.interpolation.rotate(as2015,math.atan(-82.0/54)*180/math.pi)
-rotatedxbic = nd.interpolation.rotate(xbic2015,math.atan(-82.0/54)*180/math.pi)
-rotatedpos  = nd.interpolation.rotate(pos,math.atan(-82.0/54)*180/math.pi)
+rotatedmask = nd.interpolation.rotate(mask2015,math.atan(old_div(-82.0,54))*180/math.pi)
+rotatedga   = nd.interpolation.rotate(ga2015,math.atan(old_div(-82.0,54))*180/math.pi)
+rotatedas   = nd.interpolation.rotate(as2015,math.atan(old_div(-82.0,54))*180/math.pi)
+rotatedxbic = nd.interpolation.rotate(xbic2015,math.atan(old_div(-82.0,54))*180/math.pi)
+rotatedpos  = nd.interpolation.rotate(pos,math.atan(old_div(-82.0,54))*180/math.pi)
 rotatedpos[:,:,0] += -rotatedpos[58,10,0]
 rotatedpos[:,:,1] += -rotatedpos[58,10,1]
 
 pos = np.power(np.power(rotatedpos[:,:,1],2) + np.power(rotatedpos[:,:,1],2),0.5)
 
-posline = (np.sum(pos[55:62,:],axis = 0))/7
+posline = old_div((np.sum(pos[55:62,:],axis = 0)),7)
 galine = (np.sum(rotatedga[55:62,:,:],axis = 0))
 asline = (np.sum(rotatedas[55:62,:,:],axis = 0))
 xbicline = (np.sum(rotatedxbic[55:62,:,:],axis = 0))
@@ -96,7 +99,7 @@ galine   = galine[20:80,:]
 asline   = asline[20:80,:]
 xbicline = xbicline[20:80,:]
 
-garatioline = (galine/(galine+asline))
+garatioline = (old_div(galine,(galine+asline)))
 gaasline = np.zeros(shape=(galine.shape))
 xbic_norm = np.zeros(shape=(galine.shape))
 for i in range(len(galine[1,:])):

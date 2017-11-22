@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import sys, os
 import matplotlib.pyplot as plt
@@ -94,7 +95,7 @@ def xanes_standardize(h5fname,
    
 
 def main(args):
-    print args
+    print(args)
     fname = args[0]
     if len(args) >1:
         group = args[1]

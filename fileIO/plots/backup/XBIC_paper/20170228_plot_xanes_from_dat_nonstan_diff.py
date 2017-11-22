@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 40})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -27,7 +29,7 @@ specpath = '/tmp_14_days/johannes1/lincom/spectra/'
 def derivative_edge(signal, axis, positive = True):
     ''' return value on axis for which the derivative of signal with respect to axis is maximum positive (or negative)'''
 
-    incl = np.diff(signal)/np.diff(axis)
+    incl = old_div(np.diff(signal),np.diff(axis))
 
     maxincl = axis[np.argmax(incl)]
     
@@ -103,7 +105,7 @@ e0ga2o3_jpcb = derivative_edge( jpcb[:-10,11], jpcb[:-10,0])
 
 jpcb[:,0] += e0ga2o3_gema - e0ga2o3_jpcb
 jpcb     = crop_energyrange(jpcb, energyrange)
-jpcb[:,11] = jpcb[:,11]/jpcb[-10,11]
+jpcb[:,11] = old_div(jpcb[:,11],jpcb[-10,11])
 
 ### PSS data
 
@@ -112,7 +114,7 @@ pss, pssheader = open_data(specpath + 'PSS_RRL_9_652.dat', delimiter = '\t')
 e0ga2o3_pss = derivative_edge( pss[:,1], pss[:,0])
 pss[:,0] += e0ga2o3_gema - e0ga2o3_pss
 pss      = crop_energyrange(pss, energyrange)
-pss[:,1] = pss[:,1]/pss[-1,1]
+pss[:,1] = old_div(pss[:,1],pss[-1,1])
 
 ### gaga2o0
 
@@ -127,8 +129,8 @@ e0ga2o3_gaga2o3 = derivative_edge( gaga2o3[:,1], gaga2o3[:,0])
 gaga2o3[:,0]   += e0ga2o3_gema - e0ga2o3_gaga2o3
 #e0ga_gaga2o3    = np.interp(0.5, gaga2o3[:,2], gaga2o3[:,0])
 e0ga_gaga2o3    = derivative_edge( gaga2o3[:,2], gaga2o3[:,0])
-gaga2o3[:,2]   = gaga2o3[:,2]/gaga2o3[-1,2]
-gaga2o3[:,2]   = gaga2o3[:,1]/gaga2o3[-1,1]
+gaga2o3[:,2]   = old_div(gaga2o3[:,2],gaga2o3[-1,2])
+gaga2o3[:,2]   = old_div(gaga2o3[:,1],gaga2o3[-1,1])
 
 ### Ga_metal.dat data
 
@@ -226,8 +228,8 @@ xbicavg = np.zeros(shape = (len(xbic[:,0]),2))
 xanesavg[:,0] = xanes[:,0]
 xbicavg[:,0] = xbic[:,0]
 
-xanesavg[:,1] = np.sum(xanes[:,1::], axis = -1) /len(xanes[0,1::])
-xbicavg[:,1] = np.sum(xbic[:,1::], axis = -1)      /len(xbic[0,1::])
+xanesavg[:,1] = old_div(np.sum(xanes[:,1::], axis = -1),len(xanes[0,1::]))
+xbicavg[:,1] = old_div(np.sum(xbic[:,1::], axis = -1),len(xbic[0,1::]))
 
 xanesavg[:,1]=xanesavg[:,1]/np.max(xanesavg[:,1])*1.5
 xbicavg[:,1]=xbicavg[:,1]/np.max(xbicavg[:,1])*1.5

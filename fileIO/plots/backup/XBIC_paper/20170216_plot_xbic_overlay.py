@@ -1,4 +1,6 @@
+from __future__ import division
 
+from past.utils import old_div
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -84,7 +86,7 @@ def main():
     ## plotting
 
     data1 = (np.sum(ga400, axis =-1))
-    data1 = data1/np.max(data1)
+    data1 = old_div(data1,np.max(data1))
     
     #    data1 = np.where(edgexdiff200 > 0, np.where(mask200,edgexdiff200*1000,0),0)
     data2 = np.where(edgegdiff200 > 0, np.where(mask200,edgegdiff200*1000,0),0)
@@ -96,12 +98,12 @@ def main():
     
     sumgaas = data4 + data5
 
-    data5 = np.where(sumgaas > 0, data4/sumgaas, 0) 
-    data4 = data4/np.max(data4)
-    data5 = data5/np.max(data5)
+    data5 = np.where(sumgaas > 0, old_div(data4,sumgaas), 0) 
+    data4 = old_div(data4,np.max(data4))
+    data5 = old_div(data5,np.max(data5))
 
     data6 = xbic2015[:,:,4]
-    data6 = data6/np.max(data6)
+    data6 = old_div(data6,np.max(data6))
 
     ### scale images so that 1 pxl = 2nm:
     data1 = nd.zoom(data1, 15, order = 0)

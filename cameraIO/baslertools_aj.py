@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import map
+from builtins import object
 import os,time,sys
 import struct
 import numpy as np
@@ -56,7 +58,7 @@ class Viewer(object):
                 ll = f.readlines()
                 l = ll[self.num]
                 f.close()
-                pos = p0,p1 = map(int, l.split())
+                pos = p0,p1 = list(map(int, l.split()))
             except:
                 pos = 20,20
                 

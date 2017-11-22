@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from os import path
 from commands import getstatusoutput
@@ -17,16 +18,16 @@ def move_no(n,k):
             os.mkdir(dname % j)
         except:
             try:
-                print dname, ":", path.exists(dname % j)
+                print(dname, ":", path.exists(dname % j))
             except:
-                print "fundamental error:", dname % j
+                print("fundamental error:", dname % j)
 
-        print "moving scan TPL :"
+        print("moving scan TPL :")
         TPL[1] = TPL[1] % j
         TPL[2] = TPL[2] % j
-        print TPL
+        print(TPL)
         #raw_input("...")
-        print subprocess.check_output(TPL)
+        print(subprocess.check_output(TPL))
         time.sleep(scantime)
         
 def test():

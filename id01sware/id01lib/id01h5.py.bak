@@ -71,6 +71,7 @@
       3.1/
           ...
 """
+from __future__ import print_function
 
 
 import os
@@ -831,7 +832,7 @@ if __name__=="__main__":
         generic_path = os.path.join(impath["dir"],
                                     impath["prefix"] + impath["idxFmt"] + impath["suffix"])
         idx = int(impath["nextNr"])
-        print(generic_path, idx)
+        print((generic_path, idx))
 
 
 
@@ -852,7 +853,7 @@ if __name__=="__main__":
         b2 = a.addScan(1, edf) #this is another way to do it
         b.addEdfFile(edf.FileName) # add something big
         dat = test["GS2/1.0/instrument/detector_0"]["data"]
-        print(b==b2) # should be true
+        print((b==b2)) # should be true
         print(b["instrument/detector_0/others/time"].value) # some metadata
 
     #a.importSpecFile(specpath)

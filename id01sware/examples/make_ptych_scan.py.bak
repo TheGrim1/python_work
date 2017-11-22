@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import StringIO
 from id01lib.ptycho.scan_utils import *
 from id01lib.ptycho import plotting

@@ -5,6 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 from __future__ import print_function
+from builtins import range
 import time
 import pypylon as py
 import matplotlib.pyplot as plt

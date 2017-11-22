@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import shlex
 import subprocess
 import numpy as np
@@ -54,7 +58,7 @@ def optimize_greyscale(data_in, perc_low=1, perc_high = 99,
     #print '0-',low,high
     data = np.copy(data_in)
     data = data*1.0 # floatify
-    data = (data - low) / (high-low)
+    data = old_div((data - low), (high-low))
 
     #print '1-',np.min(data),np.max(data)
     

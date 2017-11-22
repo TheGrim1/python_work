@@ -11,6 +11,8 @@ SpecConnectionDispatcher
 """
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -161,7 +163,7 @@ def connectionHandler(connection_ref, socket_to_spec):
    #process_channels_greenlet.kill()
    
 
-class SpecConnection:
+class SpecConnection(object):
     """SpecConnection class
 
     Signals:

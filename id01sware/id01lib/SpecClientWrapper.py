@@ -9,6 +9,10 @@ from __future__ import print_function
 # 
 ################### le code #################
 
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 try:
     from SpecClient_gevent import SpecVariable
     from SpecClient_gevent import SpecCommand
@@ -99,8 +103,8 @@ class SpecClientSession(object):
         _m2_nm = _pscan_vars["header/cmd"].split()[5]
 
         # motor start&end positions
-        _m1_se = map(float,_pscan_vars["header/cmd"].split()[2:4])
-        _m2_se = map(float,_pscan_vars["header/cmd"].split()[6:8])
+        _m1_se = list(map(float,_pscan_vars["header/cmd"].split()[2:4]))
+        _m2_se = list(map(float,_pscan_vars["header/cmd"].split()[6:8]))
 
         # get kmap column number
         piezo_counters = {'piy':'adcX','pix':'adcY','piz':'adcZ'}

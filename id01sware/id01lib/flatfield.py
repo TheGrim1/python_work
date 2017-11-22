@@ -1,5 +1,10 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import input
+from builtins import object
+from past.utils import old_div
 import sys
 import numpy as np
 import pylab as pl
@@ -20,7 +25,7 @@ output - flatfield (ff)
          flatfield uncertainty (ff_unc)
 """
 
-class Flatfield:
+class Flatfield(object):
 	'''
 	Class to provide necessary tools to: 
 	analyse a flatfield
@@ -181,14 +186,14 @@ class Flatfield:
 		for i in np.arange(self.data.shape[0]):
 			self.data_dev[i,:,:] = self.data[i,:,:]-self.I_bar
 
-		self.I_sigma = np.sqrt(np.sum((self.data_dev)**2,axis=0)/(self.no_ims-1))
+		self.I_sigma = np.sqrt(old_div(np.sum((self.data_dev)**2,axis=0),(self.no_ims-1)))
 
 	def plot_int_det_cts(self,mask):
 		pl.figure(1)
 		tmp = self.data.copy()
 		[tmp[i,:,:]*mask for i in np.arange(tmp.shape[0])]
 		data2plot = tmp.sum(axis=1).sum(axis=1)
-		pl.plot(((data2plot-data2plot.mean())/data2plot.mean())*100)
+		pl.plot((old_div((data2plot-data2plot.mean()),data2plot.mean()))*100)
 		pl.xlabel('Image no.')
 		pl.ylabel('Total Intensity Variation (%)')
 		pl.savefig(self.ff_path+'stats_1_int_det_vs_im.pdf')
@@ -207,7 +212,7 @@ class Flatfield:
 
 		# gaussian fit to sigma_n
 
-		self.hist_bin_centres = (self.hist_bins[:-1] + self.hist_bins[1:])/2
+		self.hist_bin_centres = old_div((self.hist_bins[:-1] + self.hist_bins[1:]),2)
 
 		# p0 is the initial guess for the fitting coefficients (A, mu and sigma above)
 		p0 = [self.hist_n.max(), self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())], np.sqrt(self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())])]
@@ -221,7 +226,7 @@ class Flatfield:
 		pl.plot(self.hist_bin_centres, self.hist_hist_fit,'b', label='Fitted data')
 		tex = 'Fit pars - Amp:%i ,\n               Pos:%.2f ,\n              SD:%.2f'%(self.hist_coeff[0],self.hist_coeff[1],self.hist_coeff[2])
 		ax = pl.gca()
-		ax.text(self.I_lims[1]+np.sqrt(self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())]), self.hist_n.max()/2,tex,fontsize=10)
+		ax.text(self.I_lims[1]+np.sqrt(self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())]), old_div(self.hist_n.max(),2),tex,fontsize=10)
 		pl.legend()
 
 		# Finally, lets get the fitting parameters, i.e. the mean and standard deviation:
@@ -232,8 +237,8 @@ class Flatfield:
 
 		self.I_lims = [self.hist_coeff[1]-3*self.hist_coeff[2],self.hist_coeff[1]+3*self.hist_coeff[2]]
 
-		pl.vlines(self.I_lims[0],self.hist_n.min(),self.hist_n.max()/2.,color='r')
-		pl.vlines(self.I_lims[1],self.hist_n.min(),self.hist_n.max()/2.,color='r')
+		pl.vlines(self.I_lims[0],self.hist_n.min(),old_div(self.hist_n.max(),2.),color='r')
+		pl.vlines(self.I_lims[1],self.hist_n.min(),old_div(self.hist_n.max(),2.),color='r')
 		pl.xlim([self.hist_coeff[1]-8*self.hist_coeff[2],self.hist_coeff[1]+8*self.hist_coeff[2]])
 		pl.xlabel('Photon counts')
 		pl.ylabel('Frequency')
@@ -263,19 +268,19 @@ class Flatfield:
 				pl.plot(self.hist_bin_centres, self.hist_hist_fit,'b', label='Fitted data')
 				tex = 'Fit pars - Amp:%i ,\n               Pos:%.2f ,\n              SD:%.2f'%(self.hist_coeff[0],self.hist_coeff[1],self.hist_coeff[2])
 				ax = pl.gca()
-				ax.text(self.I_lims[1]+np.sqrt(self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())]), self.hist_n.max()/2,tex,fontsize=10)
+				ax.text(self.I_lims[1]+np.sqrt(self.hist_bin_centres[self.hist_n.tolist().index(self.hist_n.max())]), old_div(self.hist_n.max(),2),tex,fontsize=10)
 				pl.legend()
-				pl.vlines(self.I_lims[0],self.hist_n.min(),self.hist_n.max()/2.,color='r')
-				pl.vlines(self.I_lims[1],self.hist_n.min(),self.hist_n.max()/2.,color='r')
+				pl.vlines(self.I_lims[0],self.hist_n.min(),old_div(self.hist_n.max(),2.),color='r')
+				pl.vlines(self.I_lims[1],self.hist_n.min(),old_div(self.hist_n.max(),2.),color='r')
 				pl.xlim([self.hist_coeff[1]-8*self.hist_coeff[2],self.hist_coeff[1]+8*self.hist_coeff[2]])
 				pl.xlabel('Photon counts')
 				pl.ylabel('Frequency')
 				pl.hold()
 				pl.show()
-				q = input("are you happy with I_min/I_max [y/n]")
+				q = eval(input("are you happy with I_min/I_max [y/n]"))
 				if q=="n":
-					self.I_lims[0] = int(input('I_min: '))
-					self.I_lims[1] = int(input('I_max: '))
+					self.I_lims[0] = int(eval(input('I_min: ')))
+					self.I_lims[1] = int(eval(input('I_max: ')))
 				else:
 					self.check_I_lims = False
 					pl.clf()
@@ -285,14 +290,14 @@ class Flatfield:
 
 	def make_mask_2(self):
 		np.seterr(all='ignore') # removes the division by zero error
-		sigma_n = np.where(self.mask_1,self.I_sigma/np.sqrt(self.I_bar),0)
+		sigma_n = np.where(self.mask_1,old_div(self.I_sigma,np.sqrt(self.I_bar)),0)
         #sn_dist,bins = np.histogram(sigma_n,np.arange(0,1.5,0.01))
         #
 		#sigma_n = np.where(sigma_n>0)[0]
 		sn_dist,bins,patches = pl.hist(sigma_n.flatten(), np.arange(0,1.5,0.01), normed=0, facecolor='green', alpha=0.5)
 		# gaussian fit to sigma_n
 
-		bin_centres = (bins[:-1] + bins[1:])/2
+		bin_centres = old_div((bins[:-1] + bins[1:]),2)
 
 		# p0 is the initial guess for the fitting coefficients (A, mu and sigma above)
 		max_sn = sn_dist[1:].max()
@@ -309,7 +314,7 @@ class Flatfield:
 		pl.plot(bin_centres, hist_fit, label='Fitted data')
 		tex = 'Fit pars - Amp:%i ,\n               Pos:%.2f ,\n              SD:%.2f'%(coeff[0],coeff[1],coeff[2])
 		ax = pl.gca()
-		ax.text(np.sqrt(bin_centres[sn_dist.tolist().index(sn_dist.max())]), sn_dist.max()/2,tex,fontsize=10)
+		ax.text(np.sqrt(bin_centres[sn_dist.tolist().index(sn_dist.max())]), old_div(sn_dist.max(),2),tex,fontsize=10)
 		pl.legend()
 
 		# Finally, lets get the fitting parameters, i.e. the mean and standard deviation:
@@ -327,13 +332,13 @@ class Flatfield:
 	def set_tolerance(self,):
 		while self.check_tolerance:
 			try:
-				self.tolerance = int(input('Choose Tolerance (98% standard): '))
+				self.tolerance = int(eval(input('Choose Tolerance (98% standard): ')))
 				self.check_tolerance = False
 			except:
 				print("please enter a number")
 
 		tot_mask = self.mask_1*self.mask_2
-		tmp_data = ((((self.data>=self.I_lims[0])& (self.data<=self.I_lims[1])).sum(axis=0)/float(self.no_ims))*tot_mask*100)
+		tmp_data = ((old_div(((self.data>=self.I_lims[0])& (self.data<=self.I_lims[1])).sum(axis=0),float(self.no_ims)))*tot_mask*100)
 		# i.e normalise for exposures and corrected for the masking of pixels
 		n, bins, patches = pl.hist(tmp_data.flatten(), np.arange(1,101,0.5),cumulative=True, normed=0, facecolor='green', alpha=0.5)
 		pl.clf()
@@ -385,7 +390,7 @@ class Flatfield:
 		# hist of SD error and image of SD error
 		pl.figure(1)
 		pl.subplot(221)
-		tmp = self.I_sigma*self.tot_mask/((self.I_bar*self.tot_mask).sum()/self.tot_mask.sum())#self.I_sigma/self.I_bar.sum()*(np.prod(self.I_bar.shape)-(self.I_bar==0).sum()))
+		tmp = self.I_sigma*self.tot_mask/(old_div((self.I_bar*self.tot_mask).sum(),self.tot_mask.sum()))#self.I_sigma/self.I_bar.sum()*(np.prod(self.I_bar.shape)-(self.I_bar==0).sum()))
 		mean_I_sigma = tmp.flatten().mean()
 		n, bins, patches = pl.hist(tmp.flatten(), np.arange(0,np.sqrt(mean_I_sigma),np.sqrt(mean_I_sigma)*2/100), normed=0, facecolor='green', alpha=0.5)
 		pl.title('normalised SD distribution')
@@ -407,9 +412,9 @@ class Flatfield:
 #		self.ff_unc = np.where(self.tot_mask,np.sqrt(1.0/self.data.shape[2])*self.I_sigma/self.I_bar,0)
 	def gen_ff(self,):
         # find the scale factor to normalise the data
-		self.I_bar_sf = (self.I_bar*self.tot_mask).sum()/self.tot_mask.sum()
-		self.ff = np.where(self.tot_mask,self.I_bar_sf/self.I_bar,0)
-		self.ff_unc = np.where(self.tot_mask,np.sqrt(1.0/self.data.shape[2])*self.I_sigma/self.I_bar,0)
+		self.I_bar_sf = old_div((self.I_bar*self.tot_mask).sum(),self.tot_mask.sum())
+		self.ff = np.where(self.tot_mask,old_div(self.I_bar_sf,self.I_bar),0)
+		self.ff_unc = np.where(self.tot_mask,np.sqrt(old_div(1.0,self.data.shape[2]))*self.I_sigma/self.I_bar,0)
 
 	def plot_ff(self,):
 		pl.figure(1)
@@ -434,7 +439,7 @@ class Flatfield:
 		tmp_data1 = self.data[:,x,y]
 		#tmp_data1 = self.data_dev[x[0],y[0]]**2
 
-		n, bins, patches = pl.hist(tmp_data1.flatten(),np.arange(tmp_data1.min(),tmp_data1.max(),(tmp_data1.max()-tmp_data1.min())/10) , normed=0, facecolor='green', alpha=0.5)
+		n, bins, patches = pl.hist(tmp_data1.flatten(),np.arange(tmp_data1.min(),tmp_data1.max(),old_div((tmp_data1.max()-tmp_data1.min()),10)) , normed=0, facecolor='green', alpha=0.5)
 		pl.xlim(self.I_lims[0]-10,self.I_lims[1]+10)
 		pl.ylabel('Frequency')
 		pl.title('Worst Pixel')
@@ -447,7 +452,7 @@ class Flatfield:
 		#tmp_data2 = self.data_dev[x,y]**2
 		tmp_data2 = self.data[:,x[0],y[0]]
 
-		n, bins, patches = pl.hist(tmp_data2.flatten(),np.arange(tmp_data2.min(),tmp_data2.max(),(tmp_data2.max()-tmp_data2.min())/10) , normed=0, facecolor='black', alpha=0.5)
+		n, bins, patches = pl.hist(tmp_data2.flatten(),np.arange(tmp_data2.min(),tmp_data2.max(),old_div((tmp_data2.max()-tmp_data2.min()),10)) , normed=0, facecolor='black', alpha=0.5)
 		pl.title('Average Pixel')
 		pl.xlim(self.I_lims[0]-10,self.I_lims[1]+10)
 		pl.xlabel('Photon counts')
@@ -474,7 +479,7 @@ class Flatfield:
 		pl.title('Random image')
 		rand_num = int(np.random.rand()*self.no_ims)
 		tmp = self.data[rand_num,:,:]*self.tot_mask
-		data2plot = (tmp/tmp.sum())*((tmp>0).sum())
+		data2plot = (old_div(tmp,tmp.sum()))*((tmp>0).sum())
 		pl.imshow(data2plot)
 		pl.clim(-data2plot.max()+2,data2plot.max())
 		pl.colorbar()
@@ -521,7 +526,7 @@ class Flatfield:
 		# apply the flatfield correction to the real data, calculate absolute uncertainties
 		corr_data = np.zeros(data.shape)
 		abs_unc = np.zeros(data.shape)
-		rel_unc = np.sqrt(np.copy(data))/data
+		rel_unc = old_div(np.sqrt(np.copy(data)),data)
 		for i in np.arange(data.shape[2]):
 			corr_data[i:,:] = data[i,:,:]*self.ff
 			abs_unc[i,:,:] = (rel_unc[i,:,:]+self.ff_unc)*corr_data[i,:,:,i]
@@ -539,5 +544,5 @@ def find_nearest(a, a0):
 # Define model function to be used to fit to the data above:
 def gauss(x, *p):
     A, mu, sigma = p
-    return A*np.exp(-(x-mu)**2/(2.*sigma**2))
+    return A*np.exp(old_div(-(x-mu)**2,(2.*sigma**2)))
 

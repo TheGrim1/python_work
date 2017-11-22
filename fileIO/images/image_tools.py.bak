@@ -1,3 +1,4 @@
+from __future__ import print_function
 import shlex
 import subprocess
 import numpy as np
@@ -35,7 +36,7 @@ def array_to_imagefile(data, imagefname,verbose=False):
     img.convert("RGB")
     img.mode   = "RGB"
     if verbose:
-        print "saving ", os.path.realpath(imagefname)
+        print("saving ", os.path.realpath(imagefname))
     img.save(imagefname)
     return 1
 
@@ -62,9 +63,9 @@ def optimize_greyscale(data_in, perc_low=1, perc_high = 99,
 
     #print '2-',np.min(data),np.max(data)
 
-    print np.percentile(data,50)
+    print(np.percentile(data,50))
     if np.percentile(data,50) > 0.5:
-        print 'inverted'
+        print('inverted')
         
         data = 1.0 - data
 
@@ -102,7 +103,7 @@ def open_series(find_path,find_arg, verbose = False):
     for i, fname in enumerate(all_fnames):
         image_list.append(imagefile_to_array(fname))
         if verbose:
-            print 'opening image ' , fname
+            print('opening image ' , fname)
     imagestack = np.stack(image_list)
     return imagestack
 

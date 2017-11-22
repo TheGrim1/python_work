@@ -1,5 +1,8 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import sys,os
 import numpy as np
 import scipy.odr
@@ -77,7 +80,7 @@ def do_component_analysis(data, components, verbose = False, force_positive = Tr
 #        plt.tight_layout()
         plt.show()
     if normalize:
-        beta = beta / np.sum(beta)   
+        beta = old_div(beta, np.sum(beta))   
     return beta, residual
 
 def test():

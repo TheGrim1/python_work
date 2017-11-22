@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #----------------------------------------------------------------------
 # Description: 
 #   functions for analysing limatake multiple image acquisitions intensity fluctuations
@@ -19,7 +21,7 @@ import os
 from multiprocessing import Process, Lock, Queue
 
 from id01lib import hdf5_writer as h5w
-import ImageRegistration as IR
+from . import ImageRegistration as IR
 from PyMca5 import EdfFile
 
 pixel_size = np.array([55, 55])  # microns
@@ -378,10 +380,10 @@ class CrossCorrelator():
         pl.ylabel("Position (um)")
         pl.legend()
         pl.savefig(fn)
-        print("peak(x) mean:", np.mean(self.output['x']*pixel_size[0]), "std: ", \
-            np.std(self.output['x']*pixel_size[0]))
-        print("peak(y) mean:", np.mean(self.output['y']*pixel_size[1]), "std: ", \
-            np.std(self.output['y']*pixel_size[1]))
+        print(("peak(x) mean:", np.mean(self.output['x']*pixel_size[0]), "std: ", \
+            np.std(self.output['x']*pixel_size[0])))
+        print(("peak(y) mean:", np.mean(self.output['y']*pixel_size[1]), "std: ", \
+            np.std(self.output['y']*pixel_size[1])))
         pl.clf()
 
 

@@ -14,6 +14,7 @@
     
     Can be a template for custom stuff.
 """
+from __future__ import print_function
 import os
 #import pylab as pl
 import h5py
@@ -39,7 +40,7 @@ for ii, mot3val in enumerate(sorted(fsorted)):
     otherfile = fsorted[mot3val]
     foreignkey = os.path.split(otherfile)[1].strip(".h5")
     newh5[key] = h5py.ExternalLink(otherfile, "/%s"%foreignkey)
-    print(key, otherfile, foreignkey)
+    print((key, otherfile, foreignkey))
 
 #pl.plot(pl.sort(list(fsorted)), "sk")
 #pl.show()

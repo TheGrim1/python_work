@@ -4,6 +4,7 @@ This module defines the class for Spec variable objects
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -13,7 +14,7 @@ from . import SpecWaitObject
 
 (UPDATEVALUE, FIREEVENT) = (SpecEventsDispatcher.UPDATEVALUE, SpecEventsDispatcher.FIREEVENT)
 
-class SpecVariableA:
+class SpecVariableA(object):
     """SpecVariableA class - asynchronous version of SpecVariable
 
     Thin wrapper around SpecChannel objects, to make
@@ -36,7 +37,7 @@ class SpecVariableA:
           'disconnected': None,
           'update': None,
         }
-        for cb_name in self.__callbacks.iterkeys():
+        for cb_name in self.__callbacks.keys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 

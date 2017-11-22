@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from commands import getstatusoutput
 
@@ -7,11 +8,11 @@ def reco_no(k,m):
     for j in xrange(k,m):
         internalnum = j + 1258
         eigerscannum = j + 126
-        print "cycle:", j
+        print("cycle:", j)
         cmd = TPL % (internalnum,eigerscannum)
-        print cmd
+        print(cmd)
         #raw_input("...")
-        print getstatusoutput(cmd)
+        print(getstatusoutput(cmd))
 
 
 def test():

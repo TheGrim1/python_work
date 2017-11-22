@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from builtins import object
 import cameraIO.BaslerGrab as bg
 from image_tools import uint8array_to_qimage
 

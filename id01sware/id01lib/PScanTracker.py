@@ -5,6 +5,7 @@
 # wishlist/todo:
 # -
 from __future__ import print_function
+from builtins import object
 import os
 import numpy as np
 from matplotlib import pyplot as plt
@@ -127,7 +128,7 @@ class GenericIndexTracker(object):
 
     def update(self, props=False):
         if props:
-            for k,v in self._axes_properties.items():
+            for k,v in list(self._axes_properties.items()):
                 getattr(self.ax, k)(v[self.ind])
         data = self.data[self.ind]
         self.im.set_data(data)

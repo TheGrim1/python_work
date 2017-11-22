@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage
@@ -70,7 +73,7 @@ def peak_guess(data, nopeaks = 2, verbose = False):
     print("p[5], sigma2: ", v[5])
     '''
 
-    width  = len(data[0])/10.0
+    width  = old_div(len(data[0]),10.0)
     widths = []
     peaks  = []
 
@@ -134,7 +137,7 @@ def conservative_peak_guess(data,
     print("p[5], sigma2: ", v[5])
     '''
     if maxwidth == None:
-        width  = len(data[0])/10.0
+        width  = old_div(len(data[0]),10.0)
     else:
         width = maxwidth
     widths = []
@@ -152,7 +155,7 @@ def conservative_peak_guess(data,
 
     if plot:
         plt.clf()
-        plt.plot(range(len(data[1])),data[1])
+        plt.plot(list(range(len(data[1]))),data[1])
         for x in peaks:
             plt.axvline(x,color='r') # found peaks
             
@@ -191,7 +194,7 @@ def gauss_func(p, t):
     p1 = mu
     p2 = sigma
     '''
-    return p[0]*(1/math.sqrt(2*math.pi*(p[2]**2)))*math.e**(-(t-p[1])**2/(2*p[2]**2))
+    return p[0]*(old_div(1,math.sqrt(2*math.pi*(p[2]**2))))*math.e**(old_div(-(t-p[1])**2,(2*p[2]**2)))
 
 def two_gauss_func(p, t):
     return  gauss_func(p[0:3],t) + gauss_func(p[3:6],t)
@@ -203,7 +206,7 @@ def two_gauss_residual(p, x, y):
 def multi_gauss_func(p,t,nopeaks):
     function = np.zeros(shape = (len(t)))
     for i in range(nopeaks):
-        function += gauss_func(p[range(i*3,(i+1)*3)],t)
+        function += gauss_func(p[list(range(i*3,(i+1)*3))],t)
     return function
 
 
@@ -226,7 +229,7 @@ def do_variable_gauss_fit(data, v0= None, plot = False, verbose = False, minwidt
                                           minwidth = minwidth,
                                           maxwidth = maxwidth)
 
-    nopeaks = len(v0)/3
+    nopeaks = old_div(len(v0),3)
 
     def optfunction(p,x,y):
         return multi_gauss_residual(p = p, x = x, y = y, nopeaks=nopeaks)
@@ -351,7 +354,7 @@ def do_variable_gaussbkg_pipeline(data,
 
     v0 = []
     
-    for i in range(len(initial_v0)/3):
+    for i in range(old_div(len(initial_v0),3)):
         peakindex = np.searchsorted(data[0], initial_v0[i*3+1])
         peakheight = data[1][peakindex]
         if peakheight > threshold:
@@ -462,8 +465,8 @@ def main():
 
     # generate some data
     # change the parameters as you see fit
-    y = two_gauss_func([20,20,3,60,50,4],np.arange(50)/.5)
-    x = np.arange(50)/.5
+    y = two_gauss_func([20,20,3,60,50,4],old_div(np.arange(50),.5))
+    x = old_div(np.arange(50),.5)
     plt.plot(x,y)
     data = np.asarray([x,y])
 #    do_two_gauss_fit(data,verbose = True)

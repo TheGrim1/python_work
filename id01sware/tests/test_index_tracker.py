@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import map
+from builtins import range
 from id01lib.PScanTracker import *
 if __name__=="__main__":
     # just a test
@@ -11,7 +13,7 @@ if __name__=="__main__":
     
     tracker = GenericIndexTracker(ax, data, norm="log")
     tracker.set_extent(0,5,-2,2)
-    tracker.set_axes_properties(title=map(str, range(5)))
+    tracker.set_axes_properties(title=list(map(str, list(range(5)))))
     
     try:
         plt.show()

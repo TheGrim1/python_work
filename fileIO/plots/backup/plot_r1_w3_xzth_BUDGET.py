@@ -1,7 +1,9 @@
 from __future__ import print_function
+from __future__ import division
 
 # global imports
 
+from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import time
@@ -52,12 +54,12 @@ def plot_array(data,
 
 ## Labels## Labels## Labels## Labels## Labels## Labels## Labels## Labels
 
-    ylabelpertick = 10./60
-    xlabelpertick = 32./165
+    ylabelpertick = old_div(10.,60)
+    xlabelpertick = old_div(32.,165)
     ylabels       = np.arange(0,12,2)
     xlabels       = np.arange(0,35,5)
-    yticks        = ylabels/ylabelpertick
-    xticks        = xlabels/xlabelpertick
+    yticks        = old_div(ylabels,ylabelpertick)
+    xticks        = old_div(xlabels,xlabelpertick)
 
 #    plt.tight_layout()
     ax1.set_xticks(xticks)
@@ -81,7 +83,7 @@ def plot_array(data,
 ## tilte and axixlabels ## tilte and axixlabels ## tilte and axixlabels ## 
     ax1.set_ylabel('z [$\mu$m]')
 #    ax1.set_xlabel('x [$\mu$m]')
-    angle = float(savename[savename.find('xzth__')+6:savename.find('xzth__')+9])/10
+    angle = old_div(float(savename[savename.find('xzth__')+6:savename.find('xzth__')+9]),10)
 
     ax1.set_title('rocking angle $\omega$ = {:2.1f}'.format(angle))
     ax2.set_ylabel('z [$\mu$m]')

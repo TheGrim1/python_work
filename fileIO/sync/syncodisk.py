@@ -1,4 +1,11 @@
 from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import input
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import os
 import sys
 import subprocess;
@@ -8,7 +15,7 @@ import timeit
 import datetime
 import ast
 import operator
-import thread
+import _thread
 import threading
 
 # home: /data/id13/inhouse2/AJ/skript/fileIO/sync/syncodisk.py
@@ -42,7 +49,7 @@ import threading
         
 
 
-class part():
+class part(object):
     # Each filter instance is going to be written to one destination specified in .partpath
     # the individual paths that will be synced are saved in self.filterfname in .srcpath
     def __init__(self):
@@ -73,7 +80,7 @@ def getinput(prompt,typ):
 # works
     while True:
         try:
-            totalpartno   =raw_input(prompt)
+            totalpartno   =input(prompt)
             if typ=='float':
                 userinput =float(userinput)
             elif typ =='int':
@@ -88,11 +95,11 @@ def getinput(prompt,typ):
     return userinput
 
 def raw_input_with_timeout(prompt, timeout=30.0):
-    timer = threading.Timer(timeout, thread.interrupt_main)
+    timer = threading.Timer(timeout, _thread.interrupt_main)
     astring = None
     try:
         timer.start()
-        astring = raw_input(prompt)
+        astring = input(prompt)
     except KeyboardInterrupt:
         pass
     timer.cancel()
@@ -104,7 +111,7 @@ def dump(obj, nested_level=0, output=sys.stdout):
     spacing = '   '
     if type(obj) == dict:
         print('%s{' % ((nested_level) * spacing), file=output)
-        for k, v in obj.items():
+        for k, v in list(obj.items()):
             if hasattr(v, '__iter__'):
                 print('%s%s:' % ((nested_level + 1) * spacing, k), file=output)
                 dump(v, nested_level + 1, output)
@@ -363,7 +370,7 @@ def foldersize(path):
 #   print "%s-%s-%s" %(Y,m,d)
 
     a2=a[2].split(":") 
-    h    = int(a2[0]) - int(a[3])/100
+    h    = int(a2[0]) - old_div(int(a[3]),100)
     if h < 0:
         h += 24
         d -= 1

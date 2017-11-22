@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 #
 # A test of `multiprocessing.Pool` class
 #
@@ -6,6 +7,10 @@ from __future__ import print_function
 # All rights reserved.
 #
 
+from builtins import map
+from builtins import next
+from builtins import range
+from past.utils import old_div
 import multiprocessing
 import time
 import random
@@ -34,7 +39,7 @@ def plus(a, b):
     return a + b
 
 def f(x):
-    return 1.0 / (x-5.0)
+    return old_div(1.0, (x-5.0))
 
 def pow3(x):
     return x**3
@@ -98,17 +103,17 @@ def test():
     print('def pow3(x): return x**3')
 
     t = time.time()
-    A = map(pow3, xrange(N))
+    A = list(map(pow3, range(N)))
     print('\tmap(pow3, xrange(%d)):\n\t\t%s seconds' % \
           (N, time.time() - t))
 
     t = time.time()
-    B = pool.map(pow3, xrange(N))
+    B = pool.map(pow3, range(N))
     print('\tpool.map(pow3, xrange(%d)):\n\t\t%s seconds' % \
           (N, time.time() - t))
 
     t = time.time()
-    C = list(pool.imap(pow3, xrange(N), chunksize=N//8))
+    C = list(pool.imap(pow3, range(N), chunksize=N//8))
     print('\tlist(pool.imap(pow3, xrange(%d), chunksize=%d)):\n\t\t%s' \
           ' seconds' % (N, N//8, time.time() - t))
 
@@ -120,7 +125,7 @@ def test():
     print('L = [None] * 1000000')
 
     t = time.time()
-    A = map(noop, L)
+    A = list(map(noop, L))
     print('\tmap(noop, L):\n\t\t%s seconds' % \
           (time.time() - t))
 
@@ -153,20 +158,20 @@ def test():
         raise AssertionError('expected ZeroDivisionError')
 
     try:
-        print(pool.map(f, range(10)))
+        print(pool.map(f, list(range(10))))
     except ZeroDivisionError:
         print('\tGot ZeroDivisionError as expected from pool.map()')
     else:
         raise AssertionError('expected ZeroDivisionError')
 
     try:
-        print(list(pool.imap(f, range(10))))
+        print(list(pool.imap(f, list(range(10)))))
     except ZeroDivisionError:
         print('\tGot ZeroDivisionError as expected from list(pool.imap())')
     else:
         raise AssertionError('expected ZeroDivisionError')
 
-    it = pool.imap(f, range(10))
+    it = pool.imap(f, list(range(10)))
     for i in range(10):
         try:
             x = next(it)
@@ -224,7 +229,7 @@ def test():
     r = pool.apply_async(mul, (7, 8), callback=A.append)
     r.wait()
 
-    r = pool.map_async(pow3, range(10), callback=A.extend)
+    r = pool.map_async(pow3, list(range(10)), callback=A.extend)
     r.wait()
 
     if A == B:

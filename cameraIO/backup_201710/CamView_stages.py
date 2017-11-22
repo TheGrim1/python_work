@@ -5,8 +5,12 @@ Created on Wed Jul 26 12:02:05 2017
 @author: OPID13
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -72,7 +76,7 @@ class motexplore_jul17(stage):
 
         # initializing the default COR at the current motor positions
         self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in self.stagegeometry['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeometry['COR_motors'].items())]
         
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
@@ -142,7 +146,7 @@ class sm3_oct17(stage):
         self.connect(specsession = specsession)
         # initializing the default COR at the current motor positions
         self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in self.stagegeometry['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeometry['COR_motors'].items())]
 
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
@@ -209,7 +213,7 @@ class phi_kappa_gonio(stage):
         # initializing the default COR at the current motor positions
         self.COR = {}
         print(self.stagegeometry['COR_motors'])
-        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in self.stagegeometry['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
 
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
@@ -257,7 +261,7 @@ class phi_kappa_gonio(stage):
 
         
         
-    def do_gonio_docu(self, phi_pos=[x*25.0 for x in range(725/25)], kappa_pos=[x*15.0-45 for x in range(90/15)]):
+    def do_gonio_docu(self, phi_pos=[x*25.0 for x in range(old_div(725,25))], kappa_pos=[x*15.0-45 for x in range(old_div(90,15))]):
 
 
         
@@ -339,7 +343,7 @@ class EH2_phi_kappa_gonio(stage):
         # initializing the default COR at the current motor positions
         self.COR = {}
         print(self.stagegeometry['COR_motors'])
-        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in self.stagegeometry['COR_motors'].items()]
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
 
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
@@ -483,8 +487,8 @@ class EH2_phi_kappa_gonio(stage):
         side=np.where(side>np.percentile(side,cutpercentilelist[1]),side,0)
         dummy, sideCOR, sideshift= cen.COR_from_sideview(sidelines, thetas=positions, mode='com', return_shift=True)
 
-        new_y = upshift/self.calibration[viewlist[0]][lookup_motors[0]]
-        new_x = sideshift/self.calibration[viewlist[1]][lookup_motors[1]]
+        new_y = old_div(upshift,self.calibration[viewlist[0]][lookup_motors[0]])
+        new_x = old_div(sideshift,self.calibration[viewlist[1]][lookup_motors[1]])
         
         mot0=lookup_motors[0]
         mot1=lookup_motors[1]
@@ -596,7 +600,7 @@ class EH2_cameras(stage):
 
 ## up:
 
-        positions= [x*2 for x in range(360/2)]
+        positions= [x*2 for x in range(old_div(360,2))]
         up = upstack.copy()
         up=np.asarray(up,dtype=np.int16)
         uplines = up[:,240:255,:]
@@ -609,8 +613,8 @@ class EH2_cameras(stage):
         side=np.where(side>np.percentile(side,90),side,0)
         dummy, sideCOR, sideshift= cen.COR_from_sideview(sidelines, thetas=positions, mode='com', return_shift=True)
 
-        new_y = upshift/stage.calibration['up']['y']
-        new_x = sideshift/stage.calibration['side']['x']
+        new_y = old_div(upshift,stage.calibration['up']['y'])
+        new_x = old_div(sideshift,stage.calibration['side']['x'])
         
         motor='phi'
         mot0='x'
@@ -625,8 +629,8 @@ class EH2_cameras(stage):
         ny = ny[np.where(pos>-360)]
         pos=pos[np.where(pos>-360)]
         
-        new_y = nx/stage.calibration['up']['y']
-        new_x = ny/stage.calibration['side']['x']
+        new_y = old_div(nx,stage.calibration['up']['y'])
+        new_x = old_div(ny,stage.calibration['side']['x'])
 
         pos = pos+360.0
 

@@ -1,11 +1,14 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import sys
 import os
-import commands
+import subprocess
 import numpy as np
 
-hostname = commands.getoutput('hostname')
+hostname = subprocess.getoutput('hostname')
 print("hostname:", hostname)
 if hostname not in  ["coherence","cristal","nanofocus"]:
     print('illegal host name')

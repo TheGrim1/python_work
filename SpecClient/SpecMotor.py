@@ -8,6 +8,7 @@ SpecMotorA -- class representing a motor in Spec, to be used with a GUI
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -25,7 +26,7 @@ import math
 (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
 (NOLIMIT, LOWLIMIT, HIGHLIMIT) = (0,2,4)
 
-class SpecMotorA:
+class SpecMotorA(object):
     """SpecMotorA class"""
     def __init__(self, specName = None, specVersion = None, callbacks={}, timeout=None):
         """Constructor
@@ -51,7 +52,7 @@ class SpecMotorA:
           'motorPositionChanged': None,
           'motorStateChanged': None
         }
-        for cb_name in self.__callbacks.iterkeys():
+        for cb_name in self.__callbacks.keys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 

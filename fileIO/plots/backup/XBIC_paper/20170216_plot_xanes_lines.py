@@ -1,5 +1,10 @@
+from __future__ import division
 
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,7 +66,7 @@ def main():
     data1      = data1[energyrange[0]:energyrange[1],:]
     order      = [(y - x) for [y,x] in dataheader[1::]]
 
-    order      = zip(order,range(1,len(order)+1))
+    order      = list(zip(order,list(range(1,len(order)+1))))
 
     dataordered= np.zeros(shape=data1.shape)
     order      = sorted(order)
@@ -76,12 +81,12 @@ def main():
     data1[:,1::] = nd.gaussian_filter1d(data1[:,1::],1)
     dataheader = newheader
     position = ['position x=%s, y = %s, l = %s' % (x,y,l) for [[y,x],l] in dataheader[1::]]
-    colorref = [(l-0.5)/10.0 for  [[y,x],l] in dataheader[1::]]
+    colorref = [old_div((l-0.5),10.0) for  [[y,x],l] in dataheader[1::]]
     cmap = plt.get_cmap('jet')
     
 #    print colorref
     for i in range(len(data1[1,1::])):
-        ax1.plot(energy2d, data1[:,i+1] + i/50.0, 'b-', label = position[i],color = cmap(colorref[i]), linewidth = 2)
+        ax1.plot(energy2d, data1[:,i+1] + old_div(i,50.0), 'b-', label = position[i],color = cmap(colorref[i]), linewidth = 2)
 #    ax1.legend()
 
     ax1.set_xticklabels(['{:d}'.format(int(x*1000)) for x in ax1.get_xticks()])

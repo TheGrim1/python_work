@@ -1,11 +1,14 @@
 from __future__ import print_function
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/save_h5.py
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import sys, os
 import h5py
 import numpy as np
 from nexusformat.nexus import *
-import commands
+import subprocess
 import gc
 
 # local import for testing:
@@ -157,7 +160,7 @@ def merge_h5(search_phrase='/data/id13/inhouse7/DATA',group='entry/data/data',sa
     and 
     merges all frames in the found .h5 files into on saved as save_name
     '''
-    out = commands.getoutput('ls %s' %search_phrase)
+    out = subprocess.getoutput('ls %s' %search_phrase)
     fname_list = [fname for fname in out.split('\n') if fname.endswith('.h5')]
 
     if verbose:

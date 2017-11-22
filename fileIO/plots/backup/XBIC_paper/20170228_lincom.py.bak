@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,15 +48,15 @@ def main(args):
     dataheader.insert(0,'energy [keV]')
     xaxis = np.atleast_1d(np.arange(xmin,xmax, (float(xmax-xmin))/(2*xlen)))
     fulldata = np.zeros(shape = (len(xaxis), len(dataheader)))
-    print xaxis.shape
-    print fulldata.shape
+    print(xaxis.shape)
+    print(fulldata.shape)
     fulldata[:,0] = xaxis
 
     for i, fname in enumerate(dataheader[1::]):
         dataset = datadict[fname]
         fulldata[:,i+1] = np.interp(xaxis, dataset[:,0], (dataset[:,1] - dataset[0,1]) )
 
-    print fulldata
+    print(fulldata)
 
 
     ### save the collected data
@@ -69,8 +70,8 @@ def main(args):
     xanesfname = '/tmp_14_days/johannes1/lincom/xanes_lines_few.dat'
     xanesdata, xanesheader = open_data(xanesfname, delimiter = '\t')
     xanesheader = xanesheader[0]
-    print xanesheader
-    print xanesdata.shape
+    print(xanesheader)
+    print(xanesdata.shape)
     xaxis = np.atleast_1d(xanesdata[:,0]*1000)
     plt.plot(xaxis,xanesdata[:,1::])
     plt.show()

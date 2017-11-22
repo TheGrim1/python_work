@@ -1,3 +1,4 @@
+from __future__ import print_function
 # this needs scipy.version.version >18.1 it runs on 
 # source /data/id13/inhouse6/COMMON_DEVELOP/py_andreas/aj_venv/bin/activate
 import sys, os
@@ -74,7 +75,7 @@ def _remove_peaks_on_file_level(inargs):
         
         # getting data input
         r = h5py.File(readfile,'r')
-        print 'reading file ', readfile
+        print('reading file ', readfile)
         peaks = np.asarray([np.asarray(r['peakXPosRaw']),np.asarray(r['peakYPosRaw']),np.asarray(r['peakTotalIntensity'])])
 
         # just the peaks, leave out the zeros
@@ -118,25 +119,25 @@ if __name__ == '__main__':
         if len(sys.argv)>2:
             min_distance = int(sys.argv[2])
         else:
-            print  'minimum distance defaults to 30'
+            print('minimum distance defaults to 30')
             min_distance = 30
         if len(sys.argv)>3:
             noprocesses = int(sys.argv[3])
         else:
-            print  'number of processes defaults to 4'
+            print('number of processes defaults to 4')
             noprocesses= 4
 
     else:
-        print 'please specify a npc dataoutput directory'
+        print('please specify a npc dataoutput directory')
         sys.exit()
-    print 'data_path ', data_path
+    print('data_path ', data_path)
     data_path_list = data_path.split(os.path.sep)
     # print 'data_path_list', data_path_list
     save_path_list = list(data_path_list)
     # print 'save_path_list[-2]', save_path_list[-2]
     save_path_list[-2] = save_path_list[-2] + '_min%sfiltered/' % min_distance
     save_path = os.path.sep.join(save_path_list)
-    print 'save_path ', save_path
+    print('save_path ', save_path)
     
     if not os.path.exists(save_path):
         os.mkdir(save_path)
@@ -146,7 +147,7 @@ if __name__ == '__main__':
 
     
     task_list = [[fname, min_distance, data_path, save_path] for fname in fnames]
-    print task_list[:10]
+    print(task_list[:10])
 
     #for task in task_list:
     #    _remove_peaks_on_file_level(task)

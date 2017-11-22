@@ -1,4 +1,7 @@
 from __future__ import print_function
+from builtins import input
+from builtins import range
+from builtins import object
 import collections
 from matplotlib import pyplot
 
@@ -39,7 +42,7 @@ class LUT_Anyberg(object):
         self.dynamiclut = {}
         self.motors = self.MDC
         # initial positions
-        pos_list = [(k,0) for k in self.MDC.keys()]
+        pos_list = [(k,0) for k in list(self.MDC.keys())]
         self.pos = dict(pos_list)
         
         # external to internal motorname translation
@@ -50,7 +53,7 @@ class LUT_Anyberg(object):
             fine_y = "y",
             fine_z = "z"
         )
-        tems = mto_lut.items()
+        tems = list(mto_lut.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
 
@@ -60,7 +63,7 @@ class LUT_Anyberg(object):
         '''
         return the translated dict of <{mot1_internal_name:pos, etc. }>  into <{mot1_external_name:pos, etc. }> 
         '''
-        tems = lut_dc.items()
+        tems = list(lut_dc.items())
         kdc = self.mto_eig
         stem = [(kdc[k],v) for (k,v) in tems]
         res = dict(stem)
@@ -71,9 +74,9 @@ class LUT_Anyberg(object):
         return the translated dict of <{mot1_external_name:pos, etc. }>  into <{mot1_internal_name:pos, etc. }> 
         filters for names listed in MDC
         '''
-        tems = eig_dc.items()
+        tems = list(eig_dc.items())
         kdc = self.mto_lut
-        stem = [(kdc[k],v) for (k,v) in tems if k in self.MDC.keys()]
+        stem = [(kdc[k],v) for (k,v) in tems if k in list(self.MDC.keys())]
         res = dict(stem)
         return res
 
@@ -96,8 +99,8 @@ class LUT_Anyberg(object):
         if self.motors[function]['is_rotation']:
             start_pos = start_pos % 360.0
             end_pos   = end_pos   % 360.0
-        if function in lookup.keys():
-            for mot in lookup[function].keys():
+        if function in list(lookup.keys()):
+            for mot in list(lookup[function].keys()):
                 if mot != function:
                     start_correction = np.interp(start_pos, lookup[function][function], lookup[function][mot])
                     end_correction   = np.interp(end_pos, lookup[function][function], lookup[function][mot])
@@ -113,12 +116,12 @@ class LUT_Anyberg(object):
         get outside update of the current positions
         TODO test: should accept ne.read_all_motic_pos() and select for all motors in self.MCD.keys()
         '''
-        tems = pos_dc.items()
+        tems = list(pos_dc.items())
         kdc = self.mto_lut
-        stem = [(kdc[k],float(v)) for (k,v) in tems if k in self.MDC.keys()]
+        stem = [(kdc[k],float(v)) for (k,v) in tems if k in list(self.MDC.keys())]
         res = dict(stem)
         self.pos.update(res)
-        for mot in self.dynamiclut.keys():
+        for mot in list(self.dynamiclut.keys()):
             self.dynamiclut[mot].mockup_currpos.update(res)
         print('updated the currentposition to the lookuptabe interface')
         print(res)
@@ -136,12 +139,12 @@ class LUT_Anyberg(object):
         self.lut_fnames.update({lut_motor:fname})
             
     def save_lut(self, function, savename=None):
-        data   = np.zeros(shape = (len(self.lookup[function][function]),len(self.lookup[function].keys())))
+        data   = np.zeros(shape = (len(self.lookup[function][function]),len(list(self.lookup[function].keys()))))
 
         if not type(savename) == type('asfd'):
             savename = (self.lut_fnames[function])
                         
-        unsorted_header = self.lookup[function].keys()
+        unsorted_header = list(self.lookup[function].keys())
         header    = []
         header.append(unsorted_header.pop(unsorted_header.index(function)))
         header   += unsorted_header
@@ -152,7 +155,7 @@ class LUT_Anyberg(object):
                 
     def plot_lut(self, motor='phi', plot_motors=None):
         lut = self.lookup[motor]
-        for mot in lut.keys():
+        for mot in list(lut.keys()):
             if not mot==motor:
                 dummy, ax1 = plt.subplots(1) 
                 ax1.set_title('%s vs %s'%(mot,motor))                              
@@ -167,10 +170,10 @@ class LUT_Anyberg(object):
         # we have to add or update the values to the old lookup
 
 
-        if motor not in self.lookup.keys():
+        if motor not in list(self.lookup.keys()):
             self.lookup.update({motor:{}})
         positions = shift_lookup.pop(motor)
-        lookup_motors = shift_lookup.keys()
+        lookup_motors = list(shift_lookup.keys())
         
         if self.motors[motor]['is_rotation']:
             positions=np.asarray(positions)
@@ -286,7 +289,7 @@ class LUT_Anyberg(object):
         '''
         print('overwriting lookup for %s with:' % lookupmotor)
         lookup_motors = []
-        for mot,values in self.tmp_lookup[lookupmotor].items():
+        for mot,values in list(self.tmp_lookup[lookupmotor].items()):
             lookup_motors.append(mot)
             print(mot)
             print(values)
@@ -317,15 +320,15 @@ class LUT_Anyberg(object):
         tmp_lut = self.tmp_lookup[lookupmotor]
 
 
-        for mk in self.lookup.keys():
+        for mk in list(self.lookup.keys()):
             if not mk == lookup_motor:
                 target_pos = self.motors[mk]['default_pos']
                 start_pos = self.wm(mk)
                 corr = self.get_lut_correction(mk, start_pos, target_pos, dynamic=True)
-                for (k,v) in corr.items():
+                for (k,v) in list(corr.items()):
                     motor_dc[k] += v
         
-        for mot in self.tmp_lookup[lookupmotor].keys():
+        for mot in list(self.tmp_lookup[lookupmotor].keys()):
             tmp_lut[mot].append(motor_dc[mot]) 
 
     def shift_COR_of_lut(self,
@@ -357,7 +360,7 @@ class LUT_Anyberg(object):
             
     def show_lut(self):
         lc = self.lookup
-        for (k,lut) in lc.iteritems():
+        for (k,lut) in lc.items():
             print(k, lut)
 
     def dummy_mv(self, mk, pos):
@@ -375,7 +378,7 @@ class LUT_Anyberg(object):
     def corrected_move(self, mk, target_pos, dynamic=False):
         self.sync_pos()
         start_pos = self.pos[mk]
-        if mk in self.lookup.keys():
+        if mk in list(self.lookup.keys()):
             self.dummy_mv(mk, target_pos)
             corr = self.get_lut_correcton(mk, start_pos, target_pos, dynamic=dynamic)
             self.multiple_mvr(corr)
@@ -383,11 +386,11 @@ class LUT_Anyberg(object):
             self.dummy_mv(mk, target_pos)
 
     def multiple_mvr(self, target_pos):
-        for (k,v) in target_pos.iteritems():
+        for (k,v) in target_pos.items():
             self.dummy_mvr(k,v)
             
     def multiple_mv(self, target_pos):
-        for (k,v) in target_pos.iteritems():
+        for (k,v) in target_pos.items():
             self.dummy_mv(k,v)
 
 
@@ -442,7 +445,7 @@ class LUT_Navitar(LUT_Anyberg):
         self.dynamiclut = dict()
         self.motors = self.MDC
         # initial positions
-        pos_list = [(k,0) for k in self.MDC.keys()]
+        pos_list = [(k,0) for k in list(self.MDC.keys())]
         self.pos = dict(pos_list)
         
         # external to internal motername translation
@@ -453,7 +456,7 @@ class LUT_Navitar(LUT_Anyberg):
             y = "y",
             z = "z"
         )
-        tems = mto_lut.items()
+        tems = list(mto_lut.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
 
@@ -461,7 +464,7 @@ class LUT_Navitar(LUT_Anyberg):
         '''
         load all lookuptables and link the dynamic lookups
         '''
-        for function in self.lut_fnames.keys():
+        for function in list(self.lut_fnames.keys()):
             self.load_lut(self.lut_fnames[function])
 
         print("luts loaded")
@@ -518,7 +521,7 @@ class LUT_Feldberg(LUT_Anyberg):
         self.dynamiclut = dict()
         self.motors = self.MDC
         # initial positions
-        pos_list = [(k,0) for k in self.MDC.keys()]
+        pos_list = [(k,0) for k in list(self.MDC.keys())]
         self.pos = dict(pos_list)
         
         # external to internal motername translation
@@ -529,7 +532,7 @@ class LUT_Feldberg(LUT_Anyberg):
             fine_y = "y",
             fine_z = "z"
         )
-        tems = mto_lut.items()
+        tems = list(mto_lut.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
 
@@ -537,7 +540,7 @@ class LUT_Feldberg(LUT_Anyberg):
         '''
         load all lookuptables and link the dynamic lookups
         '''
-        for function in self.lut_fnames.keys():
+        for function in list(self.lut_fnames.keys()):
             self.load_lut(self.lut_fnames[function])
 
         print("luts loaded")
@@ -612,7 +615,7 @@ def _test2():
         pl_d.plotrx()
         pl_d.plotry()
 
-    raw_input('...')
+    input('...')
 
 
 def _test1():

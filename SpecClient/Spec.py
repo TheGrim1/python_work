@@ -5,6 +5,7 @@ a Python object
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
@@ -13,7 +14,7 @@ from . import SpecEventsDispatcher
 from . import SpecCommand
 from . import SpecWaitObject
 
-class Spec:
+class Spec(object):
     """Spec objects provide remote Spec facilities to the connected client."""
 
     @property
@@ -66,8 +67,8 @@ class Spec:
 
             motorMne = get_motor_mnemonics()
             motorList = [None]*len(motorMne)
-            for motor_index, motor_dict in motorMne.iteritems():
-                mne, name = motor_dict.items()[0]
+            for motor_index, motor_dict in motorMne.items():
+                mne, name = list(motor_dict.items())[0]
                 motorList[int(motor_index)]={"mne": mne, "name": name }
             return motorList
         else:
@@ -94,8 +95,8 @@ class Spec:
 
             counterMne = get_counter_mnemonics()
             counterList = [None]*len(counterMne)
-            for counter_index, counter_dict in counterMne.iteritems():
-                mne, name = counter_dict.items()[0]
+            for counter_index, counter_dict in counterMne.items():
+                mne, name = list(counter_dict.items())[0]
                 counterList[int(counter_index)]={"mne": mne, "name": name }
             return counterList
         else:

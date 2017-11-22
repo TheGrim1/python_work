@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 g
 from pynx.ptycho.runner.id13 import PtychoRunnerScanID13, params
 print('Import OK')
@@ -28,7 +30,7 @@ def main():
     #params['moduloframe'] =2,0      # Take only half frames (faster, less memory used)
     params['maxsize'] = 256         # Use only 256 pixels (faster, less memory used)
     beamcenter = (580,1378)
-    halfsize   = int(params['maxsize'] / 2)
+    halfsize   = int(old_div(params['maxsize'], 2))
     params['roi'] =  beamcenter[0] - halfsize , beamcenter[0] + halfsize, beamcenter[1] - halfsize, beamcenter[1]+ halfsize     # xmin, xmax, ymin, ymax. Data is partially corrupted so use manual ROI
 
     ws = PtychoRunnerScanID13(params, params['scan'])

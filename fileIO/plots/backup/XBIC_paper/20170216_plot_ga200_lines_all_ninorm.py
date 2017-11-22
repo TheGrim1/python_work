@@ -1,5 +1,10 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 import h5py
 import numpy as np
@@ -29,7 +34,7 @@ def main():
     for i, y in enumerate(np.where(ni200mask)[0]):
         x = np.where(ni200mask)[1][i]
         norm += ni200[y,x,:]
-    norm = norm/np.max(norm)
+    norm = old_div(norm,np.max(norm))
     norm = np.atleast_1d(norm)
 
 
@@ -37,7 +42,7 @@ def main():
     ga200     = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/data'])[::-1,::-1,:]
 
     ga200_norm= np.asarray(h5f200['/detectorsum/Ga-K_norm/data'])[::-1,::-1,:]
-    ga200_ninorm = np.asarray(h5f200['/detectorsum/Ga-K/data'])[::-1,::-1,:] / np.where(norm >0, norm, 1)
+    ga200_ninorm = old_div(np.asarray(h5f200['/detectorsum/Ga-K/data'])[::-1,::-1,:], np.where(norm >0, norm, 1))
     
     step200   = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_step'])[::-1,::-1]
     edge200   = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/xanes_edge'])[::-1,::-1]
@@ -93,7 +98,7 @@ def main():
     data1      = data1[energystart:energyend,:]
     order      = [(y - x) for [y,x] in dataheader[1::]]
 
-    order      = zip(order,range(1,len(order)+1))
+    order      = list(zip(order,list(range(1,len(order)+1))))
 
     dataordered= np.zeros(shape=data1.shape)
     order      = sorted(order)
@@ -106,7 +111,7 @@ def main():
     data1[:,1::] = dataordered[:,1::]
     dataheader = newheader
     positionlabel = ['position x=%s, y = %s, l = %s' % (x,y,l) for [[y,x],l] in dataheader[1::]]
-    colorref = [(l-0.5)/10.0 for  [[y,x],l] in dataheader[1::]]
+    colorref = [old_div((l-0.5),10.0) for  [[y,x],l] in dataheader[1::]]
     cmap = plt.get_cmap('coolwarm')
    
 

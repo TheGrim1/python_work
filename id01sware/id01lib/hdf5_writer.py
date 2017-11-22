@@ -1,9 +1,15 @@
 from __future__ import print_function
+from __future__ import division
 # script for reading edf into hdf5 using xrayutilities / pymca 
 # SJL - 20150114
 
 #import xrayutilities as xu #obsolete now use pymca
 #import silx.io.specfilewrapper as sfwr
+from builtins import zip
+from builtins import map
+from builtins import input
+from builtins import range
+from past.utils import old_div
 from PyMca5 import specfilewrapper as sfwr
 from PyMca5.PyMca import EdfFile
 from PyMca5.PyMca import ArraySave
@@ -55,7 +61,7 @@ def print_hdf5_item_structure(g, offset='    ') :
         sys.exit ( "EXECUTION IS TERMINATED" )
  
     if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
-        for key,val in dict(g).items() :
+        for key,val in list(dict(g).items()) :
             subg = val
             #print(offset, key, end=' ') #,"   ", subg.name #, val, subg.len(), type(subg),
             print_hdf5_item_structure(subg, offset + '    ')
@@ -88,10 +94,10 @@ def create_groups_skeleton_h5(h5file,scan_no):
 def add_user_attrs(h5file):
     # name/ address/ email/ telephone_no 
     h5file.create_group('/user')
-    h5file['user'].attrs.create('expt_id',input('input expt_id: '))
-    h5file['user'].attrs.create('name',input('input name: '))
-    h5file['user'].attrs.create('email',input('input email: '))
-    h5file['user'].attrs.create('comments',input('any other comments: '))
+    h5file['user'].attrs.create('expt_id',eval(input('input expt_id: ')))
+    h5file['user'].attrs.create('name',eval(input('input name: ')))
+    h5file['user'].attrs.create('email',eval(input('input email: ')))
+    h5file['user'].attrs.create('comments',eval(input('any other comments: ')))
     
 def add_setup_specific_attrs(h5file):
     # beamline layout
@@ -189,7 +195,7 @@ def create_hdf5(specfile='.spec', image_prefix='', image_suffix='.edf.gz',
                 ID01_h5['scan_%.4i/data/image_data'%scan].resize((i+1,im_dim[0],im_dim[1]))
                 #print i,' / ', scanlength
                 sys.stdout.write('\r')
-                sys.stdout.write("scan %i - progress: %.2f%%"%(scan,(float(i)/float(scanlength))*100))
+                sys.stdout.write("scan %i - progress: %.2f%%"%(scan,(old_div(float(i),float(scanlength)))*100))
                 sys.stdout.flush()
                 
                 efile = imagedir+image_prefix+sigfig%im_no+image_suffix
@@ -262,7 +268,7 @@ def generate_h5_10k(dir='./',prefix = 'data_',suffix = '.edf.gz',format = '%.4i'
         """
         for j in range(n_file):
             sys.stdout.write('\r')
-            sys.stdout.write("progress: %.2f%%"%((float(j)/float(n_file))*100))
+            sys.stdout.write("progress: %.2f%%"%((old_div(float(j),float(n_file)))*100))
             sys.stdout.flush()
             try:
                 number=j+i
@@ -339,7 +345,7 @@ def create_hdf5_mnecounter(specfile = '.spec',image_prefix = '',specdir = '',ima
             ID01_h5['scan_%.4i/data/image_data'%scan].resize((i+1,im_dim[0],im_dim[1]))
             #print i,' / ', scanlength
             sys.stdout.write('\r')
-            sys.stdout.write("progress: %.2f%%"%((float(i)/float(scanlength))*100))
+            sys.stdout.write("progress: %.2f%%"%((old_div(float(i),float(scanlength)))*100))
             sys.stdout.flush()
             efile = imagedir+image_prefix+"_%05d.edf"%im_no
             e = EdfFile.EdfFile(efile)#, path=specdir)
@@ -444,7 +450,7 @@ def create_hdf5_kmap(specfile = '.spec',image_prefix = '',specdir = '',
             ID01_h5['scan_%.4i/data/image_data'%scan].resize((i+1,im_dim[0],im_dim[1]))
             #print i,' / ', scanlength
             sys.stdout.write('\r')
-            sys.stdout.write("progress: %.2f%%"%((float(i)/float(scanlength))*100))
+            sys.stdout.write("progress: %.2f%%"%((old_div(float(i),float(scanlength)))*100))
             sys.stdout.flush()
             efile = imagedir+image_prefix+"_%05d.edf"%im_no
             e = EdfFile.EdfFile(efile)#, path=specdir)
@@ -639,7 +645,7 @@ def edfmf2hdf5(fn):
                                                    compression='gzip',)
     #                                                   compression_opts=9)
 
-    h5file['user'].attrs.create('expt_id',input('input expt_id: '))
+    h5file['user'].attrs.create('expt_id',eval(input('input expt_id: ')))
     for i in range(nImages):
         print((i+1,':',nImages))
         data = edf.GetData(i)
@@ -679,7 +685,7 @@ def edfsmf2hdf5(fns,out_fn=""):
         for j in range(nImages):
             #print i*nImages+j+1,':',nImages*len(fns)
             sys.stdout.write('\r')
-            sys.stdout.write("progress: %.2f%%"%((float(i*nImages+j+1)/float(nImages*len(fns)))*100))
+            sys.stdout.write("progress: %.2f%%"%((old_div(float(i*nImages+j+1),float(nImages*len(fns))))*100))
             sys.stdout.flush()
             imagedata = edf.GetData(j)
             dataset_images[i*nImages+j, :, :] = imagedata
@@ -698,11 +704,11 @@ def make_ff_h5(ff_class, fn='ff.h5', save_raw_ims=False):
 	try:
 		os.listdir(ff_class.ff_path).index(fn)
 		print("File exists")
-		q=input("would you like to overwrite it? [y/n]")
+		q=eval(input("would you like to overwrite it? [y/n]"))
 		if q=='y':
 			ff_h5 = h5py.File(ff_class.ff_path+fn,'w') 
 		else:
-			new_fn = input("New filename: ")
+			new_fn = eval(input("New filename: "))
 			ff_h5 = h5py.File(ff_class.ff_path+fn,'w')
 
 	except ValueError:

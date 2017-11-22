@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 40})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -204,8 +206,8 @@ xbicavg = np.zeros(shape = (len(xbic[:,0]),2))
 xanesavg[:,0] = xanes[:,0]
 xbicavg[:,0] = xbic[:,0]
 
-xanesavg[:,1] = np.sum(xanes[:,1::], axis = -1) /len(xanes[0,1::])
-xbicavg[:,1] = np.sum(xbic[:,1::], axis = -1)      /len(xbic[0,1::])
+xanesavg[:,1] = old_div(np.sum(xanes[:,1::], axis = -1),len(xanes[0,1::]))
+xbicavg[:,1] = old_div(np.sum(xbic[:,1::], axis = -1),len(xbic[0,1::]))
 
 xanesavg[:,1]=xanesavg[:,1]/np.max(xanesavg[:,1])*1.5
 xbicavg[:,1]=xbicavg[:,1]/np.max(xbicavg[:,1])*1.5

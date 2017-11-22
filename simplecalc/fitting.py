@@ -9,7 +9,10 @@ do_gauss_fit(data)
 do_logistic_fit(data)
 '''
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import scipy.odr
 import scipy.optimize as optimize
@@ -75,7 +78,7 @@ def general_logistic_func(p, t):
     p[3] = sigma (approx)
     '''
     
-    return p[0] / (1 + math.e**(-(0.5*np.pi/p[3])*(t-p[2]))) + p[1]
+    return old_div(p[0], (1 + math.e**(-(0.5*np.pi/p[3])*(t-p[2])))) + p[1]
 
 def do_logistic_fit(data, verbose = False):
 
@@ -133,7 +136,7 @@ def error_func(p,t):
 
     
     # A&S formula 7.1.26
-    r = 1.0/(1.0 + a6*t)
+    r = old_div(1.0,(1.0 + a6*t))
     y = 1.0 - (((((a5*r + a4)*r) + a3)*r + a2)*r + a1)*r*math.exp(-t*t)
 
     return sign*y # erf(-x) = -erf(x)
@@ -145,7 +148,7 @@ def gauss_func(p, t):
     p1 = mu
     p2 = sigma
     '''
-    return p[0]*(1/math.sqrt(2*math.pi*(p[2]**2)))*math.e**(-(t-p[1])**2/(2*p[2]**2))
+    return p[0]*(old_div(1,math.sqrt(2*math.pi*(p[2]**2))))*math.e**(old_div(-(t-p[1])**2,(2*p[2]**2)))
 
 def do_gauss_fit(data, verbose = False):
     
@@ -329,8 +332,8 @@ def poisson_func(p,t):
     print('p[1] ', p[1])
     print('np.math.factorial(p[0]) ', np.math.factorial(p[0]))
     print('np.exp(-t) ', np.exp(-t))
-    print('p[1](t**p[0]/np.math.factorial(p[0]))* np.exp(-t)\n', p[1] * (t**p[0]/np.math.factorial(p[0]))* np.exp(-t))
-    return p[1] * (t**p[0]/np.math.factorial(p[0]))* np.exp(-t)
+    print('p[1](t**p[0]/np.math.factorial(p[0]))* np.exp(-t)\n', p[1] * (old_div(t**p[0],np.math.factorial(p[0])))* np.exp(-t))
+    return p[1] * (old_div(t**p[0],np.math.factorial(p[0])))* np.exp(-t)
 
 def do_poisson_fit(data, verbose=False):
     '''

@@ -7,7 +7,12 @@ sent to Spec.
 It handles the different message versions (headers 2, 3 and 4).
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -99,9 +104,9 @@ def dictionarytoraw(dict):
     """Transform a Python dictionary object to the string format
     expected by Spec"""
     data = ""
-    for key, val in dict.items():
+    for key, val in list(dict.items()):
         if type(val) == dict:
-            for kkey, vval in val.iteritems():
+            for kkey, vval in val.items():
                 if kkey is None:
                   data += str(key) + NULL + str(vval) + NULL
                 else:
@@ -112,7 +117,7 @@ def dictionarytoraw(dict):
     return (len(data) > 0 and data) or NULL
 
 
-class SpecMessage:
+class SpecMessage(object):
     """Base class for messages."""
     def __init__(self, packedHeader):
         """Constructor
@@ -306,7 +311,7 @@ class message2(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #rint 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'name=', str(self.name)
-        self.time = self.sec + float(self.usec) / 1E6
+        self.time = self.sec + old_div(float(self.usec), 1E6)
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         return (datatype, datalen)
@@ -363,7 +368,7 @@ class message3(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, self.err, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #print 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'name=', str(self.name)
-        self.time = self.sec + float(self.usec) / 1E6
+        self.time = self.sec + old_div(float(self.usec), 1E6)
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         if self.err > 0:
@@ -424,7 +429,7 @@ class message4(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, self.err, self.flags, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #print 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'flags=', self.flags, 'name=', str(self.name)
-        self.time = self.sec + float(self.usec) / 1E6
+        self.time = self.sec + old_div(float(self.usec), 1E6)
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         if self.err > 0:

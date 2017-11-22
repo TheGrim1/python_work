@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,time,sys
 import struct
 import numpy as np
@@ -115,14 +116,14 @@ def launch_live_viewer(devname):
         devnum= int(devname[3])
         cp = USBCameras()
         test = cp.grab_image(devnum)
-        print 'test image shape = ', test.shape
+        print('test image shape = ', test.shape)
         
     else:
         cp = ETHCameras([devname])
         # get test image to init:
         devnum = 1
         test = cp.grab_image(devnum)
-        print 'test image shape = ', test.shape
+        print('test image shape = ', test.shape)
 
         
     v = Viewer(cp=cp, num=int(devnum))
@@ -133,7 +134,7 @@ def main():
     args = sys.argv[1:]
     devn = args[0]
     if not int(devn) in (1,2):
-        print "camera selection can be only 1 or 2"
+        print("camera selection can be only 1 or 2")
         sys.exit(1)
     devname = "id13/limaccds/eh2-vlm%1d" % int(devn)
     cp = CameraProxy(devname=devname)

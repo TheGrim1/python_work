@@ -1,6 +1,9 @@
 from __future__ import print_function
+from __future__ import division
 
 # global imports
+from builtins import range
+from past.utils import old_div
 from multiprocessing import Pool
 import sys, os
 import matplotlib.pyplot as plt
@@ -61,7 +64,7 @@ def integrator(inargs):
                                                                 group,
                                                                 taken_time,
                                                                 my_pid))
-        print('thats %s files per s' % (no_frames / taken_time))
+        print('thats %s files per s' % (old_div(no_frames, taken_time)))
     
     f.close()
 
@@ -94,7 +97,7 @@ def integrate1d(args = ['/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc44
     print('opening file %s' % fname)
     f = h5py.File(fname,'r')
     basegroup = 'entry/data/'
-    group_list = f[basegroup].keys()
+    group_list = list(f[basegroup].keys())
     group_list.sort()
     frames_per_file = f[basegroup+group_list[0]].shape[0]
     last_frames = f[basegroup+group_list[-1]].shape[0]
@@ -125,7 +128,7 @@ def integrate1d(args = ['/data/id13/inhouse6/THEDATA_I6_1/d_2016-12-09_user_sc44
     if timeing == True:
         taken_time = time.time()-t
         print('%s frames took %s s' % (no_frames, taken_time))
-        print('thats %s files per s' % (no_frames / taken_time))
+        print('thats %s files per s' % (old_div(no_frames, taken_time)))
     
     ### initialize the save_file
     if os.path.exists(savefname):

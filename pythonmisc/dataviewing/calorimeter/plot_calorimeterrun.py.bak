@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,7 +56,7 @@ def subtract_test(oldheader ,data , empty):
         newdata[:,3]    = data[:,1]-empty[:,1]
 
     except IndexError:
-        print "Index Error\n%s (data) and the normalisation (empty chip) don't have the same shape" %(oldheader[1])
+        print("Index Error\n%s (data) and the normalisation (empty chip) don't have the same shape" %(oldheader[1]))
 
     return (newheader,newdata)
 
@@ -84,7 +85,7 @@ def subtract_empty(oldheader ,data , empty):
             newheader.append("dT_"+oldheader[i])
 
     except IndexError:
-        print "Index Error\n%s (data) and the normalisation (empty chip) don't have the same shape" %(oldheader[1])
+        print("Index Error\n%s (data) and the normalisation (empty chip) don't have the same shape" %(oldheader[1]))
 
     return (newheader,newdata)
 
@@ -121,8 +122,8 @@ def change_time_to_temp(reference, header, data, upordown):
     
     datarange = [x for x in range(data.shape[0]) if data[x,0] >= timerange[0] and data[x,0] <= timerange[1]]
     
-    print "datarange = "
-    print datarange
+    print("datarange = ")
+    print(datarange)
 
     tandT   = np.zeros(shape=(len(datarange),2))
     newdata = np.zeros(shape=(len(datarange),data.shape[1]))
@@ -157,7 +158,7 @@ def save(header,data, title="Title", path= ""):
 # save data to file header[1].txt
 
     try:
-        print "writing file " + header[1]
+        print("writing file " + header[1])
         f = open(os.path.sep.join([path,"modified_data",header[1]]), "w")
         try:
             tbw=[]
@@ -173,14 +174,14 @@ def save(header,data, title="Title", path= ""):
         finally:
             f.close()
     except ValueError:
-        print "could not write file %s , quitting" %  os.path.sep.join([path,"modified_data",header[1]])
+        print("could not write file %s , quitting" %  os.path.sep.join([path,"modified_data",header[1]]))
         sys.exit(0)
 
 def read_own_datafile(filelist):
     col   = 0
     fname = filelist[0]
     try:
-        print("reading processed datafile %s") % (fname)
+        print(("reading processed datafile %s") % (fname))
         f            = open(fname)
         cfg          = f.readlines()
 
@@ -204,7 +205,7 @@ def read_own_datafile(filelist):
             
         f.close()
     except IndexError: 
-        print "Error reading own datafile %s " % fname
+        print("Error reading own datafile %s " % fname)
 
     return header,data
 
@@ -244,7 +245,7 @@ def read_calorimeter_datafiles(filelist):
 
             f.close()
         except IndexError: 
-            print "Error reading %s " % fname
+            print("Error reading %s " % fname)
     
 #    print data
     return header,data
@@ -272,7 +273,7 @@ if __name__ == '__main__':
         if len(sys.argv) > 1:
             if sys.argv[1].find("-f")!= -1:
                 filename = sys.argv[2]
-                print "opeining file %s" % filname
+                print("opeining file %s" % filname)
                 f = open(filename) 
                 for line in f:
                     args.append(line.rstrip())
@@ -283,7 +284,7 @@ if __name__ == '__main__':
             for line in f:
                 args.append(line.rstrip())
     except:
-        print 'usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"'
+        print('usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"')
         sys.exit(1)
 #    print "args passed:"
     main(args)

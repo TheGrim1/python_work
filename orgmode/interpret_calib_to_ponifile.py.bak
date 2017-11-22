@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import ast
@@ -23,7 +24,7 @@ def read_calibtext(fname):
     f = open(fname,"r")
     caliblist=f.readlines()
     if len(caliblist)!=2:
-        print "ERROR on %s \nthis file has not got exactly two lines" % fname
+        print("ERROR on %s \nthis file has not got exactly two lines" % fname)
     else:
         poni = reformat_calibline(caliblist)
     f.close()
@@ -36,10 +37,10 @@ def main(args):
 
     for fname in args:
         if fname.endswith(".txt") and fname.find("calib")!=-1:    
-            print "poni for file %s" % fname
+            print("poni for file %s" % fname)
             
             poniline = read_calibtext(os.path.realpath(fname))
-            print poniline
+            print(poniline)
         
             g = open(fname.rstrip(".txt")+".poni","w")
             g.writelines("%s" % l for l in poniline)

@@ -74,6 +74,9 @@
 from __future__ import print_function
 
 
+from builtins import map
+from builtins import str
+from builtins import range
 import os
 import sys
 import gzip
@@ -243,7 +246,7 @@ class Scan(h5py.Group):
 
         for i in range(edf.NumImages):
             d["data"].append(edf.GetData(i))
-            for (k,v) in itertools.chain(edf.GetHeader(i).items(), edf.GetStaticHeader(i).items()):
+            for (k,v) in itertools.chain(list(edf.GetHeader(i).items()), list(edf.GetStaticHeader(i).items())):
                 d[k].append(v)
 
         d["data"] = np.array(d["data"]) # now only metadata
@@ -276,7 +279,7 @@ class Scan(h5py.Group):
             # rocess metadata
             others = detector.create_group("others")
             #_makedefaults(others, det["others"]) # creates non-resizable stuff
-            for name, value in d.items(): # copy all metadata
+            for name, value in list(d.items()): # copy all metadata
                 if self.debug:
                     print(name)
                 if name in _edf_header_types:
@@ -312,7 +315,7 @@ class Scan(h5py.Group):
                 print("New dataset size: %ix%ix%i"%detector["data"].shape)
             # process metadata
             others = detector["others"]
-            for name, value in d.items(): # copy all metadata
+            for name, value in list(d.items()): # copy all metadata
                 if name not in others:
                     continue
                 if name in _edf_header_types:
@@ -385,7 +388,7 @@ class Scan(h5py.Group):
             detector["data"][-shape[0]:] = data
 
             others = detector["others"]
-            for name, value in det["others"].items(): # copy all metadata
+            for name, value in list(det["others"].items()): # copy all metadata
                 newlen = others[name].shape[0] + value.shape[0]
                 others[name].resize((newlen,)) # strictly 1d
                 others[name][-value.shape[0]:] = value
@@ -404,8 +407,8 @@ class Scan(h5py.Group):
         data = self["measurement"].get(image, None)
         if data is None:
             raise ValueError("Image `%s` not found in scan."%image)
-        xmin, xmax = map(int, sorted((xmin, xmax)))
-        ymin, ymax = map(int, sorted((ymin, ymax)))
+        xmin, xmax = list(map(int, sorted((xmin, xmax))))
+        ymin, ymax = list(map(int, sorted((ymin, ymax))))
         roi = data[:,ymin:ymax, xmin:xmax].sum((1,2)) # y is the first image dimension
         if store:
             if roinum is not None:
@@ -638,7 +641,7 @@ class Sample(h5py.Group):
                 raise TypeError("Input type not supported: %s"%str(type(specfile)))
 
         if not numbers:
-            numbers = s5f.keys()
+            numbers = list(s5f.keys())
         if isinstance(numbers[0], int):
             scannos = [(i-1) for i in numbers]
         else:
@@ -671,7 +674,7 @@ class Sample(h5py.Group):
         times = collections.OrderedDict()
         imgfiles = []
         firstimg = dict()
-        for name, scan in self.items():
+        for name, scan in list(self.items()):
             starttime = scan.get("start_time", False)
             if not starttime:
                 continue
@@ -680,9 +683,9 @@ class Sample(h5py.Group):
             scanimages = scan.get('measurement/image_files', [])
             if not scanimages:
                 continue
-            imgfiles.extend(map(os.path.basename, scanimages))
+            imgfiles.extend(list(map(os.path.basename, scanimages)))
 
-        _alltimes = np.array(times.values())
+        _alltimes = np.array(list(times.values()))
         _allscans = list(times)
 
         # now process all images in image_dir that are not in imgfiles
@@ -721,7 +724,7 @@ class Sample(h5py.Group):
                 destg = scan[dest]
 
                 skipit = False
-                for grp in destg.values():
+                for grp in list(destg.values()):
                     if path in grp.get("image_files", []):
                         skipit = True
                 if skipit:

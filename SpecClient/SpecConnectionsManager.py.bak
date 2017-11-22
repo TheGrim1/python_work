@@ -12,6 +12,7 @@ Classes :
   _ThreadedSpecConnectionsManager
   _SpecConnectionsManager
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
@@ -22,8 +23,8 @@ import weakref
 import sys
 import gc
 
-import SpecConnection
-import SpecEventsDispatcher
+from . import SpecConnection
+from . import SpecEventsDispatcher
 
 _SpecConnectionsManagerInstance = None
 

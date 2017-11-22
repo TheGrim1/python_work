@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy.ndimage as nd
 #from silx.image import sift
@@ -63,7 +64,7 @@ def crosscorrelation_align_1d(imagestack, axis = 1):
     shift=[]
     reference = np.copy(imagestack[0])
     for i in range(imagestack.shape[0]):
-        print 'aligning 0 with %s' %i
+        print('aligning 0 with %s' %i)
 
         (imagestack[i], ishift) = single_correlation_align_1d(reference,
                                                               imagestack[i],
@@ -82,7 +83,7 @@ def crosscorrelation_align(imagestack):
     shift=[]
     reference = np.copy(imagestack[0])
     for i in range(imagestack.shape[0]):
-        print 'aligning 0 with %s' %i
+        print('aligning 0 with %s' %i)
 
         (imagestack[i], ishift) = single_correlation_align(reference,
                                                            imagestack[i])
@@ -107,8 +108,8 @@ the image!'''
     xstepforce = (maxforce + minforce) / len(imagestack[0,:,0])
     ystepforce = (maxforce + minforce) / len(imagestack[0,0,:])
 
-    print 'alignment = '
-    print alignment
+    print('alignment = ')
+    print(alignment)
     if alignment[0]:
         x = np.atleast_2d(np.arange(minforce, maxforce, xstepforce)).T        
         x = x[::-alignment[0]]
@@ -123,8 +124,8 @@ the image!'''
     
     if any(alignment):
         potential = x * y
-        print 'potential.shape = '
-        print potential.shape
+        print('potential.shape = ')
+        print(potential.shape)
         reference = np.copy(imagestack[0])
     else:
         reference = np.copy(imagestack[0])
@@ -133,7 +134,7 @@ the image!'''
 
 # run over all including reference to apply the forcing evenly, repeated runs may continue to shift the image!
     for i in range(imagestack.shape[0]):
-        print 'aligning 0 with %s' %i
+        print('aligning 0 with %s' %i)
         
         forcedalign = np.copy(imagestack[i]) * potential
 
@@ -163,14 +164,14 @@ def single_correlation_align_1d(reference, image, axis = 1):
     shifts image to the maximum
     returns (image, shift)
     '''
-    print 'cpu_count() = %d\n' % multiprocessing.cpu_count()
+    print('cpu_count() = %d\n' % multiprocessing.cpu_count())
 
     #
     # Create pool
     #
 
     PROCESSES = multiprocessing.cpu_count()
-    print 'Creating pool with %d processes\n' % PROCESSES
+    print('Creating pool with %d processes\n' % PROCESSES)
     pool = multiprocessing.Pool(PROCESSES)
 
     shift       = np.zeros(reference.ndim)
@@ -353,14 +354,14 @@ def real_from_rel(frame,data,shift = [1,1]):
     shift[1] = -shift[1]
     
     frames = np.arange(data.size)
-    print frames
+    print(frames)
 #    print shift
     frames = frames.reshape(data.shape)
-    print frames
+    print(frames)
     frames = nd.shift(frames,shift,cval = -1)
-    print frames
+    print(frames)
     frames = frames.flatten()
-    print frames[frame]
+    print(frames[frame])
     
     return frames[frame]
 
@@ -385,7 +386,7 @@ def image_align(imagestack, mode = {'mode':'sift'}):
     elif mode['mode'] == 'crosscorrelation_1d':
         (imagestack, shift) = crosscorrelation_align_1d(imagestack, axis = mode['axis'])
     else:
-        print "%s is not a valid mode" % mode    
+        print("%s is not a valid mode" % mode)    
         
     return (imagestack, shift)
 
@@ -412,14 +413,14 @@ def do_test():
     y         = np.atleast_2d(np.arange(80)).T
     shift     = (5,15)
     reference = -((50-x)/100.0)**2 *((50-y)/100.0)**2 + 0.0625
-    print 'min(reference) = ',np.min(reference)
+    print('min(reference) = ',np.min(reference))
     reference[50:55,50:55] = 0
     imagestack1    = nd.shift(reference,shift)
     imagestack2    = nd.shift(imagestack1,shift)
     imagestack     = np.rollaxis(np.dstack([reference, imagestack1, imagestack2]),-1)
-    print 'set up test data with shift = '
-    print ((0,0),(shift[0],shift[1]),(shift[0]*2,shift[1]*2))
-    print
+    print('set up test data with shift = ')
+    print(((0,0),(shift[0],shift[1]),(shift[0]*2,shift[1]*2)))
+    print()
     
     plot_array(imagestack, title = 'test data')
     
@@ -434,92 +435,92 @@ def do_test():
 
   
     ### testing COM aling
-    print 'testing center of mass aling'
+    print('testing center of mass aling')
     start_time = timeit.default_timer()
     dummy     = np.copy(imagestack)
     mode = {'mode':'centerofmass','threshold':np.percentile(imagestack,70),'alignment':(1,1)}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
 
     plot_array(dummy, title = 'COM align')
  
     
     ### testing maskshift
-    print 'testing maskshift'
+    print('testing maskshift')
     start_time = timeit.default_timer()
     dummy     = np.copy(imagestack)
     mode = {'mode':'mask','threshold':np.percentile(imagestack,70),'alignment':(-1,1)}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'with alignment'
-    print mode['alignment']
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('with alignment')
+    print(mode['alignment'])
+    print('took %s' % (timeit.default_timer() - start_time))
 
     plot_array(dummy, title = 'masked align')
 
  ### testing correlation aling
-    print 'testing correlation aling'
+    print('testing correlation aling')
     start_time = timeit.default_timer()
     dummy     = np.copy(imagestack)
     mode = {'mode':'crosscorrelation','threshold':np.percentile(imagestack,70)}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
 
     plot_array(dummy, title = 'cross correllation align')
 
  ### testing correlation aling 1d axis = 1
-    print 'testing correlation aling 1d'
+    print('testing correlation aling 1d')
     start_time = timeit.default_timer()
     dummy     = np.copy(imagestack)
     mode = {'mode':'crosscorrelation_1d','axis':1}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
 
     plot_array(dummy, title = 'cross correllation align 1d 1')
 
  ### testing correlation aling 1d axis = 0
-    print 'testing correlation aling 1d'
+    print('testing correlation aling 1d')
     start_time = timeit.default_timer()
     dummy     = np.copy(imagestack)
     mode = {'mode':'crosscorrelation_1d','axis':0}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
 
     plot_array(dummy, title = 'cross correllation align 1d 0')
 
     
     
     ### testing forcedcorrelation
-    print 'testing forced correlation'
+    print('testing forced correlation')
     dummy     = np.copy(imagestack)
     start_time = timeit.default_timer()
     mode = {'mode':'forcedcrosscorrelation','alignment':(1,1)}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print 'with alignment'
-    print mode['alignment']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print('with alignment')
+    print(mode['alignment'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
     plot_array(dummy, title = 'forced correlation')
 
     ### testing elastix
-    print 'testing elastix rigid align'
+    print('testing elastix rigid align')
     dummy     = np.copy(imagestack)
     start_time = timeit.default_timer()
     mode = {'mode':'elastix'}
     (dummy, (foundshift)) = image_align(dummy, mode = mode)
-    print '%s shift found:' %mode['mode']
-    print foundshift
-    print 'took %s' % (timeit.default_timer() - start_time)
+    print('%s shift found:' %mode['mode'])
+    print(foundshift)
+    print('took %s' % (timeit.default_timer() - start_time))
     plot_array(dummy, title = 'elastix')
 
  

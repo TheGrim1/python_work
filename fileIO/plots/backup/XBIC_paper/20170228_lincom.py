@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,8 +37,8 @@ def main(args):
     xmax    = None
     xlen    = None
     
-    dataheader = datadict.keys()
-    for fname, dataset in datadict.items():
+    dataheader = list(datadict.keys())
+    for fname, dataset in list(datadict.items()):
         if xmin == None:
             xmin = np.min(dataset[:,0])
             xmin = np.max(dataset[:,0])
@@ -46,7 +49,7 @@ def main(args):
             xlen = max(dataset.shape[0],xlen)
 
     dataheader.insert(0,'energy [keV]')
-    xaxis = np.atleast_1d(np.arange(xmin,xmax, (float(xmax-xmin))/(2*xlen)))
+    xaxis = np.atleast_1d(np.arange(xmin,xmax, old_div((float(xmax-xmin)),(2*xlen))))
     fulldata = np.zeros(shape = (len(xaxis), len(dataheader)))
     print(xaxis.shape)
     print(fulldata.shape)

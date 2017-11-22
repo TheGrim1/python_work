@@ -3,14 +3,15 @@
 This module define the Spec class for emulating a kind of Spec interpreter in
 a Python object
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
-import SpecConnectionsManager
-import SpecEventsDispatcher
-import SpecCommand
-import SpecWaitObject
+from . import SpecConnectionsManager
+from . import SpecEventsDispatcher
+from . import SpecCommand
+from . import SpecWaitObject
 
 class Spec:
     """Spec objects provide remote Spec facilities to the connected client."""

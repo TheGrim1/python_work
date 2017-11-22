@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import object
 import numpy as np
 from silx.io.spech5 import SpecH5
 import timeit
@@ -7,7 +8,7 @@ import timeit
 # only needed for testing:
 import matplotlib.pyplot as plt
 
-class spec_mesh:
+class spec_mesh(object):
     '''
     handles spec mesh scans for saving and opening etc.
     '''

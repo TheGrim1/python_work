@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import SimpleITK as sitk
 
@@ -60,11 +61,11 @@ def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parame
         #imagestack[i] = np.where(sitk.GetArrayFromImage(resultimage)<0.1,0,sitk.GetArrayFromImage(resultimage))
 
         if mode == 'rigid':
-            print 'found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            print('found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters'])
             angle, dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
             thetas[i+1] += (np.float(angle)/np.pi*180)
         elif mode == 'translation':
-            print 'found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
+            print('found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters'])
             dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
             
 

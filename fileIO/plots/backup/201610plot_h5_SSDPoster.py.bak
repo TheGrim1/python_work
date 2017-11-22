@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 import h5py
@@ -25,7 +26,7 @@ def plot_h5(data,
         ax1.pcolor(data[:,:], norm=LogNorm(vmin=0.9, vmax=500), cmap='PuBu')
 #        ax1.imshow(data[:,:], interpolation = 'none')
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
 #    plt.clim(0,0.001)
     plt.tight_layout()
     ax1.set_xticks([])

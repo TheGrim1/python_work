@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import zip
+from builtins import range
 import numpy as np
 from silx.io.spech5 import SpecH5
 import timeit
@@ -55,7 +57,7 @@ def main(args):
     ax.legend()
     plt.plot()
 
-    results = np.asarray(zip(x_positions, [2*beta[3] for beta in fit_results]))
+    results = np.asarray(list(zip(x_positions, [2*beta[3] for beta in fit_results])))
     print('result summary:')
     for bla in results:
         print(bla)

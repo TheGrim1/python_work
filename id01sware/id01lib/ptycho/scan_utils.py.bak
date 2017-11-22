@@ -1,3 +1,4 @@
+from __future__ import print_function
 ###################
 # Library of functions to generate ptycho scans
 # S.J.Leake 2014/12/15
@@ -380,10 +381,10 @@ def calc_overlap(beam,alpha,x,y):
     footprint = [beam[0],beam[1]/np.abs(np.sin(np.degrees(alpha)))]
     step_sep = [x[2],y[2]]
     # diameter
-    print("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100)
+    print(("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100))
     # for general interest the area overlap can be calculated as follows
-    print("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
-    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100)
+    print(("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
+    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100))
 
 def calc_overlap_2D_arr_pts(beam,alpha,meshx,meshy):
     """
@@ -402,10 +403,10 @@ def calc_overlap_2D_arr_pts(beam,alpha,meshx,meshy):
     footprint = [beam[0],beam[1]/np.abs(np.sin(np.degrees(alpha)))]
     step_sep = [x[2],y[2]]
     # diameter
-    print("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100)
+    print(("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100))
     # for general interest the area overlap can be calculated as follows
-    print("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
-    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100)
+    print(("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
+    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100))
     
 def circle_circle_intersection(r1,r2,d):
     area = (r1**2)*np.arccos((d**2+r1**2-r2**2)/(2*d*r1))\

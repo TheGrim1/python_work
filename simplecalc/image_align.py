@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import scipy.ndimage as nd
 #from silx.image import sift
@@ -103,10 +106,10 @@ the image!'''
     shift = []
 
 #    setup the potential to force the alignment in a certain direction
-    maxforce = imagestack[0,:,:].max()/10.0
-    minforce = imagestack[0,:,:].min()/10.0 
-    xstepforce = (maxforce + minforce) / len(imagestack[0,:,0])
-    ystepforce = (maxforce + minforce) / len(imagestack[0,0,:])
+    maxforce = old_div(imagestack[0,:,:].max(),10.0)
+    minforce = old_div(imagestack[0,:,:].min(),10.0) 
+    xstepforce = old_div((maxforce + minforce), len(imagestack[0,:,0]))
+    ystepforce = old_div((maxforce + minforce), len(imagestack[0,0,:]))
 
     print('alignment = ')
     print(alignment)
@@ -216,7 +219,7 @@ def single_correlation_align(reference, image):
 
     # print 'before refinement: ' , maxcorrelation 
     area           = np.array((10,10))
-    peak_troi      = (np.array(maxcorrelation) - area/2, area)
+    peak_troi      = (np.array(maxcorrelation) - old_div(area,2), area)
 
 
     fitting_region = np.array(correlation[troi_to_slice(peak_troi)])
@@ -412,7 +415,7 @@ def do_test():
     x         = np.atleast_2d(np.arange(100))
     y         = np.atleast_2d(np.arange(80)).T
     shift     = (5,15)
-    reference = -((50-x)/100.0)**2 *((50-y)/100.0)**2 + 0.0625
+    reference = -(old_div((50-x),100.0))**2 *(old_div((50-y),100.0))**2 + 0.0625
     print('min(reference) = ',np.min(reference))
     reference[50:55,50:55] = 0
     imagestack1    = nd.shift(reference,shift)

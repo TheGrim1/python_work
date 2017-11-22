@@ -2,6 +2,8 @@ from __future__ import print_function
 # use to gzip files in place using more than one process
 # AJ 07.2016
 
+from builtins import input
+from builtins import str
 import os
 from multiprocessing import Pool
 import time
@@ -57,7 +59,7 @@ def usage():
 def confirm(path, noprocesses, arg):
 # yes or exit
     prompt = "Do you want to run gzip in all of the folders in \n%s\nin %s parallel processes with these arguements: %s\n [y/n] " 
-    if raw_input(prompt % (path, noprocesses, arg)) in ("y","yes"):
+    if input(prompt % (path, noprocesses, arg)) in ("y","yes"):
         print("will do")
     else:
         print("ok, quitting")

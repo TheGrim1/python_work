@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import numpy as np
 from scipy.linalg import lstsq
 from math import factorial
@@ -119,7 +121,7 @@ def savgol_coeffs(window_length, polyorder, deriv=0, delta=1.0, pos=None,
     y = np.zeros(polyorder + 1)
     # The coefficient assigned to y[deriv] scales the result to take into
     # account the order of the derivative and the sample spacing.
-    y[deriv] = factorial(deriv) / (delta ** deriv)
+    y[deriv] = old_div(factorial(deriv), (delta ** deriv))
 
     # Find the least-squares solution of A*c = y
     coeffs, _, _, _ = lstsq(A, y)

@@ -1,5 +1,10 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 import h5py
 import numpy as np
@@ -73,7 +78,7 @@ def main():
     data1      = data1[energystart:energyend,:]
     order      = [(y - x) for [y,x] in dataheader[1::]]
 
-    order      = zip(order,range(1,len(order)+1))
+    order      = list(zip(order,list(range(1,len(order)+1))))
 
     dataordered= np.zeros(shape=data1.shape)
     order      = sorted(order)
@@ -86,7 +91,7 @@ def main():
     data1[:,1::] = dataordered[:,1::]
     dataheader = newheader
     positionlabel = ['position x=%s, y = %s, l = %s' % (x,y,l) for [[y,x],l] in dataheader[1::]]
-    colorref = [(l-0.5)/10.0 for  [[y,x],l] in dataheader[1::]]
+    colorref = [old_div((l-0.5),10.0) for  [[y,x],l] in dataheader[1::]]
     cmap = plt.get_cmap('coolwarm')
    
 

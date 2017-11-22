@@ -1,5 +1,9 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 import h5py
 import numpy as np
@@ -26,11 +30,11 @@ def main():
     ni200 = np.asarray(h5f200['detectorsum/Ni-K/data'])
     xbic  =  np.asarray(h5f200['counters/zap_p201_Xbic/data'])
     xbic_norm =  np.asarray(h5f200['counters/zap_p201_Xbic_norm/data'])
-    norm      = xbic / np.where(xbic_norm >0, xbic_norm, 1)
+    norm      = old_div(xbic, np.where(xbic_norm >0, xbic_norm, 1))
     energy200 = np.asarray(h5f200['/detectorsum/Ga-K_norm_stan/energy'])
 
     norm = normalize_self(norm)
-    ni200_norm = ni200 / np.where(norm >0, norm, 1)
+    ni200_norm = old_div(ni200, np.where(norm >0, norm, 1))
     
     ni200mask  = np.zeros(shape=ni200[:,:,1].shape)
     ni200troi   = ((2,10),(6,5))
@@ -114,8 +118,8 @@ def main():
     fig, ax1 = plt.subplots()
     dummy = np.copy(sumni[:,1])
     sumni[:,1] = normalize_self(sumni[:,1])
-    sumni[:,2] = sumni[:,2]/dummy
-    sumni[:,3] = sumni[:,3]/dummy
+    sumni[:,2] = old_div(sumni[:,2],dummy)
+    sumni[:,3] = old_div(sumni[:,3],dummy)
 
 
     for i in range(len(sumni[1,1::])):

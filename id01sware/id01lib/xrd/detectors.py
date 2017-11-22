@@ -1,3 +1,6 @@
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 import numpy as np
 
 
@@ -34,9 +37,9 @@ class MaxiPix(AreaDetector):
             Mind the gap.
         """
         image *= 9
-        image[255:258] = image[255]/3
-        image[258:261] = image[260]/3
-        image[:,255:258] = (image[:,255]/3)[:,None]
-        image[:,258:261] = (image[:,260]/3)[:,None]
+        image[255:258] = old_div(image[255],3)
+        image[258:261] = old_div(image[260],3)
+        image[:,255:258] = (old_div(image[:,255],3))[:,None]
+        image[:,258:261] = (old_div(image[:,260],3))[:,None]
 
 

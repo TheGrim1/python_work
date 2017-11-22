@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 30})
 plt.rcParams.update({'figure.figsize': [4.0,6.0]})
@@ -26,10 +29,10 @@ def main():
 
     data, header = open_data(specpath + 'together.dat', delimiter = '\t')
 
-    data[:,1::] = data[:,1::]/np.max(data[:,2])
+    data[:,1::] = old_div(data[:,1::],np.max(data[:,2]))
 
     data = crop_posrange(data,posrange)
-    data[:,3] = data[:,3]/np.max(data[:,3])
+    data[:,3] = old_div(data[:,3],np.max(data[:,3]))
     pos = np.atleast_1d(data[:,0]-data[0,0])
 
     color = ['red','green','blue']

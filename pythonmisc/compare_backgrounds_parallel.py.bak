@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 from multiprocessing import Pool
@@ -20,16 +21,16 @@ def task(inargs):
     group      = 'entry/data/' + inargs[1]
     slice_list = inargs[2]
     
-    print "doing: group %s in process %s" % (group,os.getpid())
+    print("doing: group %s in process %s" % (group,os.getpid()))
     f = h5py.File(fname,'r')
 
     noframes = f[group].shape[0]
-    print 'number of frames = %s' % noframes
+    print('number of frames = %s' % noframes)
     
     result = np.zeros(shape = (len(slice_list),noframes))
     
     for frame in range(noframes):
-        print 'dataset %s, frame %s of %s' % (group, frame, noframes)
+        print('dataset %s, frame %s of %s' % (group, frame, noframes))
         for sl_no, sl in enumerate(slice_list):
             data = f[group][frame][sl]
             result[sl_no, frame] = data.sum()
@@ -69,13 +70,13 @@ def sum_trois(args):
     for troi in troi_list:
         slice_list.append(troi_to_slice(troi))
 
-    print 'opening file %s' % fname
+    print('opening file %s' % fname)
     f = h5py.File(fname,'r')
     basegroup = 'entry/data/'
     group_list = f[basegroup].keys()
     group_list.sort()
-    print 'found datasets:'
-    print group_list
+    print('found datasets:')
+    print(group_list)
     f.close()
 
 
@@ -88,7 +89,7 @@ def sum_trois(args):
                          slice_list])
 
     noprocesses = len(group_list)
-    print 'Creating pool with %d processes\n' % noprocesses
+    print('Creating pool with %d processes\n' % noprocesses)
         
     #for item in todolist:
     #    for subitem in item:

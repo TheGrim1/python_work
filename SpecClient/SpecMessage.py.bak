@@ -6,6 +6,7 @@ sent to Spec.
 
 It handles the different message versions (headers 2, 3 and 4).
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
@@ -14,8 +15,8 @@ import struct
 import time
 import types
 
-import SpecArray
-import SpecReply
+from . import SpecArray
+from . import SpecReply
 
 (DOUBLE, STRING, ERROR, ASSOC) = (1,2,3,4)
 
@@ -82,7 +83,7 @@ def rawtodictonary(rawstring):
             else:
               data[key]=val
         else:
-            if keyel[0] in data and type(data[keyel[0]])!=types.DictType:
+            if keyel[0] in data and type(data[keyel[0]])!=dict:
               data[keyel[0]]={ None: data[keyel[0]] }
 
             try:
@@ -99,7 +100,7 @@ def dictionarytoraw(dict):
     expected by Spec"""
     data = ""
     for key, val in dict.items():
-        if type(val) == types.DictType:
+        if type(val) == dict:
             for kkey, vval in val.iteritems():
                 if kkey is None:
                   data += str(key) + NULL + str(vval) + NULL
@@ -228,11 +229,11 @@ class SpecMessage:
           - it is a hard job guessing ARRAY_* types, we ignore this case (user has to provide a suitable datatype)
           - we cannot make a difference between ERROR type and STRING type
         """
-        if type(data) == types.StringType:
+        if type(data) == bytes:
             return STRING
-        elif type(data) == types.DictType:
+        elif type(data) == dict:
             return ASSOC
-        elif type(data) == types.IntType or type(data) == types.LongType or type(data) == types.FloatType:
+        elif type(data) == int or type(data) == int or type(data) == float:
             return STRING
             #DOUBLE
         elif isinstance(data, SpecArray.SpecArrayData):
@@ -481,13 +482,13 @@ class anymessage(SpecMessage):
 
 def commandListToCommandString(cmdlist):
     """Convert a command list to a Spec command string."""
-    if type(cmdlist) == types.ListType and len(cmdlist) > 0:
+    if type(cmdlist) == list and len(cmdlist) > 0:
         cmd = [str(cmdlist[0])]
 
         for arg in cmdlist[1:]:
             argstr = repr(arg)
 
-            if type(arg) == types.DictType:
+            if type(arg) == dict:
                 argstr = argstr.replace('{', '[')
                 argstr = argstr.replace('}', ']')
 

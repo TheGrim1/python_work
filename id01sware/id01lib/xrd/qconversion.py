@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import xrayutilities as xu
 import scipy.signal
@@ -112,7 +116,7 @@ def get_qspace_vals(scan, cen_pix_hor,
             angles[angle] = np.ones(maxlen, dtype=float) * angles[angle]
 
     ### transform angles to reciprocal space coordinates for all detector pixels
-    qx, qy, qz = hxrd.Ang2Q.area(*angles.values())
+    qx, qy, qz = hxrd.Ang2Q.area(*list(angles.values()))
     
     return qx, qy, qz
 
@@ -216,7 +220,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
     safemax = lambda arr: arr.max() if arr.size else 0
     for dim in (qx, qy, qz):
         maxstep = max((safemax(abs(np.diff(dim, axis=j))) for j in range(3)))
-        maxbins.append(int(abs(dim.max()-dim.min())/maxstep))
+        maxbins.append(int(old_div(abs(dim.max()-dim.min()),maxstep)))
     
     print("Max. number of bins: %i, %i, %i"%tuple(maxbins))
 
@@ -242,7 +246,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
         if all([b==-1 for b in nbins]): 
             nbins = [int(maxbins[j]) for j in idim]
         elif all([b<0 for b in nbins]): 
-            nbins = [int(maxbins[j]/abs(nbins[i])) for (i,j) in enumerate(idim)]
+            nbins = [int(old_div(maxbins[j],abs(nbins[i]))) for (i,j) in enumerate(idim)]
         elif all([b>0 for b in nbins]):
             pass
         else:
@@ -272,7 +276,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
         raise ValueError("Found negative readings in monitor: %s"%monitor)
 
     for idx in range(num_im): # TODO: parallelize
-        frame = image_data[idx]/mon[idx]
+        frame = old_div(image_data[idx],mon[idx])
         detector.correct_image(frame) # detector specific stuff
         if medfilter: # kill some hot pixels, doesn't really work with the gaps
             frame = scipy.signal.medfilt2d(frame,[3,3])

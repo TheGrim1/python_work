@@ -1,3 +1,4 @@
+from __future__ import print_function
 import fabio
 import sys
 import matplotlib.pyplot as plt
@@ -36,7 +37,7 @@ def plot(data, vmin=1, vmax=100):
 
 if __name__ == '__main__':
     if len(sys.argv) !=2 :
-        print 'usage: python plotedf.py <your .edf>'
+        print('usage: python plotedf.py <your .edf>')
         sys.exit(0)
     else:
         main(sys.argv[1])

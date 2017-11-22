@@ -1,3 +1,4 @@
+from __future__ import print_function
 from id01lib.PScanTracker import *
 if __name__=="__main__":
     # just a test

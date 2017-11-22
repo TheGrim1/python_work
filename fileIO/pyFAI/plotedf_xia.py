@@ -1,4 +1,6 @@
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import fabio
 import sys
 import matplotlib.pyplot as plt
@@ -7,7 +9,7 @@ import scipy.misc
 
 def main(filename):
 # plot the mask
-    mask1 = fabio.open(filename).data[range(40)]
+    mask1 = fabio.open(filename).data[list(range(40))]
     fig1 = plt.figure(figsize=(7,7), dpi=80)
     plt.imshow(mask1, cmap='jet')
     #plt.axis([0, 517, 0, 517])  
@@ -18,7 +20,7 @@ def main(filename):
     plt.show()  
 
     for i in range(80):
-        zrange= range(i*51+10, (i+1)*51)
+        zrange= list(range(i*51+10, (i+1)*51))
         mask1 = fabio.open(filename).data[zrange]
         scipy.misc.imsave(''.join([filename,str(i),'.jpg']),mask1)
 

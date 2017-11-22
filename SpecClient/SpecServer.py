@@ -1,5 +1,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import map
+from builtins import str
+from builtins import range
 import asyncore
 import socket
 import types

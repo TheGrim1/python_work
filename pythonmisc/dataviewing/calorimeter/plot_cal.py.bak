@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -96,7 +97,7 @@ def plotmany_overt(header, data ,ylabel = "signal [arb. units]"):
         ax2.set_xlabel("time [ms]",size=20)
         ax2.set_xticklabels([])
     
-    print "xlim:"
+    print("xlim:")
     ax1.set_xlim((50,280))
     
     ax2.set_xlim(ax1.get_xlim())
@@ -137,7 +138,7 @@ def plotmany_overt(header, data ,ylabel = "signal [arb. units]"):
     ax1.set_ylim(-0.5,3.2)
     ax1.set_yticks([0,0.5,1,1.5,2,2.5,3])
     ax1.set_yticklabels([0,0.5,1,1.5,2,2.5,3],size = 16)
-    print ax1.get_ylim()
+    print(ax1.get_ylim())
     for i in vertlines:
         ax1.plot((i,i), ax1.get_ylim() ,color = "red", linewidth = 0.5)
     
@@ -175,7 +176,7 @@ if __name__ == '__main__':
         if len(sys.argv) > 1:
             if sys.argv[1].find("-f")!= -1:
                 filename = sys.argv[2]
-                print "opeining file %s" % filname
+                print("opeining file %s" % filname)
                 f = open(filename) 
                 for line in f:
                     args.append(line.rstrip())
@@ -186,7 +187,7 @@ if __name__ == '__main__':
             for line in f:
                 args.append(line.rstrip())
     except:
-        print 'usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"'
+        print('usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"')
         sys.exit(1)
 #    print "args passed:"
     main(args)

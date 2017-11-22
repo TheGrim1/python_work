@@ -1,4 +1,7 @@
 from __future__ import print_function
+from builtins import input
+from builtins import str
+from builtins import object
 from matplotlib import pyplot as plt
 from scipy.optimize import leastsq
 from o8x3.io import xyio
@@ -78,7 +81,7 @@ def _test():
     plt.plot(xplot,y)
     plt.plot(XPP,yl)
     plt.draw()
-    raw_input()
+    input()
 
 if __name__ == '__main__':
     _test()

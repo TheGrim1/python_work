@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import numpy as np
 import scipy.ndimage as nd
@@ -36,8 +37,8 @@ def main(args):
     # print 'data.shape ='
     # print data.shape
 
-    print 'shift found with %s alignment = ' % mode['mode']
-    print shift
+    print('shift found with %s alignment = ' % mode['mode'])
+    print(shift)
 
     plt.imshow(data.T, vmin = data.min(), vmax= data.max())
 

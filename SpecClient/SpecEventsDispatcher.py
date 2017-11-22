@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from builtins import str
+from builtins import object
 import weakref
 import exceptions
 import time
@@ -34,7 +36,7 @@ def robustApply(slot, arguments = ()):
         return slot(*arguments[0:n_args])
 
 
-class Receiver:
+class Receiver(object):
     def __init__(self, weakReceiver, dispatchMode):
         self.weakReceiver = weakReceiver
         self.dispatchMode = dispatchMode
@@ -47,7 +49,7 @@ class Receiver:
             return robustApply(slot, arguments)
 
 
-class Event:
+class Event(object):
     def __init__(self, sender, signal, arguments):
         self.receivers = []
         senderId = id(sender)
@@ -174,8 +176,8 @@ def _removeSender(senderId):
 
 def _removeReceiver(weakReceiver):
     """Remove receiver from connections"""
-    for senderId in connections.keys():
-        for signal in connections[senderId].keys():
+    for senderId in list(connections.keys()):
+        for signal in list(connections[senderId].keys()):
             receivers = connections[senderId][signal]
 
             for r in receivers:

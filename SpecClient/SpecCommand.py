@@ -10,6 +10,9 @@ SpecCommandA
 """
 from __future__ import absolute_import
 
+from builtins import map
+from builtins import str
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -59,7 +62,7 @@ def wait_end_of_spec_cmd(cmd_obj):
       return cmd_obj._last_reply.data
 
 
-class BaseSpecCommand:
+class BaseSpecCommand(object):
     """Base class for SpecCommand objects"""
     def __init__(self, command = None, connection = None, callbacks = None, timeout=None):
         self.command = None
@@ -128,7 +131,7 @@ class BaseSpecCommand:
             #convert args list to string args list
             #it is much more convenient using .call('psvo', 12) than .call('psvo', '12')
             #a possible problem will be seen in Spec
-            args = map(repr, args)
+            args = list(map(repr, args))
 
             if func:
                 # macro function
@@ -161,7 +164,7 @@ class SpecCommandA(BaseSpecCommand):
           'statusChanged': None,
         }
         callbacks = kwargs.get("callbacks", {})
-        for cb_name in self.__callbacks.iterkeys():
+        for cb_name in self.__callbacks.keys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 

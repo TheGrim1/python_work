@@ -1,6 +1,8 @@
 from __future__ import print_function
 # this needs scipy.version.version >18.1 it runs on 
 # source /data/id13/inhouse6/COMMON_DEVELOP/py_andreas/aj_venv/bin/activate
+from builtins import zip
+from builtins import range
 import sys, os
 import scipy.spatial as spatial
 import numpy as np
@@ -28,7 +30,7 @@ def remove_close_peaks(data, min_distance):
         if checkdata[1,2]==0:
             any_left = False
 
-        points = zip(checkdata[:,0],checkdata[:,1])
+        points = list(zip(checkdata[:,0],checkdata[:,1]))
         tree  = spatial.cKDTree(points[1::])
         
         # finds points closer than min_distance to most intense peak at points[0]

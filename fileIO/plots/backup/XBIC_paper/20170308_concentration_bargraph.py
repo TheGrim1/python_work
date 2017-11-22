@@ -1,3 +1,4 @@
+from builtins import range
 import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ ax1 = plt.gca()
 toplot = concentrations
 toplot[:,0] = 0
 
-ycoord = range(len(toplot[:,1]))
+ycoord = list(range(len(toplot[:,1])))
 
 btm = toplot[:,0]
 wdth = [0.8] * len(ycoord)

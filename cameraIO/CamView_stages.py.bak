@@ -4,6 +4,7 @@ Created on Wed Jul 26 12:02:05 2017
 
 @author: OPID13
 """
+from __future__ import print_function
 
 
 import sys, os
@@ -94,7 +95,7 @@ class phi_kappa_gonio(stage):
         self.calibration = {}
         self.calibration.update({'side':{}})
         self.calibration.update({'top':{}})
-        print 'setting default calibration for zoomed out microscopes'
+        print('setting default calibration for zoomed out microscopes')
         self._calibrate('y',-1495.4,'side')
         self._calibrate('y',1495.4,'top')
         self._calibrate('z',-914.02,'side')
@@ -130,7 +131,7 @@ class phi_kappa_gonio(stage):
 
 
         
-        print 'prepping images... '
+        print('prepping images... ')
         prep_image = self._get_view('side')     
 
         shape = tuple([int(x) for x in [len(phi_pos)]+list(prep_image.shape)])
@@ -140,7 +141,7 @@ class phi_kappa_gonio(stage):
             sidestack= np.zeros(shape=shape)
             self.mv('kappa',kap,move_using_lookup=True)
 
-            print 'doing backlashcorrection'
+            print('doing backlashcorrection')
             
             self.mv('phi', phi_pos[0],move_using_lookup=True)
             self._backlash('phi',5.0)
@@ -149,13 +150,13 @@ class phi_kappa_gonio(stage):
             for i, pos in enumerate(phi_pos):
 
                 title = 'frame %s of %s at pos = %s, kappa = %s'%(i+1, len(phi_pos), pos, kap)
-                print title
+                print(title)
                 self.mv('phi', pos, move_using_lookup=True)
                 topstack[i] = self._get_view('top')
                 sidestack[i] = self._get_view('side')
                 
 
-            print 'returning phi'
+            print('returning phi')
             self.mv('phi', phi_pos[0], move_using_lookup=True)
 
             top_prefix = 'topview_kappa%s_phi_' %int(kap)
@@ -229,7 +230,7 @@ class EH2_phi_kappa_gonio(stage):
         self.calibration = {}
         self.calibration.update({'side':{}})
         self.calibration.update({'up':{}})
-        print 'setting default calibration for zoomed out microscopes'
+        print('setting default calibration for zoomed out microscopes')
         self._calibrate('y',-1763.4485047350154,'side')
         self._calibrate('x',-3900.6735342539277,'up')
         #self._calibrate('x',-387.6735342539277,'up')
@@ -271,7 +272,7 @@ class EH2_phi_kappa_gonio(stage):
                           move_using_lookup = False,
                           backlashcorrection = True,
                           sleep=0):
-        print 'prepping images... '
+        print('prepping images... ')
         upprep_image = self._get_view(view='up',troi=troi)
         sideprep_image = self._get_view(view='side',troi=troi)
              
@@ -283,8 +284,8 @@ class EH2_phi_kappa_gonio(stage):
 
         if np.asarray(upshape).prod() > 2e8:
             # aleviate memory bottlenecks
-            print('created temp file: ',uptemp_file_fname)
-            print('created temp file :',sidetemp_file_fname)
+            print(('created temp file: ',uptemp_file_fname))
+            print(('created temp file :',sidetemp_file_fname))
             upstack = np.memmap(uptemp_file_fname, dtype=np.float16, mode='w+', shape=upshape)
             sidestack = np.memmap(sidetemp_file_fname, dtype=np.float16, mode='w+', shape=sideshape)
             
@@ -294,15 +295,15 @@ class EH2_phi_kappa_gonio(stage):
         
         
         if backlashcorrection:
-            print 'doing backlashcorrection'
+            print('doing backlashcorrection')
             self.mv(motor, positions[0],move_using_lookup=move_using_lookup)
             self._backlash(motor,backlashcorrection)
                 
-        print 'starting rotation...'
+        print('starting rotation...')
         for i, pos in enumerate(positions):
 
             title = 'frame %s of %s at pos = %s'%(i+1, len(positions), pos)
-            print title
+            print(title)
             self.mv(motor, pos,move_using_lookup=move_using_lookup,sleep=sleep)
             upstack[i] = self._get_view(view='up')
             sidestack[i] = self._get_view(view='side')
@@ -568,7 +569,7 @@ class sm3_oct17(stage):
         self.calibration = {}
         self.calibration.update({'side':{}})
         self.calibration.update({'top':{}})
-        print 'setting default calibration for zoomed out microscopes'
+        print('setting default calibration for zoomed out microscopes')
         self._calibrate('y',-1495.4,'side')
         self._calibrate('y',1495.4,'top')
         self._calibrate('z',-914.02,'side')
@@ -639,7 +640,7 @@ class motexplore_jul17(stage):
         self.calibration = {}
         self.calibration.update({'side':{}})
         self.calibration.update({'top':{}})
-        print 'setting default calibration for zoomed out microscopes'
+        print('setting default calibration for zoomed out microscopes')
         self._calibrate('y',-1495.4,'side')
         self._calibrate('y',1495.4,'top')
         self._calibrate('z',-914.02,'side')

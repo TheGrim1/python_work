@@ -1,3 +1,6 @@
+from builtins import str
+from builtins import chr
+from builtins import object
 import types
 import logging
 
@@ -88,7 +91,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
 
     if datatype == ARRAY_STRING:
         # a list of strings
-        newArray = filter(None, [x != chr(0) and x or None for x in data.split(chr(0))])
+        newArray = [_f for _f in [x != chr(0) and x or None for x in data.split(chr(0))] if _f]
         return newArray
     else:
         newArray = None
@@ -149,7 +152,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
     return newArray
 
 
-class SpecArrayData:
+class SpecArrayData(object):
     def __init__(self, data, datatype, shape):
         self.data = data
         self.type = datatype

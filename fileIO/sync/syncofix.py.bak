@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import ast
@@ -38,12 +39,12 @@ def read_part(partfname):
                             new_filter.dirs.append(ast.literal_eval(cfg[n].rstrip()))
 #                            print (ast.literal_eval(cfg[n].rstrip()))
                     except IndexError:
-                        print "index error on reading folders listed in file %s "  %partfname
+                        print("index error on reading folders listed in file %s "  %partfname)
                         new_filter.dirs={}
             f.close()
         except IndexError: 
-            print "Error reading diskXX.txt files in the specified path. Please check the format of or remove files:"
-            print "path specified : %s" %  partfname
+            print("Error reading diskXX.txt files in the specified path. Please check the format of or remove files:")
+            print("path specified : %s" %  partfname)
             sys.exit(0)
     
     return new_filter
@@ -58,7 +59,7 @@ def is_subdir(path1,path2):
 def compare_sourcefolder_to_folderlist(src, folderlist):
 
     allfolders = synco.get_folders(src)
-    print "found %s folders " %len(allfolders)
+    print("found %s folders " %len(allfolders))
 
  
 #    print "folderlist found in %s " %partfname
@@ -75,7 +76,7 @@ def compare_sourcefolder_to_folderlist(src, folderlist):
         for fullpath in fullpaths:
             if is_subdir(path,fullpath):
                 found = True
-                print "not copying subpath %s of a full path %s" %(path,fullpath)
+                print("not copying subpath %s of a full path %s" %(path,fullpath))
                 break
 
 #        print "found source path :\n%s" %path
@@ -84,19 +85,19 @@ def compare_sourcefolder_to_folderlist(src, folderlist):
 #            print "comparing %s \nwith %s"%(os.path.normpath(path),os.path.normpath(savedpath['path']))
             if os.path.normpath(path) == os.path.normpath(savedpath['path']):
                 if savedpath["flag"]=="full":
-                    print "not copying full path %s" %path
+                    print("not copying full path %s" %path)
                     found = True
                     fullpaths.append(savedpath['path'])
                     break
                 else:
-                    print "copying %s path %s" %(path,savedpath["path"])
+                    print("copying %s path %s" %(path,savedpath["path"]))
                     notinthispart.append({'path':path,'flag':savedpath["flag"]})
                     found = True
                     break
                 
 
         if found == False:
-            print "copying %s path %s" %("new" ,path)
+            print("copying %s path %s" %("new" ,path))
             notinthispart.append({'path':path,'flag':'syncofix'})
             
 

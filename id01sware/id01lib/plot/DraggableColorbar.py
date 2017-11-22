@@ -1,5 +1,6 @@
 # Is a copy of and should probably be linked (submodule) to 
 # https://github.com/tinmarino/Abism/blob/master/Gui/DraggableColorbar.py
+from builtins import object
 import matplotlib.pyplot as plt
 import numpy as np
 

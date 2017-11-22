@@ -1,12 +1,15 @@
 from __future__ import print_function
+from builtins import str
+from builtins import input
+from builtins import range
 import sys
 
 def input():
     arguments={}
-    arguments['firstindex'] = raw_input('first index of the array: ')
-    arguments['lastindex'] = raw_input('second index of the array: ')
-    arguments['height'] = raw_input('height of array: ')
-    arguments['linelength'] = raw_input('original line length: ')
+    arguments['firstindex'] = input('first index of the array: ')
+    arguments['lastindex'] = input('second index of the array: ')
+    arguments['height'] = input('height of array: ')
+    arguments['linelength'] = input('original line length: ')
     return arguments
 
 
@@ -21,7 +24,7 @@ def calc(arguments):
     
 if __name__=="__main__":
     if len(sys.argv) != 5:
-        calc(input())
+        calc(eval(input()))
     else:
         print('using  ' + sys.argv[1] + ' as first index, '+ sys.argv[2] + ' as last index , '+ sys.argv[3] +' as the heigt of the array. ' + sys.argv[4]+' is the length of each line in the original plot:')
         arguments={}

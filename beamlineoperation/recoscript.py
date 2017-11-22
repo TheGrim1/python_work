@@ -1,11 +1,14 @@
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import os
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 
 TPL = "python convert16.py vo2_1_xzthscan_%1d %1d"
 
 def reco_no(k,m):
-    for j in xrange(k,m):
+    for j in range(k,m):
         internalnum = j + 1258
         eigerscannum = j + 126
         print("cycle:", j)

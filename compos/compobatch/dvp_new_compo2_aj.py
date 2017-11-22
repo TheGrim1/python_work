@@ -1,5 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import str
+from builtins import range
 import numpy as np
 from o8qq.qqudo1.api import utilapi as uti
 from o8qq.qqudo1.api import ptiapi
@@ -86,7 +88,7 @@ class NewCompo(mgr.CompoMgr1):
 
         print('-'*40)
         for (i,l) in enumerate(fl1.layers):
-            for (k,v) in l.dc.iteritems():
+            for (k,v) in l.dc.items():
                 print("%10s = %s" % (k,str(v)))
         print("elapsed time:", _tmer.time())
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import cameraIO.BaslerGrab as bg
 
@@ -16,4 +17,4 @@ class USBCameras(object):
                 return bg.grab_image(self.cameras[cam_no], bw=True)[troi_to_slice(troi)]
                 
         except AttributeError:
-            print 'cameras not properly initialized' 
+            print('cameras not properly initialized') 

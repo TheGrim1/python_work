@@ -2,6 +2,7 @@ from __future__ import print_function
 
 # global imports
 
+from builtins import range
 import sys, os
 import matplotlib.pyplot as plt
 import time
@@ -43,7 +44,7 @@ def sum_trois(args):
     print('opening file %s' % fname)
     f = h5py.File(fname,'r')
     basegroup = 'entry/data/'
-    group_list = f[basegroup].keys()
+    group_list = list(f[basegroup].keys())
     group_list.sort()
     print('found datasets:')
     print(group_list)

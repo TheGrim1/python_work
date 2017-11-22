@@ -1,8 +1,14 @@
 """Helper module for managing scans"""
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import object
 import copy
-import cStringIO
+import io
 import logging
 import time
 import tokenize
@@ -76,18 +82,18 @@ def _atom(next, token):
         raise ValueError('tokenize NAME: %s unrecognized' % token[1])
     elif not token[0]:
         return
-    for i, v in tokenize.__dict__.iteritems():
+    for i, v in tokenize.__dict__.items():
         if v == token[0]:
             raise ValueError("tokenize.%s unrecognized: %s" % (i, token[1]))
 
 def simple_eval(source):
     """a safe version of the builtin eval function, """
-    src = cStringIO.StringIO(source).readline
+    src = io.StringIO(source).readline
     src = tokenize.generate_tokens(src)
-    return _atom(src.next, next(src))
+    return _atom(src.__next__, next(src))
 
 
-class SpecScanA:
+class SpecScanA(object):
     @property
     def paused(self):
         # False when a scan is running or has completed normally
@@ -119,7 +125,7 @@ class SpecScanA:
           'newScan': None,
           'newPoint': None,
         }
-        for cb_name in self.__callbacks.iterkeys():
+        for cb_name in self.__callbacks.keys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 

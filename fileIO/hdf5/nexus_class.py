@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from builtins import object
 import sys, os
 import h5py
 import numpy as np
@@ -9,7 +10,7 @@ sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import fileIO.hdf5.nexus_tools as nxt
 import fileIO.hdf5.nexus_update_functions as nuf
 
-class nx_id13:
+class nx_id13(object):
     '''
     parent class to all id13 nexus dataformat saving implementations
     '''
@@ -129,7 +130,7 @@ class nx_id13:
         nxsample = nxentry['sample']   = nx.NXsample()
         nxsample.attrs['prefix']       = self.prefix
 
-        for (group, properties) in self.active_components.items():
+        for (group, properties) in list(self.active_components.items()):
             nxentry = nuf.update_group_from_file(self.nx_f['entry'], group, properties)
 
 
@@ -250,14 +251,14 @@ class nx_id13:
         """
 
         
-        if 'entry' in self.nx_f.keys():
+        if 'entry' in list(self.nx_f.keys()):
             nx_entry =  self.nx_f['entry']
         else:
             nx_entry =  self.nx_f['entry'] = nx.NXentry()
             
         i = 0
         process_tpl = process +'_%04d'
-        while process_tpl % i in nx_entry.keys():
+        while process_tpl % i in list(nx_entry.keys()):
             i += 1
             if i>999:
                 raise ValueError('max process number reached')

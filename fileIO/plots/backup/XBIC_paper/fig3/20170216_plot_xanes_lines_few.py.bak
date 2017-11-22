@@ -1,3 +1,4 @@
+from __future__ import print_function
 1
 import sys,os
 import h5py
@@ -178,7 +179,7 @@ def main():
     fig.set_size_inches(5,5)
     lincomfname = '/tmp_14_days/johannes1/lincom/spectra/lin_components.dat'
     lincom, lincomheader = open_data(lincomfname,delimiter = '\t')
-    print lincomheader
+    print(lincomheader)
     
     lincom[:,0] = lincom[:,0]/1000.0
     energystart = np.searchsorted(lincom[:,0], energyrange[0], 'right')
@@ -202,14 +203,14 @@ def main():
     e0_meas  = []
     for i in range(len(data1[1,1::])):
         e0_meas.append(np.interp(0.5, data1[:,i+1], energy2d + measured_correction))
-    print e0_meas
+    print(e0_meas)
 
     ax1.vlines(e0_gaas,0,2.2, colors = 'green', linewidth = 2)
     
     ax1.hlines(np.arange(0.5,1.5,0.1),e0_gaas,e0_meas[:],colors='black',linewidth = 2)
     
     e0_meas = np.asarray(e0_meas)- e0_gaas
-    print e0_meas
+    print(e0_meas)
 
     ### end add indication of edge shift
 

@@ -1,6 +1,9 @@
 """Refactored 'safe reference from dispatcher.py"""
 from __future__ import print_function
 
+from past.builtins import cmp
+from builtins import str
+from builtins import object
 import weakref
 import traceback
 
@@ -152,7 +155,7 @@ class BoundMethodWeakref(object):
     
     __repr__ = __str__
     
-    def __nonzero__(self):
+    def __bool__(self):
         """Whether we are still a valid reference."""
         return self() is not None
 

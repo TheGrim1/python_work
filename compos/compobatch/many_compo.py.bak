@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import sys,os, ast
 # for Manfreds functions, doesn seem to work... have to setd20 before runnning
 # sys.path.append('/users/opid13/.muc_local/.MCB_DVP/PYTHON_LOCAL_INSTALL_20')
@@ -8,7 +10,7 @@ from o8qq.qqudo1.cumulative import cumulative1 as cumu1
 
 
 # local import
-from dvp_new_compo2_aj import run_1
+from .dvp_new_compo2_aj import run_1
 
 def run_meta(spt, *p):
     '''runs a meta pti to create a set of composite images. Input parameters are taken from local backup folder and logfile\n params = 
@@ -59,20 +61,20 @@ def run_meta(spt, *p):
         os.mkdir(dname)
     except:
         try:
-            print dname, ":", path.exists(dname)
+            print(dname, ":", path.exists(dname))
         except:
-            print "fundamental error:", dname
+            print("fundamental error:", dname)
 
 
     for i in range(ncompos):
         k = i + firstinternalno
         l = i + firsteigerno 
 
-        print "\n===============================\n"
-        print "doing composite %s of %s on %s"  % (i, ncompos, infiletpl  % (k,l))
-        print "composite outfile = %s" %outfiletpl % (k,l)
-        print "in folder %s" % program.outfiles.dname
-        print "\n===============================\n"
+        print("\n===============================\n")
+        print("doing composite %s of %s on %s"  % (i, ncompos, infiletpl  % (k,l)))
+        print("composite outfile = %s" %outfiletpl % (k,l))
+        print("in folder %s" % program.outfiles.dname)
+        print("\n===============================\n")
 
         program.infiles.fname  = infiletpl   % (k,l)
         program.outfiles.fname = outfiletpl  % (k,l)

@@ -6,8 +6,14 @@ Created on Wed Jul 26 12:02:05 2017
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
 
+from builtins import input
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,7 +47,7 @@ import fileIO.datafiles.save_data as save_data
 import fileIO.datafiles.open_data as open_data
 from .CamView_grabber import CamView_grabber
 
-class stage():
+class stage(object):
     def __init__(self):
         # this list defines which camera is called by view, here view = 'top' -> camera 0:
         self.viewlist = ['top','side']
@@ -65,7 +71,7 @@ class stage():
                    
     def _add_motors(self,**kwargs):
         self.motors.update(kwargs)
-        for function, motdict in kwargs.items():
+        for function, motdict in list(kwargs.items()):
             if motdict['is_rotation']:
                 rot_str = 'rotational'
             else:
@@ -84,7 +90,7 @@ class stage():
             start_pos = start_pos % 360.0
             end_pos   = end_pos   % 360.0
 
-        if function in self.lookup.lookup.keys():
+        if function in list(self.lookup.lookup.keys()):
             correction_dc = self.lookup.get_lut_correction(function, startpos_dc, end_pos, dynamic = True)
             return correction_dc
         else:
@@ -95,7 +101,7 @@ class stage():
             move_in_pxl = False, view = 'side',
             move_using_lookup = False, sleep=0):
         if move_in_pxl:
-            distance = distance / self.calibration[view][function]
+            distance = old_div(distance, self.calibration[view][function])
 
         startpos_dc = self._get_pos()
 
@@ -107,7 +113,7 @@ class stage():
         if move_using_lookup:
             end_pos = self.wm(function)
             correct_dict = self._correct_with_lookup(function, startpos_dc, end_pos)
-            for mot, correction in correct_dict.items():
+            for mot, correction in list(correct_dict.items()):
                 self.mvr(mot, correction)
         if sleep:
             time.sleep(sleep)        
@@ -125,7 +131,7 @@ class stage():
         if move_using_lookup:
             end_pos = self.wm(function)
             correct_dict = self._correct_with_lookup(function, startpos_dc, end_pos)
-            for mot, correction in correct_dict.items():
+            for mot, correction in list(correct_dict.items()):
                 self.mvr(mot, correction)
         if sleep:
             time.sleep(sleep)
@@ -169,7 +175,7 @@ class stage():
 
     def _get_pos(self):
         pos_dc = {}
-        for function in self.motors.keys():
+        for function in list(self.motors.keys()):
             pos_dc.update({function: self.wm(function)})
 
         return pos_dc
@@ -190,11 +196,11 @@ class stage():
         '''
         calibration=float(calibration)
         self.calibration[view][motor] = float(calibration)
-        for motorset in self.stagegeometry['same_calibration'][view].values():
-            if motor in motorset.keys():
-                for othermotor in motorset.keys():
+        for motorset in list(self.stagegeometry['same_calibration'][view].values()):
+            if motor in list(motorset.keys()):
+                for othermotor in list(motorset.keys()):
                     # this is 1 for the initial motor, and equal to the relative factor for all others
-                    factor = motorset[othermotor]/motorset[motor] 
+                    factor = old_div(motorset[othermotor],motorset[motor]) 
                     self.calibration[view].update({othermotor:factor*calibration}) 
         
     def SpecCommand(self, command):
@@ -206,7 +212,7 @@ class stage():
     def save_position(self,position_name):
         save_dict = {}
         
-        for mot in self.motors.keys():
+        for mot in list(self.motors.keys()):
             pos = self.wm(mot)
             save_dict.update({mot:pos})
             print('%s read pos: %s'% (mot,pos))
@@ -216,14 +222,14 @@ class stage():
     def restore_position(self,position_name,silent=False,sleep=0):
 
         if not silent:
-            awns = raw_input('if you want to go here press <y>')
+            awns = input('if you want to go here press <y>')
             if awns=='y':
-                for mot,pos in self.saved_positions[position_name].items():
+                for mot,pos in list(self.saved_positions[position_name].items()):
                     self.mv(mot, pos)
             else:
                 print('did nothing')
         else:
-            for mot,pos in self.saved_positions[position_name].items():
+            for mot,pos in list(self.saved_positions[position_name].items()):
                 self.mv(mot, pos)
         if sleep:
             time.sleep(sleep)
@@ -436,7 +442,7 @@ class stage():
         COR_motors = self.stagegeometry['COR_motors'][motor]['motors']
         # updating the absolute position of the COR in motor units:
         for i, COR_mot in enumerate(COR_motors):
-            dpos = dpxl[i] / self.calibration[view][COR_mot]
+            dpos = old_div(dpxl[i], self.calibration[view][COR_mot])
             self.COR[motor][i] = self.wm(COR_mot) + dpos
                        
         # ## useful for debugging
@@ -692,7 +698,7 @@ class stage():
             if type(resolution) == type(None):
                 raise ValueError('please define either a <resolution> or a list <positions>')
             else:
-                positions = [x*resolution for x in range(int(360/resolution))]
+                positions = [x*resolution for x in range(int(old_div(360,resolution)))]
 
         if mode.upper() not in ['ELASTIX','COM','CC']:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
@@ -747,7 +753,7 @@ class stage():
         aligned, shift = ia.image_align(aligned, mode)
         shift = np.asarray(shift)
 
-        if motor not in self.lookup.keys():
+        if motor not in list(self.lookup.keys()):
             self.lookup[motor] = {}
         ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!         
 
@@ -756,8 +762,8 @@ class stage():
         
         shift_lookup = {}
         shift_lookup[motor] = positions
-        shift_lookup[mot0] = shift_0/self.calibration[view][mot0]
-        shift_lookup[mot1] = shift_1/self.calibration[view][mot1]
+        shift_lookup[mot0] = old_div(shift_0,self.calibration[view][mot0])
+        shift_lookup[mot1] = old_div(shift_1,self.calibration[view][mot1])
 
 
 
@@ -860,7 +866,7 @@ class stage():
         COR_shift = self.cross_to(horz_pxl=horz_pxl,vert_pxl=vert_pxl,view=view,move=move)
         print(('Shift in pxl: ',COR_shift))
         for i,mot in enumerate(COR_motors):
-            COR_shift[i]*=1.0/self.calibration[view][mot]
+            COR_shift[i]*=old_div(1.0,self.calibration[view][mot])
         
         self.shift_lookup(rotmotor=rotmotor,
                           COR_shift=COR_shift)

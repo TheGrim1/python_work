@@ -30,7 +30,7 @@ class lookupdict_rho_theta(collections.MutableMapping):
        self.stage = stage
        self.store = dict()
        self.update(self.stage.lookup['rho'])
-       if 'z' not in self.store.keys():
+       if 'z' not in list(self.store.keys()):
            self.update({'z':np.zeros(shape = self.store['x'].shape)})
 
     def __getitem__(self, key):

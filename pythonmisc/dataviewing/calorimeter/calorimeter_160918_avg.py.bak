@@ -1,3 +1,4 @@
+from __future__ import print_function
 # generic
 import math
 import numpy as np
@@ -185,7 +186,7 @@ def pipe_subtract_background(header, data, background = "const"):
         title      = "constant background subtracted of " + " ".join(header[1:])
 
     else:
-        print "no background subtracted!"
+        print("no background subtracted!")
 
         
     return header, data, title
@@ -246,7 +247,7 @@ if __name__ == '__main__':
         if len(sys.argv) > 1:
             if sys.argv[1].find("-f")!= -1:
                 filename = sys.argv[2]
-                print "opening file %s" % filname
+                print("opening file %s" % filname)
                 f = open(filename) 
                 for line in f:
                     args.append(line.rstrip())
@@ -257,7 +258,7 @@ if __name__ == '__main__':
             for line in f:
                 args.append(line.rstrip())
     except:
-        print 'usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"'
+        print('usage: python calorimeter.py <files calorimeterdata.txt> \nor include -f to indicate a file contraing the file paths\nor "find anyfile.whatever | python calorimeter.py"')
         sys.exit(1)
 #    print "args passed:"
     main(args)

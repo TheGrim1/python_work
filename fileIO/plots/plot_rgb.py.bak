@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 
@@ -34,7 +35,7 @@ def plot_rgb(data,
     
     tobeplotted = data 
     if dimension not in (3,4):
-        print "invalid data for plotting \ntitle  : %s\ndimension : %s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\ndimension : %s" % (title, dimension))
         raise IndexError
 ## timing
 #    print "before plotting2 : %s" %time.time()
@@ -73,7 +74,7 @@ def plot_rgb(data,
 #    ax1 = draw_lines_troi(troi = rroi, color = "red", axes = ax1, fov =(784,135))
 
     if savename != None:
-        print "saving plot as: \n%s" %savename
+        print("saving plot as: \n%s" %savename)
         plt.savefig(savename, transparent = True, bbox_incens = "tight")
 
 #    plt.title(title)
@@ -87,7 +88,7 @@ def main(args):
     'plot 3 edf files as one rgb, optional savename.png'
     
     if len(args) != 3:
-        print "please specify 3 files and not %s" %len(args)
+        print("please specify 3 files and not %s" %len(args))
         
     i           = 0
     r           = open_edf(args[0])

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 ###################
 # Library of functions to generate ptycho scans
 # S.J.Leake 2014/12/15
@@ -17,6 +18,7 @@ from __future__ import print_function
 
 # 20150810 added maxdist in x/y for overlap consideration only to fermat_spiral_mesh
 
+from past.utils import old_div
 import numpy as np
 
 ###########
@@ -35,7 +37,7 @@ def spiral_mesh(x,y,spiral_step,start_th = np.pi,square_aperture=False):
     square_aperture = spiral scan that fills a square aperture
     """
     # centre
-    cen = [x[0]+(x[1]-x[0])/2,y[0]+(y[1]-y[0])/2]
+    cen = [x[0]+old_div((x[1]-x[0]),2),y[0]+old_div((y[1]-y[0]),2)]
     # If you begin at theta zero moving in an anticlockwise direction
     # the pixel furthest away is bottom right of your FOV i.e. pix_br
     pix_tl = [x[0],y[0]]
@@ -49,7 +51,7 @@ def spiral_mesh(x,y,spiral_step,start_th = np.pi,square_aperture=False):
         yy=spiral_r*np.sin(spiral_th)+cen[1]
         #print xx,yy
         # Calculate the next coordinates
-        spiral_r =(spiral_step*spiral_th)/(2*np.pi)
+        spiral_r =old_div((spiral_step*spiral_th),(2*np.pi))
         # If these coordinates lie within the defined rectangle
         # then store them
         if square_aperture:
@@ -62,7 +64,7 @@ def spiral_mesh(x,y,spiral_step,start_th = np.pi,square_aperture=False):
             meshx=np.r_[meshx,xx]
             meshy=np.r_[meshy,yy]
         # Update the step in angle based on current angle etc.
-        spiral_th += (2*np.pi)/np.sqrt(1+spiral_th**2)
+        spiral_th += old_div((2*np.pi),np.sqrt(1+spiral_th**2))
     return meshx,meshy
 
 # From MIR depends on your starting position - the overlap of the central parts. 
@@ -71,7 +73,7 @@ def spiral_mesh_MIR(x,y,spiral_step,square_aperture=False):
     xy = xy[min,max,step]
     """
     # centre
-    cen = [x[0]+(x[1]-x[0])/2,y[0]+(y[1]-y[0])/2]
+    cen = [x[0]+old_div((x[1]-x[0]),2),y[0]+old_div((y[1]-y[0]),2)]
     # If you begin at theta zero moving in an anticlockwise direction
     # the pixel furthest away is bottom right of your FOV i.e. pix_br
     pix_tl = [x[0],y[0]]
@@ -86,7 +88,7 @@ def spiral_mesh_MIR(x,y,spiral_step,square_aperture=False):
         yy=spiral_r*np.sin(spiral_th)+cen[1]
         #print xx,yy
         # Calculate the next coordinates
-        spiral_r =(spiral_step*spiral_th)/(2*np.pi)
+        spiral_r =old_div((spiral_step*spiral_th),(2*np.pi))
         # If these coordinates lie within the defined rectangle
         # then store them
         if square_aperture:
@@ -99,7 +101,7 @@ def spiral_mesh_MIR(x,y,spiral_step,square_aperture=False):
             meshx=np.r_[meshx,xx]
             meshy=np.r_[meshy,yy]
         # Update the step in angle based on current angle etc.
-        spiral_th += (2*np.pi)/np.sqrt(1+spiral_th**2)
+        spiral_th += old_div((2*np.pi),np.sqrt(1+spiral_th**2))
     return meshx,meshy
 
 # fermat spiral (a la X. Huang)
@@ -108,7 +110,7 @@ def fermat_spiral_mesh(x,y,spiral_step,square_aperture=False, return_max_step = 
     xy = xy[min,max,step]
     """
     # centre
-    cen = [x[0]+(x[1]-x[0])/2,y[0]+(y[1]-y[0])/2]
+    cen = [x[0]+old_div((x[1]-x[0]),2),y[0]+old_div((y[1]-y[0]),2)]
     # If you begin at theta zero moving in an anticlockwise direction
     # the pixel furthest away is bottom right of your FOV i.e. pix_br
     pix_tl = [x[0],y[0]]
@@ -127,7 +129,7 @@ def fermat_spiral_mesh(x,y,spiral_step,square_aperture=False, return_max_step = 
     while spiral_r < max_r:
         # Calculate the next coordinates
         spiral_r = np.sqrt(spiral_step**2*spiral_th)#np.sqrt((spiral_step**2/phi_zero)*spiral_th)/(2*np.pi) # this is effectively sqrt(s_step**2*i)
-        spiral_r = (spiral_step**2*spiral_th)/(2*np.pi)
+        spiral_r = old_div((spiral_step**2*spiral_th),(2*np.pi))
         # Update the step in angle based on current angle etc.
         xx = spiral_r*np.cos(spiral_th)+cen[0]
         yy = spiral_r*np.sin(spiral_th)+cen[1]
@@ -161,7 +163,7 @@ def fermat_spiral_mesh(x,y,spiral_step,square_aperture=False, return_max_step = 
             meshx=np.r_[meshx,xx]
             meshy=np.r_[meshy,yy]
         i+=1
-        spiral_th += (2*np.pi)/np.sqrt(1+spiral_th**2) #phi_zero
+        spiral_th += old_div((2*np.pi),np.sqrt(1+spiral_th**2)) #phi_zero
     
     #print maxdist
     #print max_xx, max_yy
@@ -176,7 +178,7 @@ def fermat_spiral_golden_mesh(x,y,spiral_step,square_aperture=False):
     xy = xy[min,max,step]
     """
     # centre
-    cen = [x[0]+(x[1]-x[0])/2,y[0]+(y[1]-y[0])/2]
+    cen = [x[0]+old_div((x[1]-x[0]),2),y[0]+old_div((y[1]-y[0]),2)]
     # If you begin at theta zero moving in an anticlockwise direction
     # the pixel furthest away is bottom right of your FOV i.e. pix_br
     pix_tl = [x[0],y[0]]
@@ -206,7 +208,7 @@ def fermat_spiral_golden_mesh(x,y,spiral_step,square_aperture=False):
             meshy=np.r_[meshy,yy]
         i+=1
         # Update the step in angle based on current angle etc.
-        spiral_th += (1+np.sqrt(5))/2.
+        spiral_th += old_div((1+np.sqrt(5)),2.)
     return meshx,meshy
     
     # concentric circle - for a rather
@@ -217,11 +219,11 @@ def concentric_mesh(x,y,rad_step,points_inner_circle,square_aperture=False):
     rad_step = radial step
     points_inner_circle = points in inner circle, choose depending on symmetry you want to induce 5+ is generally better
     """
-    cen = [x[0]+(x[1]-x[0])/2,y[0]+(y[1]-y[0])/2]
+    cen = [x[0]+old_div((x[1]-x[0]),2),y[0]+old_div((y[1]-y[0]),2)]
     pix_tl = [x[0],y[0]]
     pix_br = [x[1],y[1]]
     max_r = np.sqrt((pix_br[0]-cen[0])**2+(pix_br[1]-cen[1])**2)
-    nr = 1+ np.floor(max_r/rad_step)
+    nr = 1+ np.floor(old_div(max_r,rad_step))
     meshx = np.array([])
     meshy = np.array([])
     for i in np.arange(0,nr+1):
@@ -248,13 +250,13 @@ def triangular_mesh(xy):
     """
     xy = xy[min,max,step]
     """
-    atoms = [[0,0],[0.5,0.5/np.tan(np.degrees(30))]]
+    atoms = [[0,0],[0.5,old_div(0.5,np.tan(np.degrees(30)))]]
     meshx = np.array([])
     meshy = np.array([])
     min=xy[0];max=xy[1]
     step=xy[2]*2
     for i in np.arange(min,max,step):
-        for j in np.arange(min,max,step/(np.tan(np.degrees(30)))): 
+        for j in np.arange(min,max,old_div(step,(np.tan(np.degrees(30))))): 
             for k in atoms:
                 meshx=np.r_[meshx,i+k[0]*step]
                 meshy=np.r_[meshy,j+k[1]*(step)]
@@ -267,7 +269,7 @@ def random_mesh(x,y):
     # the overlap parameter goes out the window
     # you need a fill in function at the end to catch missing data
     """
-    step = [(x[1]-x[0])/x[2],  (y[1]-y[0])/y[2]]
+    step = [old_div((x[1]-x[0]),x[2]),  old_div((y[1]-y[0]),y[2])]
     a = np.array([np.random.rand(np.prod(step))])
     b = np.array([np.random.rand(np.prod(step))])
     
@@ -378,13 +380,13 @@ def calc_overlap(beam,alpha,x,y):
     # as a f(diameter), f(area)
     # in general we don't have a uniform spot due to alpha therefore an overlap 
     # should be described in both dimensions
-    footprint = [beam[0],beam[1]/np.abs(np.sin(np.degrees(alpha)))]
+    footprint = [beam[0],old_div(beam[1],np.abs(np.sin(np.degrees(alpha))))]
     step_sep = [x[2],y[2]]
     # diameter
     print(("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100))
     # for general interest the area overlap can be calculated as follows
-    print(("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
-    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100))
+    print(("area_olp x:", (old_div(circle_circle_intersection(old_div(footprint[0],2.),old_div(footprint[0],2.),step_sep[0]),(np.pi*((old_div(footprint[0],2.))**2))))*100, \
+    "area_olp y:", (old_div(circle_circle_intersection(old_div(footprint[1],2.),old_div(footprint[1],2.),step_sep[1]),(np.pi*((old_div(footprint[1],2.))**2))))*100))
 
 def calc_overlap_2D_arr_pts(beam,alpha,meshx,meshy):
     """
@@ -400,23 +402,23 @@ def calc_overlap_2D_arr_pts(beam,alpha,meshx,meshy):
     # as a f(diameter), f(area)
     # in general we don't have a uniform spot due to alpha therefore an overlap 
     # should be described in both dimensions
-    footprint = [beam[0],beam[1]/np.abs(np.sin(np.degrees(alpha)))]
+    footprint = [beam[0],old_div(beam[1],np.abs(np.sin(np.degrees(alpha))))]
     step_sep = [x[2],y[2]]
     # diameter
     print(("overlap x:", (footprint[0]-step_sep[0])/footprint[0]*100, "overlap y:",(footprint[1]-step_sep[1])/footprint[1]*100))
     # for general interest the area overlap can be calculated as follows
-    print(("area_olp x:", (circle_circle_intersection(footprint[0]/2.,footprint[0]/2.,step_sep[0])/(np.pi*((footprint[0]/2.)**2)))*100, \
-    "area_olp y:", (circle_circle_intersection(footprint[1]/2.,footprint[1]/2.,step_sep[1])/(np.pi*((footprint[1]/2.)**2)))*100))
+    print(("area_olp x:", (old_div(circle_circle_intersection(old_div(footprint[0],2.),old_div(footprint[0],2.),step_sep[0]),(np.pi*((old_div(footprint[0],2.))**2))))*100, \
+    "area_olp y:", (old_div(circle_circle_intersection(old_div(footprint[1],2.),old_div(footprint[1],2.),step_sep[1]),(np.pi*((old_div(footprint[1],2.))**2))))*100))
     
 def circle_circle_intersection(r1,r2,d):
-    area = (r1**2)*np.arccos((d**2+r1**2-r2**2)/(2*d*r1))\
-            + (r2**2)*np.arccos((d**2+r2**2-r1**2)/(2*d*r2))\
+    area = (r1**2)*np.arccos(old_div((d**2+r1**2-r2**2),(2*d*r1)))\
+            + (r2**2)*np.arccos(old_div((d**2+r2**2-r1**2),(2*d*r2)))\
             - 0.5*np.sqrt((r1+r2-d)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2))
     return area
 
 
 def scale_mesh(mesh,stroke,centre):
-    return mesh/(mesh.max()-mesh.min())*stroke+centre-stroke/2
+    return mesh/(mesh.max()-mesh.min())*stroke+centre-old_div(stroke,2)
 
 def scale_mesh_dist(mesh,dist,stroke,centre):
     #print  mesh.max(),mesh.min()

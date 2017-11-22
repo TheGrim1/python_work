@@ -1,5 +1,8 @@
 from __future__ import print_function
+from __future__ import division
 # generic
+from builtins import range
+from past.utils import old_div
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,11 +41,11 @@ def pipe_subtract(header, data1, emptyfile):
 def gaussian(length, sigma, mu, normalize = True):
 
     values      = np.zeros(shape = (length,1))
-    axis        = [x - length/2 for x in range(length)]
+    axis        = [x - old_div(length,2) for x in range(length)]
     if normalize:
-        values[:,0] = [math.exp(-((x - mu)**2 / (2.0 * sigma**2)))/ (math.sqrt( 2.0 * math.pi) * sigma) for x in axis]
+        values[:,0] = [old_div(math.exp(-(old_div((x - mu)**2, (2.0 * sigma**2)))), (math.sqrt( 2.0 * math.pi) * sigma)) for x in axis]
     else:
-        values[:,0] = [math.exp(-((x - mu)**2 / (2.0 * sigma**2))/ (math.sqrt( 2.0 * math.pi) * sigma)) for x in axis]
+        values[:,0] = [math.exp(old_div(-(old_div((x - mu)**2, (2.0 * sigma**2))), (math.sqrt( 2.0 * math.pi) * sigma))) for x in axis]
 
     return values
 

@@ -5,6 +5,7 @@ This module defines the SpecChannel class
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -19,7 +20,7 @@ import logging
 
 (DOREG, DONTREG, WAITREG) = (0, 1, 2)
 
-class SpecChannel:
+class SpecChannel(object):
     """SpecChannel class
 
     Represent a channel in Spec
@@ -156,7 +157,7 @@ class SpecChannel:
         if type(self.value) == dict and type(channelValue) == dict:
             # update dictionary
             if deleted:
-                for key,val in channelValue.iteritems():
+                for key,val in channelValue.items():
                     if type(val) == dict:
                         for k in val:
                             try:
@@ -171,7 +172,7 @@ class SpecChannel:
                         except KeyError:
                             pass
             else:
-                for k1,v1 in channelValue.iteritems():
+                for k1,v1 in channelValue.items():
                     if type(v1)==dict:
                         try:
                             self.value[k1].update(v1)

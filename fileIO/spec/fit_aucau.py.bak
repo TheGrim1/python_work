@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from silx.io.spech5 import SpecH5
 import timeit
@@ -14,7 +15,7 @@ def main(args):
     scan_motor = args[2]
     first_scan = args[3]
     no_scans = args[4]
-    print args
+    print(args)
     if len(args)>=6:
         counter = args[5]
     else:
@@ -22,11 +23,11 @@ def main(args):
     
 
     
-    print 'looking at aucau in specsession ', fname
-    print 'looking at aucau with %s as x' % x_motor
+    print('looking at aucau in specsession ', fname)
+    print('looking at aucau with %s as x' % x_motor)
     
-    print 'dscans in ', scan_motor
-    print '%s scans, starting with spec scan number %s' % (no_scans, first_scan)
+    print('dscans in ', scan_motor)
+    print('%s scans, starting with spec scan number %s' % (no_scans, first_scan))
 
     
     
@@ -35,8 +36,8 @@ def main(args):
                                                             counter=counter,
                                                             sorting_motor=x_motor)
                      
-    print 'found data.shape', data.shape
-    print 'found x positions', x_positions
+    print('found data.shape', data.shape)
+    print('found x positions', x_positions)
 
    
     fig,ax = plt.subplots()
@@ -46,18 +47,18 @@ def main(args):
 
         fit_data = np.rollaxis(np.asarray((scan_positions, scan)),-1)
         
-        print fit_data.shape
+        print(fit_data.shape)
         fit_results.append(fit.do_logistic_fit(fit_data, verbose = False))
-        print "at %10.3f 2 sigma = %s" , (x_positions[i],2*fit_results[i][3])
+        print("at %10.3f 2 sigma = %s" , (x_positions[i],2*fit_results[i][3]))
         ax.plot(fit_data[:,0], fit.general_logistic_func(fit_results[i], fit_data[:,0]), "r--", lw = 2)
         
     ax.legend()
     plt.plot()
 
     results = np.asarray(zip(x_positions, [2*beta[3] for beta in fit_results]))
-    print 'result summary:'
+    print('result summary:')
     for bla in results:
-        print bla
+        print(bla)
     fig,ax1 = plt.subplots()
     ax1.plot(results[:,0],results[:,1],label = 'caustic %s' %  x_motor)
     plt.show()

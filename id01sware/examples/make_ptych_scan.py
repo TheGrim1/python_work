@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import StringIO
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from past.utils import old_div
+import io
 from id01lib.ptycho.scan_utils import *
 from id01lib.ptycho import plotting
 ## range of initial point generation 
@@ -11,8 +15,8 @@ y=[0,125,1]
 ## define the position in real life that you want the scan to take place
 centre=[23.16,100.3]
 stroke=[.7,.7] # if you have an asymmetric beam these shouldn't be equal
-xlims=[centre[0]-stroke[0]/2-1,centre[0]+stroke[0]/2+1]
-ylims=[centre[1]-stroke[1]/2-1,centre[1]+stroke[1]/2+1]
+xlims=[centre[0]-old_div(stroke[0],2)-1,centre[0]+old_div(stroke[0],2)+1]
+ylims=[centre[1]-old_div(stroke[1],2)-1,centre[1]+old_div(stroke[1],2)+1]
 window=True
 shortest_distance = False#True
 
@@ -35,8 +39,8 @@ points_inner_circle=5
 #meshx,meshy=standard_mesh(x,y)
 
 print("Largest step...")
-print("dim 1: %.2dnm"%(scale_mesh_dist(meshx,max_xx,stroke[0],centre[0])/1e-3))
-print("dim 2: %.2dnm"%(scale_mesh_dist(meshy,max_yy,stroke[1],centre[1])/1e-3))
+print("dim 1: %.2dnm"%(old_div(scale_mesh_dist(meshx,max_xx,stroke[0],centre[0]),1e-3)))
+print("dim 2: %.2dnm"%(old_div(scale_mesh_dist(meshy,max_yy,stroke[1],centre[1]),1e-3)))
 ## apply scaling
 meshx=scale_mesh(meshx,stroke[0],centre[0])
 meshy=scale_mesh(meshy,stroke[1],centre[1])
@@ -52,7 +56,7 @@ if shortest_distance:
 	meshx,meshy=sim_anneal_distance(meshx,meshy)
 
 ## save the .dat file for spec
-fh = StringIO.StringIO()
+fh = io.StringIO()
 save_ptych_scan(meshx,meshy,fh)
 fh.seek(0)
 print(fh.read())

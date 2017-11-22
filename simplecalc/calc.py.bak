@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys, os
 import numpy as np
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
@@ -235,7 +236,7 @@ def get_fwhm(data):
         X = data[:,0]
         Y = data[:,1]
     else:
-        print 'invalid data shape!'
+        print('invalid data shape!')
 
     half_max = np.max(Y) / 2.
     #find when function crosses line half_max (when sign of diff flips)

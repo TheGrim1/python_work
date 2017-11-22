@@ -1,3 +1,4 @@
+from builtins import str
 import sys, os
 import h5py
 import numpy as np
@@ -56,7 +57,7 @@ def timestamp(nx_f = None):
     if type(nx_f) == h5py._hl.files.File or type(nx_f) == NXroot:
 
         timestamp = "T".join(str(datetime.datetime.now()).split())
-        if 'file_time' in nx_f.attrs.keys():
+        if 'file_time' in list(nx_f.attrs.keys()):
             nx_f.attrs['file_update_time'] = timestamp
         else:
             nx_f.attrs['file_time']        = timestamp
@@ -72,7 +73,7 @@ def find_dataset_path(nx_g, dataset_name):
     kind of like to find --maxdepth=1
     '''
     dataset_path = 'did not find a valid path'
-    for key in nx_g.keys():
+    for key in list(nx_g.keys()):
         for dataset in nx_g[key]:
             if dataset.name == dataset_name:
                 data_set.path = key + '/' + dataset_name

@@ -11,6 +11,7 @@ waitChannel -- wait for a channel update
 waitReply -- wait for a reply
 waitConnection -- wait for a connection
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
@@ -21,9 +22,9 @@ import types
 import gevent
 from gevent.util import wrap_errors
 
-import SpecEventsDispatcher
+from . import SpecEventsDispatcher
 from .SpecClientError import SpecClientError, SpecClientTimeoutError
-import SpecConnectionsManager
+from . import SpecConnectionsManager
 
 
 def spawn_greenlet(func, *args, **kwargs):

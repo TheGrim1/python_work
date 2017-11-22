@@ -4,6 +4,7 @@
 # will be extended again later
 # wishlist/todo:
 # -
+from __future__ import print_function
 import os
 import numpy as np
 from matplotlib import pyplot as plt

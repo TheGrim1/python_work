@@ -1,7 +1,10 @@
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import os
 from os import path
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 
 TPL = "mv raw_s2426_4_02_%1d_%04d.edf run_%s/"
 
@@ -14,7 +17,7 @@ def move_no(i, n):
             print(dname, ":", path.exists(dname))
         except:
             print("fundamental error:", dname)
-    for j in xrange(n):
+    for j in range(n):
         print("cycle:", j)
         cmd = TPL % (i,j,i)
         print(cmd)

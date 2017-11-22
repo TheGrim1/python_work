@@ -14,6 +14,7 @@ Classes :
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
@@ -38,7 +39,7 @@ def SpecConnectionsManager():
     return _SpecConnectionsManagerInstance
 
 
-class _SpecConnectionsManager:
+class _SpecConnectionsManager(object):
     """Class for managing connections to Spec
     """
     def __init__(self):
@@ -69,7 +70,7 @@ class _SpecConnectionsManager:
 
 
     def closeConnections(self):
-        for connectionName in self.connections.keys():
+        for connectionName in list(self.connections.keys()):
             self.closeConnection(connectionName)
 
 

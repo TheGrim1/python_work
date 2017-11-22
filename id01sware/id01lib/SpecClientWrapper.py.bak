@@ -1,3 +1,4 @@
+from __future__ import print_function
 # 20170611
 # SL - Library of functions for interaction with spec variables with python
 #

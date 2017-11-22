@@ -13,6 +13,7 @@ waitConnection -- wait for a connection
 """
 from __future__ import absolute_import
 
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -42,7 +43,7 @@ def spawn_greenlet(func, *args, **kwargs):
     return t
 
 
-class SpecWaitObject:
+class SpecWaitObject(object):
     """Helper class for waiting specific events from Spec"""
     def __init__(self, connection):
         """Constructor

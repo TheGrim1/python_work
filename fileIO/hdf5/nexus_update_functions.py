@@ -1,5 +1,9 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 import h5py
 import numpy as np
@@ -67,7 +71,7 @@ def update_sample_info(nx_g, properties = {'auto_update' : True}):
 
     and updates the given sample info in entry/sample/sample_info
     '''
-    for attr, value in properties.items():
+    for attr, value in list(properties.items()):
         nx_g.attrs[attr] = value
 
     if properties['auto_update'] :
@@ -93,7 +97,7 @@ def update_command(nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
                                units = 's'))
    
 
-    if 'motors' in properties.keys():
+    if 'motors' in list(properties.keys()):
         parsed_motors = properties['motors']
     else:
         ## TODO parse the command 
@@ -107,7 +111,7 @@ def update_command(nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
         steps = int(parsed_motor[3])
 
         
-        positions = np.arange(start,stop+(stop-start)/steps,(stop-start)/steps)
+        positions = np.arange(start,stop+old_div((stop-start),steps),old_div((stop-start),steps))
         new_nx_g.insert(nx.NXpositioner(name = motor,
                                         value= positions,
                                         unit = default_units(motor)))
@@ -200,7 +204,7 @@ def update_initial_spec(nx_g, properties = {'fname':None}):
         scan_no =  properties['spec_scan_no_next']
     else:
         sfh5        = SpecH5(spec_fname)
-        scan_list   = sfh5.keys()
+        scan_list   = list(sfh5.keys())
         scan_no_list = [int(x.split('.')[0]) for x in scan_list]
         scan_no_list.sort()
         last_scan_no =  scan_no_list[-1]

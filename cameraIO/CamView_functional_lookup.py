@@ -28,7 +28,7 @@ class lookupdict_rho_yztheta(collections.MutableMapping):
         self.stage = stage
         self.store = dict()
         self.update(self.stage.lookup['rho'])
-        if 'z' not in self.store.keys():
+        if 'z' not in list(self.store.keys()):
             self.update({'z':np.zeros(shape = self.store['x'].shape)})
         
            
@@ -73,7 +73,7 @@ class lookupdict_phi_yzkappa(collections.MutableMapping):
         self.stage = stage
         self.store = dict()
         self.update(self.stage.lookup['phi'])
-        if 'z' not in self.store.keys():
+        if 'z' not in list(self.store.keys()):
             self.update({'z':np.zeros(shape = self.store['x'].shape)})
         
            
@@ -119,7 +119,7 @@ class lookupdict_phi_xzkappa(collections.MutableMapping):
         self.stage = stage
         self.store = dict()
         self.update(self.stage.lookup['phi'])
-        if 'z' not in self.store.keys():
+        if 'z' not in list(self.store.keys()):
             self.update({'z':np.zeros(shape = self.store['x'].shape)})
         elif not self.store['z'].shape == self.store['x'].shape:
             self.update({'z':np.zeros(shape = self.store['x'].shape)})

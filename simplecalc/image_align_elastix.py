@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import SimpleITK as sitk
 
@@ -23,7 +26,7 @@ def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parame
         thetas = np.zeros(imagestack.shape[0])
     else:
         if COR == None:
-            COR = (imagestack.shape[1]/2.0,imagestack.shape[2]/2.0)
+            COR = (old_div(imagestack.shape[1],2.0),old_div(imagestack.shape[2],2.0))
         imagestack = rotate_series(imagestack, -np.asarray(thetas), COR = COR, copy = False)
     
     images = [sitk.GetImageFromArray(imagestack[i]) for i in range(imagestack.shape[0])]
@@ -42,7 +45,7 @@ def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parame
     parameterMap['FinalBSplineInterpolationOrder'] = ['1']
     parameterMap['NumberOfResolutions'] = ['32','16','8','4','2']
     # custom parameters:
-    for key, value in parameterMapkwargs.items():
+    for key, value in list(parameterMapkwargs.items()):
         parameterMap[key] = value
 
     fixedImage = images[0]

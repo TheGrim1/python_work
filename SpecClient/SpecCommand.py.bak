@@ -8,6 +8,7 @@ BaseSpecCommand
 SpecCommand
 SpecCommandA
 """
+from __future__ import absolute_import
 
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
@@ -19,9 +20,9 @@ import gevent
 from gevent.event import Event
 from .SpecConnection import SpecClientNotConnectedError
 from .SpecReply import SpecReply
-import SpecConnectionsManager
-import SpecEventsDispatcher
-import SpecWaitObject
+from . import SpecConnectionsManager
+from . import SpecEventsDispatcher
+from . import SpecWaitObject
 from .SpecClientError import SpecClientTimeoutError, SpecClientError
 
 
@@ -36,7 +37,7 @@ class wrap_errors(object):
         func = self.func
         try:
             return func(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             return SpecClientError(e)
 
     def __str__(self):
@@ -68,7 +69,7 @@ class BaseSpecCommand:
             self.setCommand(command)
             
         if connection is not None:
-            if type(connection) in (types.UnicodeType, types.StringType):
+            if type(connection) in (str, bytes):
                 #
                 # connection is given in the 'host:port' form
                 #
@@ -242,7 +243,7 @@ class SpecCommandA(BaseSpecCommand):
             if self.connection.serverVersion < 3:
                 id = self.connection.send_msg_cmd_with_return(command)
             else:
-                if type(command) == types.StringType:
+                if type(command) == bytes:
                     id = self.connection.send_msg_cmd_with_return(command)
                 else:
                     id = self.connection.send_msg_func_with_return(command)

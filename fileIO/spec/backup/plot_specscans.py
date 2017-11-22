@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import range
 import sys, os
 import numpy as np
 import scipy.ndimage as nd
@@ -16,7 +17,7 @@ def main(args):
     'plots a range of spec scans next to each other'
 
     fname    = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1404/DATA/AJ2c_after/AJ2c_after.dat'
-    scanlist = range(76,92)
+    scanlist = list(range(76,92))
 
     allstacked = open_scan(fname = fname, scanlist = scanlist, counter = 'ball01')
 

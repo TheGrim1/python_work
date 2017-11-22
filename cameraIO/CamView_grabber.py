@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import object
 class CamView_grabber(object):
     def __init__(self, **kwargs):
         if 'camera_type' not in kwargs:

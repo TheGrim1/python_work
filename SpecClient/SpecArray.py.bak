@@ -78,7 +78,7 @@ class SpecArrayError(Exception):
 
 
 def isArrayType(datatype):
-    return type(datatype) == types.IntType and datatype >= ARRAY_MIN and datatype <= ARRAY_MAX
+    return type(datatype) == int and datatype >= ARRAY_MIN and datatype <= ARRAY_MAX
 
 
 def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
@@ -100,7 +100,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
             # convert from a Num* array to a SpecArrayData instance
             # (when you send)
             if len(data.shape) > 2:
-                raise SpecArrayError, "Spec arrays cannot have more than 2 dimensions"
+                raise SpecArrayError("Spec arrays cannot have more than 2 dimensions")
 
             try:
                 if type(data) == numpy.ndarray:
@@ -129,7 +129,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
             try:
                 numtype = SPEC_TO_NUM[datatype]
             except:
-                raise SpecArrayError, 'Invalid Spec array type'
+                raise SpecArrayError('Invalid Spec array type')
             else:
                 if numpy:
                     newArray = numpy.fromstring(data, dtype=numtype)
@@ -144,7 +144,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
         if isArrayType(datatype):
             newArray = SpecArrayData(data, datatype)
         else:
-            raise SpecArrayError, 'Invalid Spec array type'
+            raise SpecArrayError('Invalid Spec array type')
 
     return newArray
 

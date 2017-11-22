@@ -1,3 +1,4 @@
+from builtins import object
 import sys, os
 
 # Disable
@@ -8,7 +9,7 @@ def blockPrint():
 def enablePrint():
     sys.stdout = sys.__stdout__
     
-class HiddenPrints():
+class HiddenPrints(object):
     def __enter__(self):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
@@ -17,7 +18,7 @@ class HiddenPrints():
         sys.stdout = self._original_stdout
 
    
-class HiddenPrintsAndErrors():
+class HiddenPrintsAndErrors(object):
     def __enter__(self):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')

@@ -1,4 +1,7 @@
 from __future__ import print_function
+from builtins import str
+from builtins import input
+from builtins import range
 import numpy as np
 import os,sys
 import ast
@@ -31,14 +34,14 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
         pass
 
     if scanlist  == None:
-        firstinternal = int(raw_input('Please enter internal number of the first scan: '))
-        firsteiger    = int(raw_input('Please enter the eiger scan number of the first scan: '))
-        firstspec     = int(raw_input('Please enter the spec scan number of the first scan: '))
-        noscans       = int(raw_input('Please enter the total number of scans: '))
+        firstinternal = int(input('Please enter internal number of the first scan: '))
+        firsteiger    = int(input('Please enter the eiger scan number of the first scan: '))
+        firstspec     = int(input('Please enter the spec scan number of the first scan: '))
+        noscans       = int(input('Please enter the total number of scans: '))
         scanlist      = []
-        scanlist.append(range(firstinternal,firstinternal + noscans))
-        scanlist.append(range(firsteiger   ,firsteiger    + noscans))
-        scanlist.append(range(firstspec    ,firstspec     + noscans))
+        scanlist.append(list(range(firstinternal,firstinternal + noscans)))
+        scanlist.append(list(range(firsteiger   ,firsteiger    + noscans)))
+        scanlist.append(list(range(firstspec    ,firstspec     + noscans)))
     else:
         noscans = len(scanlist[0]) 
         
@@ -46,7 +49,7 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
 
     first = True
     while not os.path.exists(str(eigerfname)):
-        eigerfname   = str(raw_input('Please enter the path to a .h5 data file of this dataset: '))
+        eigerfname   = str(input('Please enter the path to a .h5 data file of this dataset: '))
         if not first:
             print('file not found: %s'%eigerfname)
         first = False
@@ -58,7 +61,7 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
 
     first = True
     while not os.path.exists(str(poni)):
-        poni   = str(raw_input('Please enter the path to the calib.poni for this dataset: '))
+        poni   = str(input('Please enter the path to the calib.poni for this dataset: '))
         if not first:
             print('file not found: %s'%poni)
         first = False
@@ -70,7 +73,7 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
      
         
     if troi      == None:
-        troi         = ast.literal_eval(raw_input('Please enter the troi-region (format : [[top row, left col],[number of rows,number of colums]])  including all interesting peaks: '))
+        troi         = ast.literal_eval(input('Please enter the troi-region (format : [[top row, left col],[number of rows,number of colums]])  including all interesting peaks: '))
     if troiname  == None:
         troiname     = 'troi_%s_%s'%(troi[0][0],troi[0][1])
 
@@ -80,14 +83,14 @@ def setup_yzthdefault(scanlist    = None, # Internal num, Eiger num, Spec num
 
     first = True
     while not os.path.exists(str(specfname)):
-        specfname    = str(raw_input('Please enter the spec session filename: '))
+        specfname    = str(input('Please enter the spec session filename: '))
         if not first:
             print('file not found: %s'%specfname)
         first = False
 
     else:
         if counter   == None:
-            counter      = str(raw_input('Please enter the XRF counter name in this spec session: '))
+            counter      = str(input('Please enter the XRF counter name in this spec session: '))
     print('Saving spec .data path = %s\nfirst scan number = %s, counter = %s' % (specfname,firstspec,counter))
     defaultscan.update_spec(specfname = specfname,scanno = scanlist[2][0], counter = counter)
     defaultscan.write_self(default = True)

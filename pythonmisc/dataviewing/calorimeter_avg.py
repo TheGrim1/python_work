@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +30,7 @@ def avg_calorimeter_data(data):
 #    print "npdata averaged = " 
 
 #    print nptemp.sum(0)/nptemp.shape[0]
-    avgtemp  = nptemp.sum(0)/nptemp.shape[0]
+    avgtemp  = old_div(nptemp.sum(0),nptemp.shape[0])
     
 
     data.append([time, avgtemp.tolist()])

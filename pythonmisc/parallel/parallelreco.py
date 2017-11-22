@@ -3,6 +3,8 @@ from __future__ import print_function
 # AJ 07.2016
 # not finished
 
+from builtins import input
+from builtins import str
 import os
 from multiprocessing import Pool
 import time
@@ -60,7 +62,7 @@ def usage():
 def confirm(path, noprocesses, arg):
 # yes or exit
     prompt = "Do you want to reconstruct %s with %s parallel processes with these arguements: \n [y/n] " 
-    if raw_input(prompt % (path, noprocesses)) in ("y","yes"):
+    if input(prompt % (path, noprocesses)) in ("y","yes"):
         print("will do")
     else:
         print("ok, quitting")

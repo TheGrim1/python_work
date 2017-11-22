@@ -1,4 +1,7 @@
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import sys, os
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import h5py
@@ -57,7 +60,7 @@ def main():
 
 
     safety  = np.where(ga2015+as2015==0,1,0)
-    garatio = (ga2015/(ga2015+as2015+safety))
+    garatio = (old_div(ga2015,(ga2015+as2015+safety)))
     gaas = np.zeros(shape=(ga2015.shape))
     xbic_norm = np.zeros(shape=(ga2015.shape))
     for i in range(len(garatio[1,1,:])):

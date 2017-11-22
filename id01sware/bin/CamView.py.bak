@@ -18,6 +18,7 @@
 #
 #   source /data/id01/inhouse/crichter/venv3.4/bin/activate
 #----------------------------------------------------------------------
+from __future__ import print_function
 import os
 
 os.environ.pop("http_proxy", None) # for ID01
@@ -54,7 +55,7 @@ from silx.image import sift
 if _use_console:
     from silx.gui import console
 
-print 'using local id01lib'
+print('using local id01lib')
 sys.path.append('/data/id13/inhouse2/AJ/skript/id01sware')
 import id01lib
 from id01lib import image

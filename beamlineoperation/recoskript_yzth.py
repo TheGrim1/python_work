@@ -1,6 +1,9 @@
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
 import os
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 import sys
 import time
 
@@ -23,7 +26,7 @@ def reco_no(args):
     #print("sleeping " + initialwait)
     time.sleep(initialwait)
     
-    print(range(start,stop,2))
+    print(list(range(start,stop,2)))
     for j in range(start,stop,2):
         internalnum = j
         eigerscannum = j + eigerno

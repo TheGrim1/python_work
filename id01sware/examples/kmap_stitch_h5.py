@@ -28,7 +28,7 @@ files = glob.glob("KMAP*/kmap_*.h5")
 fsorted = dict()
 for f in files:
     h5 = h5py.File(f, "r")
-    mot3val = h5.values()[0]["instrument/positioners/%s"%motor3].value
+    mot3val = list(h5.values())[0]["instrument/positioners/%s"%motor3].value
     h5.close()
     fsorted[mot3val] = f
 

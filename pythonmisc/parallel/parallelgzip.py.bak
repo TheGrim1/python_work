@@ -1,3 +1,4 @@
+from __future__ import print_function
 # use to gzip files in place using more than one process
 # AJ 07.2016
 
@@ -49,17 +50,17 @@ def get_files(src):
 ### new stuff
 
 def usage():
-    print "python parrallelgzip.py <path> <no of processes (default 4)>  -<optional gzip arguement>"
-    print "runs batches of processes (up to the specified number) in each folder, one process per file"
+    print("python parrallelgzip.py <path> <no of processes (default 4)>  -<optional gzip arguement>")
+    print("runs batches of processes (up to the specified number) in each folder, one process per file")
     sys.exit(0)
 
 def confirm(path, noprocesses, arg):
 # yes or exit
     prompt = "Do you want to run gzip in all of the folders in \n%s\nin %s parallel processes with these arguements: %s\n [y/n] " 
     if raw_input(prompt % (path, noprocesses, arg)) in ("y","yes"):
-        print "will do"
+        print("will do")
     else:
-        print "ok, quitting"
+        print("ok, quitting")
         sys.exit(0)
     
 
@@ -74,7 +75,7 @@ def task(inargs):
     args.append(arg)
     args.append(fpath)
 
-    print "doing: %s in process %s" % (" ".join(args),os.getpid())
+    print("doing: %s in process %s" % (" ".join(args),os.getpid()))
     
     subprocess.call(args)
 
@@ -83,9 +84,9 @@ def task(inargs):
 
 def paragzip(path, noprocesses, arg):
 
-    print 'Creating pool with %d processes\n' % noprocesses
+    print('Creating pool with %d processes\n' % noprocesses)
     
-    print 'finding list of folders (this may take a while)'
+    print('finding list of folders (this may take a while)')
     folders  = get_folders(path)
     todolist = []
 
@@ -94,7 +95,7 @@ def paragzip(path, noprocesses, arg):
 
     for path in folders:
         
-        print "folder : %s" % path
+        print("folder : %s" % path)
         filelist = get_files(path)
         [todolist.append([arg,x]) for x in filelist]
         pool.map(task,todolist)
@@ -111,7 +112,7 @@ if __name__ == '__main__':
 
 
     if len(sys.argv) == 1:
-        print "default: working in current directory"
+        print("default: working in current directory")
     elif len(sys.argv) == 2:
         path = str(sys.argv[1])
     elif len(sys.argv) in  (3,4):
@@ -143,9 +144,9 @@ if __name__ == '__main__':
         usage()
 
 
-    print 'Using %d processes to gzip all folders in %s in parallel' % (noprocesses,path)
+    print('Using %d processes to gzip all folders in %s in parallel' % (noprocesses,path))
  
 
     confirm(path, noprocesses, arg)
     paragzip(path, noprocesses, arg)
-    print "finished in %s" % path
+    print("finished in %s" % path)

@@ -1,6 +1,7 @@
 """ Lego-like azimuthal integration only compo flow.
 
 """
+from __future__ import print_function
 import numpy as np
 from o8qq.qqudo1.api import utilapi as uti
 from o8qq.qqudo1.api import ptiapi
@@ -85,11 +86,11 @@ class NewCompo(mgr.CompoMgr1):
         self.flow1.run_through()
         self.post_flow()
 
-        print '-'*40
+        print('-'*40)
         for (i,l) in enumerate(fl1.layers):
             for (k,v) in l.dc.iteritems():
-                print "%10s = %s" % (k,str(v))
-        print "elapsed time:", _tmer.time()
+                print("%10s = %s" % (k,str(v)))
+        print("elapsed time:", _tmer.time())
 
 
     def _init_flow1(self):

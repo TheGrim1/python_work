@@ -1,8 +1,10 @@
 from __future__ import print_function
+from __future__ import division
 # Functions for aligning arrays
 # Original code from Xianhui Xiao APS Sector 2
 # Updated by Ross Harder
 # Updated by Steven Leake 30/07/2014
+from past.utils import old_div
 import math as m
 import numpy as np
 import scipy.fftpack as sf
@@ -31,9 +33,9 @@ def GetImageRegistration(arr1, arr2, precision=1):
     shifty2, shiftz2, =result[2:4]
 
     # average them
-    xshift = (shiftx1+shiftx2)/2
-    yshift = (shifty1+shifty2)/2
-    zshift = (shiftz1+shiftz2)/2
+    xshift = old_div((shiftx1+shiftx2),2)
+    yshift = old_div((shifty1+shifty2),2)
+    zshift = old_div((shiftz1+shiftz2),2)
     shift = xshift, yshift, zshift
 
   # 2D arrays
@@ -102,8 +104,8 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
     # Compute error for no pixel shift
     if usfac == 0:
         CCmax = np.sum(buf1ft*np.conj(buf2ft))
-        rfzero = np.sum(abs(buf1ft)**2)/buf1ft.size
-        rgzero = np.sum(abs(buf2ft)**2)/buf2ft.size
+        rfzero = old_div(np.sum(abs(buf1ft)**2),buf1ft.size)
+        rgzero = old_div(np.sum(abs(buf2ft)**2),buf2ft.size)
         error = 1.0 - CCmax*np.conj(CCmax)/(rgzero*rfzero)
         error = np.sqrt(np.abs(error))
         diffphase = np.arctan2(np.imag(CCmax),np.real(CCmax))
@@ -120,13 +122,13 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
         rloc = loc1[0]
         cloc = loc1[1]
         CCmax=CC[rloc,cloc]
-        rfzero = np.sum(np.abs(buf1ft)**2)/(m*n)
-        rgzero = np.sum(np.abs(buf2ft)**2)/(m*n)
+        rfzero = old_div(np.sum(np.abs(buf1ft)**2),(m*n))
+        rgzero = old_div(np.sum(np.abs(buf2ft)**2),(m*n))
         error = 1.0 - CCmax*np.conj(CCmax)/(rgzero*rfzero)
         error = np.sqrt(np.abs(error))
         diffphase=np.arctan2(np.imag(CCmax),np.real(CCmax))
-        md2 = np.fix(m/2)
-        nd2 = np.fix(n/2)
+        md2 = np.fix(old_div(m,2))
+        nd2 = np.fix(old_div(n,2))
         if rloc > md2:
             row_shift = rloc - m
         else:
@@ -151,7 +153,7 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
         nlarge=n*2
         CC=np.zeros([mlarge,nlarge],dtype=np.complex128)
 
-        CC[(m-np.fix(m/2)):(m+1+np.fix((m-1)/2)),(n-np.fix(n/2)):(n+1+np.fix((n-1)/2))] = (sf.fftshift(buf1ft)*np.conj(sf.fftshift(buf2ft)))[:,:]
+        CC[(m-np.fix(old_div(m,2))):(m+1+np.fix(old_div((m-1),2))),(n-np.fix(old_div(n,2))):(n+1+np.fix(old_div((n-1),2)))] = (sf.fftshift(buf1ft)*np.conj(sf.fftshift(buf2ft)))[:,:]
 
         # Compute crosscorrelation and locate the peak
         CC = sf.ifftn(sf.ifftshift(CC)) # Calculate cross-correlation
@@ -166,8 +168,8 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
         m = ndim[0]
         n = ndim[1]
 
-        md2 = np.fix(m/2)
-        nd2 = np.fix(n/2)
+        md2 = np.fix(old_div(m,2))
+        nd2 = np.fix(old_div(n,2))
         if rloc > md2:
             row_shift = rloc - m
         else:
@@ -178,8 +180,8 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
         else:
             col_shift = cloc
 
-        row_shift=row_shift/2
-        col_shift=col_shift/2
+        row_shift=old_div(row_shift,2)
+        col_shift=old_div(col_shift,2)
 
         # If upsampling > 2, then refine estimate with matrix multiply DFT
         if usfac > 2:
@@ -187,18 +189,18 @@ def dftregistration(buf1ft,buf2ft,usfac=100):
             # Initial shift estimate in upsampled grid
             row_shift = 1.*np.round(row_shift*usfac)/usfac;
             col_shift = 1.*np.round(col_shift*usfac)/usfac;
-            dftshift = np.fix(np.ceil(usfac*1.5)/2); ## Center of output array at dftshift+1
+            dftshift = np.fix(old_div(np.ceil(usfac*1.5),2)); ## Center of output array at dftshift+1
             # Matrix multiply DFT around the current shift estimate
-            CC = np.conj(dftups(buf2ft*np.conj(buf1ft),np.ceil(usfac*1.5),np.ceil(usfac*1.5),usfac,\
-dftshift-row_shift*usfac,dftshift-col_shift*usfac))/(md2*nd2*usfac**2)
+            CC = old_div(np.conj(dftups(buf2ft*np.conj(buf1ft),np.ceil(usfac*1.5),np.ceil(usfac*1.5),usfac,\
+dftshift-row_shift*usfac,dftshift-col_shift*usfac)),(md2*nd2*usfac**2))
             # Locate maximum and map back to original pixel grid
             max1,loc1 = idxmax(np.abs(CC))
             rloc = loc1[0]
             cloc = loc1[1]
 
             CCmax = CC[rloc,cloc]
-            rg00 = dftups(buf1ft*np.conj(buf1ft),1,1,usfac)/(md2*nd2*usfac**2)
-            rf00 = dftups(buf2ft*np.conj(buf2ft),1,1,usfac)/(md2*nd2*usfac**2)
+            rg00 = old_div(dftups(buf1ft*np.conj(buf1ft),1,1,usfac),(md2*nd2*usfac**2))
+            rf00 = old_div(dftups(buf2ft*np.conj(buf2ft),1,1,usfac),(md2*nd2*usfac**2))
             rloc = rloc - dftshift
             cloc = cloc - dftshift
             row_shift = 1.*row_shift + 1.*rloc/usfac

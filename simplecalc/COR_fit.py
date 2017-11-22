@@ -1,3 +1,4 @@
+from builtins import object
 from scipy.optimize import leastsq
 import numpy as np      
 from matplotlib import pyplot as plt

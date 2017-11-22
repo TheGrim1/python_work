@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 # global imports
 
@@ -30,7 +31,7 @@ def plot_array(data,
     elif dimension == 2:
         tobeplotted = data[:,:] 
     elif dimension not in (2,3):
-        print "invalid data for plotting \ntitle  : %s\n%s" % (title, dimension)
+        print("invalid data for plotting \ntitle  : %s\n%s" % (title, dimension))
         raise IndexError
 ## timing
 #    print "before plotting2 : %s" %time.time()
@@ -71,7 +72,7 @@ def plot_array(data,
     ax1 = draw_lines_troi(troi = rroi, color = "red", axes = ax1)
 
     if savename != None:
-        print "saving plot as: \n%s" %savename
+        print("saving plot as: \n%s" %savename)
         plt.savefig(savename, transparent = True, bbox_incens = "tight")
 
     plt.title(title)

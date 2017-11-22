@@ -8,6 +8,8 @@ SpecCounterA -- class representing a counter in Spec, to be used with a GUI
 """
 from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
@@ -17,13 +19,13 @@ from . import SpecWaitObject
 from . import SpecCommand
 import math
 
-NOTINITIALIZED, NOTCOUNTING, COUNTING = range(3)
+NOTINITIALIZED, NOTCOUNTING, COUNTING = list(range(3))
 UNKNOWN, SCALER, TIMER, MONITOR = 0, 1, 2, 3
 
 ALL_COUNT = "scaler/.all./count"
 
 
-class SpecCounterA:
+class SpecCounterA(object):
     """SpecCounter class"""
     def __init__(self, specName = None, specVersion = None, callbacks = None, timeout = None):
          """Constructor
@@ -48,7 +50,7 @@ class SpecCounterA:
          }
          if callbacks is None:
             callbacks = {}
-         for cb_name in self.__callbacks.iterkeys():
+         for cb_name in self.__callbacks.keys():
             if callable(callbacks.get(cb_name)):
                 self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 
