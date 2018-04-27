@@ -9,10 +9,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 
-from builtins import input
-from builtins import str
-from builtins import range
-from builtins import object
 from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt

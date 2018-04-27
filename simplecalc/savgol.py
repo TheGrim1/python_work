@@ -1,7 +1,6 @@
 from __future__ import division
 
-from builtins import range
-from past.utils import old_div
+
 import numpy as np
 from scipy.linalg import lstsq
 from math import factorial
@@ -190,7 +189,7 @@ def savgol_coeffs(window_length, polyorder, deriv=0, delta=1.0, pos=None,
     y = np.zeros(polyorder + 1)
     # The coefficient assigned to y[deriv] scales the result to take into
     # account the order of the derivative and the sample spacing.
-    y[deriv] = old_div(factorial(deriv), (delta ** deriv))
+    y[deriv] = (factorial(deriv)/ (delta ** deriv))
 
     # Find the least-squares solution of A*c = y
     coeffs, _, _, _ = lstsq(A, y)
@@ -251,7 +250,7 @@ def _fit_edge(x, window_start, window_stop, interp_start, interp_stop,
 
     # Compute the interpolated values for the edge.
     i = np.arange(interp_start - window_start, interp_stop - window_start)
-    values = old_div(np.polyval(poly_coeffs, i.reshape(-1, 1)), (delta ** deriv))
+    values = (np.polyval(poly_coeffs, i.reshape(-1, 1))/ (delta ** deriv))
 
     # Now put the values into the appropriate slice of y.
     # First reshape values to match y.

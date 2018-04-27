@@ -11,9 +11,7 @@ waitChannel -- wait for a channel update
 waitReply -- wait for a reply
 waitConnection -- wait for a connection
 """
-from __future__ import absolute_import
 
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -23,9 +21,9 @@ import types
 import gevent
 from gevent.util import wrap_errors
 
-from . import SpecEventsDispatcher
+import SpecEventsDispatcher
 from .SpecClientError import SpecClientError, SpecClientTimeoutError
-from . import SpecConnectionsManager
+import SpecConnectionsManager
 
 
 def spawn_greenlet(func, *args, **kwargs):
@@ -43,7 +41,7 @@ def spawn_greenlet(func, *args, **kwargs):
     return t
 
 
-class SpecWaitObject(object):
+class SpecWaitObject:
     """Helper class for waiting specific events from Spec"""
     def __init__(self, connection):
         """Constructor

@@ -1,8 +1,10 @@
 from __future__ import print_function
-from builtins import range
 import sys
 import os
 import ast
+import time
+from dateutil.parser import parse
+
 
 def reformat_calibline(caliblines = ["Calibration done at [2016-10-25 Tue 13:59]\n",
                                      "| [PixelSize1, PixelSize2, Distance, Poni1, Poni2, Rot1, Rot2, Rot3] | [7.5e-5, 7.5e-5, 0.12269051, 0.0933, 0.17910368, 0, 0, 0] |"]):
@@ -12,7 +14,15 @@ def reformat_calibline(caliblines = ["Calibration done at [2016-10-25 Tue 13:59]
     datalist[0] = datalist[0].lstrip().lstrip("[").rstrip().rstrip("]").split(",")
     datalist[1] = datalist[1].lstrip().lstrip("[").rstrip().rstrip("]").split(",")
 
-    poniline = [caliblines[0]]
+    ts = caliblines[0][caliblines[0].find('[')+1:caliblines[0].find(']')]
+
+    timestamp = str(time.asctime(parse(ts, fuzzy = True).timetuple()))
+
+    
+    timestampline = '# Calibration done at ' + timestamp + '\n'
+    
+    
+    poniline = [timestampline]
     for i in range(len(datalist[1])):
         poniline.append(datalist[0][i].lstrip() + ": " + datalist[1][i].lstrip()+ "\n")
 

@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-from builtins import object
 import sys, os
 import h5py
 import numpy as np

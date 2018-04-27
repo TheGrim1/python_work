@@ -1,9 +1,21 @@
 from __future__ import print_function
 
-from builtins import object
-import cameraIO.BaslerGrab as bg
-from image_tools import uint8array_to_qimage
+import sys, os
 
+# local imports
+path_list = os.path.dirname(__file__).split(os.path.sep)
+importpath_list = []
+if 'skript' in path_list:
+    for folder in path_list:
+        importpath_list.append(folder)
+        if folder == 'skript':
+            break
+importpath = os.path.sep.join(importpath_list)
+sys.path.append(importpath)   
+import cameraIO.BaslerGrab as bg
+
+from fileIO.images.image_tools import uint8array_to_qimage
+from simplecalc.slicing import troi_to_slice
 
 class USBCameras(object):
     def __init__(self):

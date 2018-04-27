@@ -6,13 +6,7 @@ sent to Spec.
 
 It handles the different message versions (headers 2, 3 and 4).
 """
-from __future__ import absolute_import
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -20,8 +14,8 @@ import struct
 import time
 import types
 
-from . import SpecArray
-from . import SpecReply
+import SpecArray
+import SpecReply
 
 (DOUBLE, STRING, ERROR, ASSOC) = (1,2,3,4)
 
@@ -88,7 +82,7 @@ def rawtodictonary(rawstring):
             else:
               data[key]=val
         else:
-            if keyel[0] in data and type(data[keyel[0]])!=dict:
+            if keyel[0] in data and type(data[keyel[0]])!=types.DictType:
               data[keyel[0]]={ None: data[keyel[0]] }
 
             try:
@@ -104,9 +98,9 @@ def dictionarytoraw(dict):
     """Transform a Python dictionary object to the string format
     expected by Spec"""
     data = ""
-    for key, val in list(dict.items()):
-        if type(val) == dict:
-            for kkey, vval in val.items():
+    for key, val in dict.items():
+        if type(val) == types.DictType:
+            for kkey, vval in val.iteritems():
                 if kkey is None:
                   data += str(key) + NULL + str(vval) + NULL
                 else:
@@ -117,7 +111,7 @@ def dictionarytoraw(dict):
     return (len(data) > 0 and data) or NULL
 
 
-class SpecMessage(object):
+class SpecMessage:
     """Base class for messages."""
     def __init__(self, packedHeader):
         """Constructor
@@ -234,11 +228,11 @@ class SpecMessage(object):
           - it is a hard job guessing ARRAY_* types, we ignore this case (user has to provide a suitable datatype)
           - we cannot make a difference between ERROR type and STRING type
         """
-        if type(data) == bytes:
+        if type(data) == types.StringType:
             return STRING
-        elif type(data) == dict:
+        elif type(data) == types.DictType:
             return ASSOC
-        elif type(data) == int or type(data) == int or type(data) == float:
+        elif type(data) == types.IntType or type(data) == types.LongType or type(data) == types.FloatType:
             return STRING
             #DOUBLE
         elif isinstance(data, SpecArray.SpecArrayData):
@@ -311,7 +305,7 @@ class message2(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #rint 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'name=', str(self.name)
-        self.time = self.sec + old_div(float(self.usec), 1E6)
+        self.time = self.sec + float(self.usec) / 1E6
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         return (datatype, datalen)
@@ -368,7 +362,7 @@ class message3(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, self.err, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #print 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'name=', str(self.name)
-        self.time = self.sec + old_div(float(self.usec), 1E6)
+        self.time = self.sec + float(self.usec) / 1E6
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         if self.err > 0:
@@ -429,7 +423,7 @@ class message4(SpecMessage):
                     datatype, self.rows, self.cols, \
                     datalen, self.err, self.flags, name  = struct.unpack(self.packedHeaderDataFormat, rawstring)
         #print 'READ header', self.magic, 'vers=', self.vers, 'size=', self.size, 'cmd=', self.cmd, 'type=', datatype, 'datalen=', datalen, 'err=', self.err, 'flags=', self.flags, 'name=', str(self.name)
-        self.time = self.sec + old_div(float(self.usec), 1E6)
+        self.time = self.sec + float(self.usec) / 1E6
         self.name = name.replace(NULL, '') #remove padding null bytes
 
         if self.err > 0:
@@ -487,13 +481,13 @@ class anymessage(SpecMessage):
 
 def commandListToCommandString(cmdlist):
     """Convert a command list to a Spec command string."""
-    if type(cmdlist) == list and len(cmdlist) > 0:
+    if type(cmdlist) == types.ListType and len(cmdlist) > 0:
         cmd = [str(cmdlist[0])]
 
         for arg in cmdlist[1:]:
             argstr = repr(arg)
 
-            if type(arg) == dict:
+            if type(arg) == types.DictType:
                 argstr = argstr.replace('{', '[')
                 argstr = argstr.replace('}', ']')
 

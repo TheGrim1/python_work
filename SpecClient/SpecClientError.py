@@ -1,7 +1,6 @@
 #
 # Exception class
 #
-from builtins import str
 class SpecClientError(Exception):
     def __init__(self, error = None, err = None):
         Exception.__init__(self)

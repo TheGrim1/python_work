@@ -1,0 +1,25 @@
+
+from __future__ import print_function
+from __future__ import division
+
+import sys, os
+import fabio
+import shlex
+import subprocess
+import numpy as np
+import glob
+
+sys.path.append('/data/id13/inhouse2/AJ/skript')
+
+import fileIO.images.image_tools as it
+
+def main():
+    path = os.getcwd()
+    all_files = glob.glob(path + '/*.edf')
+    
+    for edf_fname in all_files:
+        image_fname = os.path.splitext(edf_fname)[0]+'.png'
+        it.edf_to_image(edf_fname, image_fname)
+
+if __name__=='__main__':
+    main()

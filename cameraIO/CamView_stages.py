@@ -8,9 +8,6 @@ from __future__ import print_function
 from __future__ import division
 
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,24 +28,28 @@ sys.path.append(importpath)
 from fileIO.images.image_tools import optimize_greyscale
 import fileIO.images.image_tools as it
 from simplecalc.slicing import troi_to_slice
-#import simplecalc.centering as cen
+
 #import simplecalc.image_align as ia
 #import simplecalc.fitting as fit
 import fileIO.plots.plot_array as pa
 import fileIO.datafiles.save_data as save_data
 import fileIO.datafiles.open_data as open_data
 from cameraIO.CamView_tools import stage
-from cameraIO.lut_move import LUT_Navitar
-import simplecalc.centering as cen 
-        
-
+import cameraIO.lut_move as LUTs
+import simplecalc.centering as cen
  
 
 class phi_kappa_gonio(stage):
     def __init__(self, specsession = 'navitar', initialize_cameras = True):
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
-            self.viewlist = ['top','side']
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'top':
+                               {'camera_index':0, 'horz_func':'x', 'vert_func':'y','focus':'z'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+                              
             self.initialize_cameras(plot=False,camera_type='usb')                        
             self.background = {}
 
@@ -70,7 +71,7 @@ class phi_kappa_gonio(stage):
         # contains the definition of the stage geometry:
         self.stagegeometry = {}
         
-        # lists of motors that will the rotation axis for centering
+        # lists of motors that will move the rotation axis for centering
         # eg:
         # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
         #                                     'parallel_view':'<top/side>',
@@ -88,7 +89,7 @@ class phi_kappa_gonio(stage):
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
         # level 2 : group of motors (any name, here 'set1'
-        # level 3 : the motors with relative calibration factors (here 1)
+        # level 3 : the motors with relative calibration factors (here 1) 
         
         self.stagegeometry['same_calibration'] = {}
         self.stagegeometry['same_calibration']['side'] = {}
@@ -105,7 +106,7 @@ class phi_kappa_gonio(stage):
         self._calibrate('z',-914.02,'side')
 
         # lookuptables:
-        self.lookup = LUT_Navitar()
+        self.lookup = LUTs.LUT_Navitar()
         
         
         # lookuptables look like this:
@@ -131,7 +132,7 @@ class phi_kappa_gonio(stage):
 
         
         
-    def do_gonio_docu(self, phi_pos=[x*25.0 for x in range(old_div(725,25))], kappa_pos=[x*15.0-45 for x in range(old_div(90,15))]):
+    def do_gonio_docu(self, phi_pos=[x*25.0 for x in range(int(725/25))], kappa_pos=[x*15.0-45 for x in range(int(90/15))]):
 
 
         
@@ -183,9 +184,15 @@ class EH2_phi_kappa_gonio(stage):
         if initialize_cameras:
             self.background = {}
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
-            self.viewlist=['up','side']
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'up':
+                               {'camera_index':0, 'horz_func':'x', 'vert_func':'z','focus':'y'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
 
-            # General point of reference
+
+            # General point of reference eg. beam pos
             self.cross_pxl = {}
             self.cross_pxl['up'] = [198,386]
             self.cross_pxl['side'] = [300,400]
@@ -280,18 +287,18 @@ class EH2_phi_kappa_gonio(stage):
         upprep_image = self._get_view(view='up',troi=troi)
         sideprep_image = self._get_view(view='side',troi=troi)
              
-        uptemp_file_fname = '/data/id13/inhouse8/tmp_upstack.tmp'
-        sidetemp_file_fname = '/data/id13/inhouse8/tmp_sidestack.tmp'
+        uptmp_file_fname = '/data/id13/inhouse8/tmp_upstack.tmp'
+        sidetmp_file_fname = '/data/id13/inhouse8/tmp_sidestack.tmp'
         
         upshape = tuple([int(x) for x in [len(positions)]+list(upprep_image.shape)])
         sideshape = tuple([int(x) for x in [len(positions)]+list(sideprep_image.shape)])
 
         if np.asarray(upshape).prod() > 2e8:
             # aleviate memory bottlenecks
-            print(('created temp file: ',uptemp_file_fname))
-            print(('created temp file :',sidetemp_file_fname))
-            upstack = np.memmap(uptemp_file_fname, dtype=np.float16, mode='w+', shape=upshape)
-            sidestack = np.memmap(sidetemp_file_fname, dtype=np.float16, mode='w+', shape=sideshape)
+            print(('created tmp file: ',uptmp_file_fname))
+            print(('created tmp file :',sidetmp_file_fname))
+            upstack = np.memmap(uptmp_file_fname, dtype=np.float16, mode='w+', shape=upshape)
+            sidestack = np.memmap(sidetmp_file_fname, dtype=np.float16, mode='w+', shape=sideshape)
             
         else:
             upstack = np.zeros(shape = upshape)
@@ -362,8 +369,8 @@ class EH2_phi_kappa_gonio(stage):
         side=np.where(side>np.percentile(side,cutpercentilelist[1]),side,0)
         dummy, sideCOR, sideshift= cen.COR_from_sideview(sidelines, thetas=positions, mode='com', return_shift=True)
 
-        new_y = old_div(upshift,self.calibration[viewlist[0]][lookup_motors[0]])
-        new_x = old_div(sideshift,self.calibration[viewlist[1]][lookup_motors[1]])
+        new_y = upshift/self.calibration[viewlist[0]][lookup_motors[0]]
+        new_x = sideshift/self.calibration[viewlist[1]][lookup_motors[1]]
         
         mot0=lookup_motors[0]
         mot1=lookup_motors[1]
@@ -410,7 +417,6 @@ class EH2_phi_kappa_gonio(stage):
                 self.dscan('z',start,finish, intervals, exptime)
                 self.mvr('z',finish)
                 
-
                 self.mv('phi', phi_pos[0], move_using_lookup=True)
                
 
@@ -426,7 +432,11 @@ class EH2_cameras(stage):
         self.cross_pxl = {}
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
-            self.viewlist = ['up','side']
+            self.views = {}
+            self.views.update({'top':
+                               {'camera_index':0, 'horz_func':None, 'vert_func':None},
+                               'side':
+                               {'camera_index':1, 'horz_func':None, 'vert_func':None}})
             self.cross_pxl['up'] = [372,228]
             self.cross_pxl['side'] = [400,300]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh2-vlm1','id13/limaccds/eh2-vlm2'])
@@ -478,7 +488,7 @@ class EH2_cameras(stage):
 
 ## up:
 
-        positions= [x*2 for x in range(old_div(360,2))]
+        positions= [x*2 for x in range(int(360/2))]
         up = upstack.copy()
         up=np.asarray(up,dtype=np.int16)
         uplines = up[:,240:255,:]
@@ -491,8 +501,8 @@ class EH2_cameras(stage):
         side=np.where(side>np.percentile(side,90),side,0)
         dummy, sideCOR, sideshift= cen.COR_from_sideview(sidelines, thetas=positions, mode='com', return_shift=True)
 
-        new_y = old_div(upshift,stage.calibration['up']['y'])
-        new_x = old_div(sideshift,stage.calibration['side']['x'])
+        new_y = upshift/stage.calibration['up']['y']
+        new_x = sideshift/stage.calibration['side']['x']
         
         motor='phi'
         mot0='x'
@@ -507,8 +517,8 @@ class EH2_cameras(stage):
         ny = ny[np.where(pos>-360)]
         pos=pos[np.where(pos>-360)]
         
-        new_y = old_div(nx,stage.calibration['up']['y'])
-        new_x = old_div(ny,stage.calibration['side']['x'])
+        new_y = nx/stage.calibration['up']['y']
+        new_x = ny/stage.calibration['side']['x']
 
         pos = pos+360.0
 
@@ -518,87 +528,21 @@ class EH2_cameras(stage):
 
 
        
-class sm3_oct17(stage):
-    '''
-    OLD probably defunct
-    '''
-    def __init__(self, specsession = 'navitar', initialize_cameras = True):
-        if initialize_cameras:
-            # this list defines which camera is called by view, here view = 'top' -> camera 0:
-            self.viewlist = ['top','side']
-            # General point of reference
-            self.cross_pxl = {}
-            self.cross_pxl['top'] = [600,1000]
-            self.cross_pxl['side'] = [600,1000]
-            self.initialize_cameras(plot=False,camera_type='usb')            
 
-        
-        # dictionary connecting function of the motor and its specname:
-        self.motors      = {}
-        motor_dict = {'x'    : 'navix',
-                      'y'    : 'naviy',
-                      'z'    : 'naviz', 
-                      'rotz' : 'sm3'}
-        self._add_motors(**motor_dict)
-
-        # contains the definition of the stage geometry:
-        self.stagegeometry = {}
-
-        # lists of motors that will the rotation axis for centering
-        # eg:
-        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
-        #                                     'view':'<top/side>',   # this view defindes which camera (here 'top'/'side' is larallel to the rotation. used dor COR algo
-        #                                     'invert':<True/False>}} # invert if rotation not rigt handed with respect to the motors
-        self.stagegeometry['COR_motors'] = {'rotz':{'motors':['x','y'],'view':'top','invert':False}} 
-
-
-
-        # connect to spec
-        self.connect(specsession = specsession)
-        # initializing the default COR at the current motor positions
-        self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeometry['COR_motors'].items())]
-
-        # dicts of motors that can have the same calibration:
-        # level 1 : which view (side or top)
-        # level 2 : group of motors (any name, here 'set1'
-        # level 3 : the motors with relative calibration factors (here 1)
-        
-        self.stagegeometry['same_calibration'] = {}
-        self.stagegeometry['same_calibration']['side'] = {}
-        self.stagegeometry['same_calibration']['top']  = {}
-        self.stagegeometry['same_calibration']['side'].update({'set1':{'x':1,'y':1}})
-        self.stagegeometry['same_calibration']['top'].update({'set1':{'x':1,'y':1}})      
-        
-        self.calibration = {}
-        self.calibration.update({'side':{}})
-        self.calibration.update({'top':{}})
-        print('setting default calibration for zoomed out microscopes')
-        self._calibrate('y',-1495.4,'side')
-        self._calibrate('y',1495.4,'top')
-        self._calibrate('z',-914.02,'side')
-
-
-        # lookuptables:
-        self.lookup = {}
-        
-        # lookuptables look like this:
-        # self.lookup[motor] = {} # look up dict for <motor>
-        # self.lookup[motor].update({motor: thetas})  ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <thetas>
-        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
-        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
-
-        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
-
-        
 class motexplore_jul17(stage):
     '''
-    OLD probably defunct
+    updated nov17
     '''
-    def __init__(self, specsession = 'motexplore', initialize_cameras = True):
+    def __init__(self, spechost = 'lid13lab1', specsession = 'motexplore', initialize_cameras = True):
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
-            self.viewlist = ['top','side']
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'top':
+                               {'camera_index':0, 'horz_func':'x', 'vert_func':'y','focus':'z'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+            
             # General point of reference
             self.cross_pxl = {}
             self.cross_pxl['top'] = [600,1000]
@@ -607,10 +551,11 @@ class motexplore_jul17(stage):
         
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
-        motor_dict = {'x'    : 'navix',
-                      'y'    : 'naviy',
-                      'z'    : 'naviz', 
-                      'rotz' : 'srotz'}
+        motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
+                      'y'      : {'specname':'naviy','is_rotation':False},
+                      'z'      : {'specname':'naviz','is_rotation':False},
+                      'rotz'   : {'specname':'srotz','is_rotation':True}}
+
         self._add_motors(**motor_dict)
 
         # contains the definition of the stage geometry:
@@ -620,22 +565,22 @@ class motexplore_jul17(stage):
         # eg:
         # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
         #                                     'parallel_view':'<top/side>',
-        #                                     'invert':<True/False>}} # invert if rotation not rigt handed with respect to the motors
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
         self.stagegeometry['COR_motors'] = {'rotz':{'motors':['x','y'],'view':'top','invert':False}} 
-        
+    
 
         # connect to spec
         self.connect(specsession = specsession)
 
         # initializing the default COR at the current motor positions
         self.COR = {}
-        [self.COR.update({motor:[self.wm(a),self.wm(b)]}) for motor,[a,b] in list(self.stagegeometry['COR_motors'].items())]
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
         
         # dicts of motors that can have the same calibration:
         # level 1 : which view (side or top)
         # level 2 : group of motors (any name, here 'set1'
         # level 3 : the motors with relative calibration factors (here 1)
-        
+            
         self.stagegeometry['same_calibration'] = {}
         self.stagegeometry['same_calibration']['side'] = {'set1':{'x':1,'y':1}}
         self.stagegeometry['same_calibration']['top']  = {'set1':{'x':1,'y':1}}
@@ -649,12 +594,141 @@ class motexplore_jul17(stage):
         self._calibrate('y',1495.4,'top')
         self._calibrate('z',-914.02,'side')
         # lookuptables:
-        self.lookup = {}
+        self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
         
-        # lookuptables look like this:
-        # self.lookup[motor] = {} # look up dict for <motor>
-        # self.lookup[motor].update({motor: thetas})  ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <thetas>
-        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
-        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
+class EH3_cameras_apr18(stage):
+    '''
+    updated apr18
+    '''
+    def __init__(self, spechost= 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':
+                               {'camera_index':0, 'horz_func':'y', 'vert_func':'z','focus':'x'},
+                               'vlm2':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+            
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['top'] = [600,1000]
+            self.cross_pxl['side'] = [600,1000]
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
+        
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'x'      : {'specname':'nnp1','is_rotation':False},
+                      'y'      : {'specname':'nnp2','is_rotation':False},
+                      'z'      : {'specname':'nnp3','is_rotation':False},
+                      'rotz'   : {'specname':'dummy0','is_rotation':True}}
 
-        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+
+        # lists of motors that will the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
+        self.stagegeometry['COR_motors'] = {'rotz':{'motors':['x','y'],'view':'top','invert':False}} 
+    
+
+        # connect to spec
+        self.connect(spechost=spechost,specsession = specsession)
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+        
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1)
+            
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['side'] = {'set1':{'x':1,'y':1}}
+        self.stagegeometry['same_calibration']['top']  = {'set1':{'x':1,'y':1}}
+
+        
+        self.calibration = {}
+        self.calibration.update({'side':{}})
+        self.calibration.update({'top':{}})
+        print('setting default calibration for zoomed out microscopes')
+        self._calibrate('y',-1495.4,'side')
+        self._calibrate('y',1495.4,'top')
+        self._calibrate('z',-914.02,'side')
+        # lookuptables:
+        self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
+
+
+        
+class EH3_smr_mar18(stage):
+    '''
+    updated mar18
+    '''
+    def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':
+                               {'camera_index':0, 'horz_func':'y', 'vert_func':'z','focus':'x'},
+                               'vlm2':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+            
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['top'] = [600,1000]
+            self.cross_pxl['side'] = [600,1000]
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
+        
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'x'      : {'specname':'nnx','is_rotation':False},
+                      'y'      : {'specname':'nny','is_rotation':False},
+                      'z'      : {'specname':'nnz','is_rotation':False},
+                      'rotz'   : {'specname':'sm23','is_rotation':True}}
+
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+
+        # lists of motors that will the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
+        self.stagegeometry['COR_motors'] = {'rotz':{'motors':['x','y'],'view':'top','invert':False}} 
+    
+
+        # connect to spec
+        self.connect(spechost=spechost, specsession=specsession)
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+        
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1)
+            
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['side'] = {'set1':{'x':1,'y':1}}
+        self.stagegeometry['same_calibration']['top']  = {'set1':{'x':1,'y':1}}
+
+        
+        self.calibration = {}
+        self.calibration.update({'side':{}})
+        self.calibration.update({'top':{}})
+        print('setting default calibration for zoomed out microscopes')
+        self._calibrate('y',-1495.4,'side')
+        self._calibrate('y',1495.4,'top')
+        self._calibrate('z',-914.02,'side')
+        # lookuptables:
+        self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
+        

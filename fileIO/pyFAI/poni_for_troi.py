@@ -1,7 +1,6 @@
-from builtins import str
 import numpy
 import sys, os
-
+import time
         
 def initiate_ponidict():
     parameterlist = ['Detector','PixelSize1','PixelSize2','Distance','Poni1','Poni2','Rot1','Rot2','Rot3','Wavelength']
@@ -19,7 +18,7 @@ def ponidict_full(ponidict):
 def read_ponilines(line):
 
     param = line.lstrip().rstrip().split(':')[0]
-    if not param == 'Detector':
+    if not param in ['Detector','SplineFile']:
         value = float(line.lstrip().rstrip().split(':')[1])
     else:
         value = line.lstrip().rstrip().split(':')[1]
@@ -44,14 +43,19 @@ def read_poni(filename):
 def write_poni(ponidict,filename):
 
     ponilines = []
-    for item in list(ponidict.items()):
-        ponilines.append(item[0] + ": " + str(item[1])+ "\n")
+    parameterlist = ['Detector','PixelSize1','PixelSize2','Distance','Poni1','Poni2','Rot1','Rot2','Rot3','Wavelength']
+    localtime = str(time.asctime( time.localtime(time.time()) ))
+    ponilines.append('# \n')
+    ponilines.append('# poni for troi calculated at '+localtime+'\n')
+    for item in parameterlist:
+        ponilines.append(item + ": " + str(ponidict[item])+ "\n")
         
     f = open(filename,'w')
+    
     f.writelines(['%s' % l for l in ponilines])
     f.close()
 
-def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1'):
+def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1', troipath=None):
     '''
     creates a new PONI file that is corrected for the given troi\n
     This is Eiger4M specific!\n
@@ -64,8 +68,11 @@ def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1'):
 
     ponidict['Poni2']+= - troi[0][1] * ponidict['PixelSize2']
 
-    savefilename = filename[:filename.find('.poni')] + '_%s.poni' % troiname
-    write_poni(ponidict,savefilename)
+    if troipath == None:
+        savefilename = filename[:filename.find('.poni')] + '_%s.poni' % troiname
+    else:
+        savefilename = troipath + os.path.sep +  '_%s.poni' % troiname
+        write_poni(ponidict,savefilename)
     return (ponidict, savefilename)
 
 

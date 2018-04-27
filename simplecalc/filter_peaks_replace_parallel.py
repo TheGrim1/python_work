@@ -8,9 +8,10 @@ import scipy.spatial as spatial
 import numpy as np
 import h5py
 from multiprocessing import Pool
+import matplotlib.pyplot as plt
 
 
-def remove_close_peaks(data, min_distance):
+def remove_close_peaks(data, min_distance, verbose=False):
     '''
     data = nparray 
        with data.shape = (number_of_peaks,3), 
@@ -41,22 +42,25 @@ def remove_close_peaks(data, min_distance):
         data[i:,:] = checkdata
         i += 1
 
-        # # # debug plotting:
-        # import matplotlib.pyplot as plt
-        # print 'checking area around ', points[0]
-        # print 'throwing out: '
-        # print np.asarray(points)[close,:]
-        # for point in np.asarray(points)[close,:]:
-        #     print 'distance = ', np.sqrt((points[0][0]-point[0])**2 + (points[0][1]-point[1])**2)
+        ## debug plotting:
 
-        # ax = plt.gca()
-        # circle1 = plt.Circle((points[0][0], points[0][1]), radius = min_distance, color='r', fill=False)
-        # ax.add_artist(circle1)
-        # for point in points[1:]:
-        #     print point
-        #     circle2 = plt.Circle((point[0], point[1]), radius= 10, color='b', fill=False)
-        #     ax.add_artist(circle2)
-        # plt.plot(np.asarray(points)[close,0],np.asarray(points)[close,1],'rx')
+        if verbose:
+            fig, ax = plt.subplots()
+            print('checking area around ')
+            print(points[0])
+            print('throwing out: ')
+            print(np.asarray(points)[close,:])
+            for point in np.asarray(points)[close,:]:
+                print( 'distance = '+str(np.sqrt((points[0][0]-point[0])**2 + (points[0][1]-point[1])**2)))
+            circle1 = plt.Circle((points[0][0], points[0][1]), radius = min_distance, color='r', fill=False)
+            ax.add_artist(circle1)
+            for point in points[1:]:
+                #print(point)
+                plt.plot(point[0], point[1],'bo')
+                
+            plt.plot(np.asarray(points)[close,0],np.asarray(points)[close,1],'rx')
+
+            print(raw_input('Press enter to continue...'))
     
     data[i:,:] = 0
     return data
@@ -66,6 +70,10 @@ def _remove_peaks_on_file_level(inargs):
         min_distance = inargs[1] 
         data_path = inargs[2]
         save_path = inargs[3]
+        if len(inargs)>4:
+            verbose = inargs[4]
+        else:
+            verbose = False
     
         # print 'fname ', fname
         readfile     = data_path + fname
@@ -86,7 +94,7 @@ def _remove_peaks_on_file_level(inargs):
         chosen_peaks = []
         for frame in valpeaks:
             data = np.rollaxis(frame,1) 
-            data = remove_close_peaks(data, min_distance)
+            data = remove_close_peaks(data, min_distance, verbose)
             frame = np.rollaxis(data, 1)
             # again, just the peaks, leave out the zeros
             frame = frame[:,np.where(frame[2,:]>0)][:,0,:]
@@ -128,7 +136,10 @@ if __name__ == '__main__':
         else:
             print('number of processes defaults to 4')
             noprocesses= 4
-
+        if len(sys.argv)>4:
+            verbose = sys.argv[4]
+        else:
+            verbose = False
     else:
         print('please specify a npc dataoutput directory')
         sys.exit()
@@ -148,7 +159,7 @@ if __name__ == '__main__':
 
 
     
-    task_list = [[fname, min_distance, data_path, save_path] for fname in fnames]
+    task_list = [[fname, min_distance, data_path, save_path, verbose] for fname in fnames]
     print(task_list[:10])
 
     #for task in task_list:

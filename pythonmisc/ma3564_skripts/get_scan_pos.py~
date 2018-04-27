@@ -1,0 +1,8 @@
+from silx.io.spech5 import SpecH5
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+if __name__ == '__main__':
+    main()

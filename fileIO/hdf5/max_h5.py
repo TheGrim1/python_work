@@ -5,7 +5,6 @@ from __future__ import absolute_import
 # cp avg_h5.py /data/id13/inhouse2/AJ/skript/fileIO/hdf5/avg_h5.py
 
 # global imports
-from builtins import range
 import h5py
 import sys
 import os

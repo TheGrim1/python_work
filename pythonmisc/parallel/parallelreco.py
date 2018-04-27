@@ -3,8 +3,6 @@ from __future__ import print_function
 # AJ 07.2016
 # not finished
 
-from builtins import input
-from builtins import str
 import os
 from multiprocessing import Pool
 import time

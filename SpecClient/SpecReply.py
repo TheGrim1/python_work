@@ -3,13 +3,11 @@
 
 This module defines the SpecReply class
 """
-from __future__ import absolute_import
 
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
-from . import SpecEventsDispatcher
+import SpecEventsDispatcher
 
 REPLY_ID_LIMIT = 2**30
 current_id = 0
@@ -21,7 +19,7 @@ def getNextReplyId():
     return current_id
 
 
-class SpecReply(object):
+class SpecReply:
     """SpecReply class
 
     Represent a reply received from a remote Spec server

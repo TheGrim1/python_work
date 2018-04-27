@@ -6,10 +6,6 @@ import numpy as np
 import fabio
 import subprocess
 
-# local imports
-sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
-from simplecalc.slicing import troi_to_slice
-
 def save_edf(data, filename, threshold = 0.0):
     '''creates or overwritees filename!\nThen saves data as filename (presumably .edf)'''
 

@@ -2,3 +2,5 @@ build/
 dist/
 *.pyc
 .ipynb*
+
+id01sware.egg-info

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+#  plot the average every detector image from a KMAP
+#  useful for identifying features in reciprocal space
 import os
 import argparse
 from silx.io import specfile

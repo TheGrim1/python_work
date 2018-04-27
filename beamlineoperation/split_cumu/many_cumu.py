@@ -1,5 +1,4 @@
 from __future__ import print_function
-from builtins import range
 import ast,os,sys
 
 from o8qq.qqudo1.api import ptiapi

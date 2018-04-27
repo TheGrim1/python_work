@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys #python 2.6 compatability
-import id01lib.camtools as ct
+from id01lib import image
 ### python >=2.7:
 #    parser = argparse.ArgumentParser(description='Process some integers.')
 #    parser.add_argument('--crop', 
@@ -46,12 +46,12 @@ if len(args)>0:
         url = args[0]
 
 
-im = ct.url2array(url)
+im = image.url2array(url)
 height, width = im.shape
 #im = im[t:(height-b), l:(width-r)] # cut off text
 im = im[60:-70] # cut off text
 
-value = ct.com(im)
+value = image.com(im)
 print("Center of mass in microscope x=%.2f, y=%.2f"%value)
 
 

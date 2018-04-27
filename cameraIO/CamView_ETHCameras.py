@@ -1,25 +1,19 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
 import sys
 import os
 import subprocess
 import numpy as np
 
-hostname = subprocess.getoutput('hostname')
+hostname = subprocess.check_output('hostname')
 print("hostname:", hostname)
-if hostname not in  ["coherence","cristal","nanofocus"]:
+if hostname[:7] not in  ["coheren","cristal","nanofoc"]:
     print('illegal host name')
     sys.exit(1)
 
-from . import baslertools2
-
-
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 from simplecalc.slicing import troi_to_slice
-
+import cameraIO.baslertools2 as baslertools2
 
 class ETHCameras(object):
     def __init__(self, cameralist):
@@ -30,7 +24,7 @@ class ETHCameras(object):
 
     def grab_image(self, cam_no, troi=None):
         devname = self.cameras[cam_no]
-        cp = baslertools.CameraProxy(devname=devname)
+        cp = baslertools2.CameraProxy(devname=devname)
         cp.set_live()
         cp.show_devinfo()
         arr, num = cp.acquire_greyscale_int18() # returns int16 numpy array

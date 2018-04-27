@@ -1,1 +1,4 @@
-#from id01sware.id01lib import *
+"""
+    Collection of libraries, scripts and apps from beamline ID01 (ESRF).
+"""
+

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from colorama import Fore, Back, Style
 import h5py
 from id01lib.xrd import qconversion
 import pylab as pl

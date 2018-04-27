@@ -1,14 +1,7 @@
 """Helper module for managing scans"""
-from __future__ import print_function
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import str
-from builtins import range
-from builtins import object
 import copy
-import io
+import cStringIO
 import logging
 import time
 import tokenize
@@ -82,18 +75,18 @@ def _atom(next, token):
         raise ValueError('tokenize NAME: %s unrecognized' % token[1])
     elif not token[0]:
         return
-    for i, v in tokenize.__dict__.items():
+    for i, v in tokenize.__dict__.iteritems():
         if v == token[0]:
             raise ValueError("tokenize.%s unrecognized: %s" % (i, token[1]))
 
 def simple_eval(source):
     """a safe version of the builtin eval function, """
-    src = io.StringIO(source).readline
+    src = cStringIO.StringIO(source).readline
     src = tokenize.generate_tokens(src)
-    return _atom(src.__next__, next(src))
+    return _atom(src.next, src.next())
 
 
-class SpecScanA(object):
+class SpecScanA:
     @property
     def paused(self):
         # False when a scan is running or has completed normally
@@ -125,7 +118,7 @@ class SpecScanA(object):
           'newScan': None,
           'newPoint': None,
         }
-        for cb_name in self.__callbacks.keys():
+        for cb_name in self.__callbacks.iterkeys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 
@@ -207,7 +200,7 @@ class SpecScanA(object):
 
 
     def __newScan(self, scanParams):
-        if DEBUG: print("SpecScanA.__newScan", scanParams)
+        if DEBUG: print "SpecScanA.__newScan", scanParams
 
         if not scanParams:
             if self.scanning:
@@ -225,7 +218,7 @@ class SpecScanA(object):
 
         self.scanParams = simple_eval(scanParams)
 
-        if type(self.scanParams) != dict:
+        if type(self.scanParams) != types.DictType:
             return
 
         try: 
@@ -247,12 +240,12 @@ class SpecScanA(object):
 
 
     def newScan(self, scanParameters):
-        if DEBUG: print("SpecScanA.newScan", scanParameters)
+        if DEBUG: print "SpecScanA.newScan", scanParameters
         pass
 
 
     def __newScanData(self, scanData):
-        if DEBUG: print("SpecScanA.__newScanData", scanData)
+        if DEBUG: print "SpecScanA.__newScanData", scanData
         if self.paused and scanData:
             self.__status = 'scanning'
             self.scanResumed()
@@ -263,12 +256,12 @@ class SpecScanA(object):
 
 
     def newScanData(self, scanData):
-        if DEBUG: print("SpecScanA.newScanData", scanData)
+        if DEBUG: print "SpecScanA.newScanData", scanData
         pass
 
 
     def __newScanPoint(self, scanData):
-        if DEBUG: print("SpecScanA.__newScanPoint", scanData)
+        if DEBUG: print "SpecScanA.__newScanPoint", scanData
         if self.paused and scanData:
             self.__status = 'scanning'
             self.scanResumed()
@@ -286,21 +279,21 @@ class SpecScanA(object):
                 if self.__callbacks.get("newPoint"):
                     cb = self.__callbacks["newPoint"]()
                     if cb is not None:
-                        if len(cb.__func__.__code__.co_varnames) > 4:
+                        if len(cb.im_func.func_code.co_varnames) > 4:
                             cb(i, x, y, scanData)
                         else:
                             cb(i, x, y)
             finally:
                 # hack to know if we should call newScanPoint with
                 # scanData or not (for backward compatiblity)
-                if len(self.newScanPoint.__func__.__code__.co_varnames) > 4:
+                if len(self.newScanPoint.im_func.func_code.co_varnames) > 4:
                     self.newScanPoint(i, x, y, scanData)
                 else:
                     self.newScanPoint(i, x, y)
 
 
     def newScanPoint(self, i, x, y, counters_value):
-        if DEBUG: print("SpecScanA.newScanPoint", i, x, y, counters_value)
+        if DEBUG: print "SpecScanA.newScanPoint", i, x, y, counters_value
         pass
 
 

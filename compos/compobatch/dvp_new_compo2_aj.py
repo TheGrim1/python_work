@@ -1,7 +1,5 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from builtins import str
-from builtins import range
 import numpy as np
 from o8qq.qqudo1.api import utilapi as uti
 from o8qq.qqudo1.api import ptiapi

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# TODO: Description of what file does
+#
 import os
 import silx
 #print silx.version
@@ -7,6 +9,7 @@ from id01lib.plot import Normalize, zval
 import pylab as pl
 from matplotlib import colors
 from matplotlib.ticker import LogFormatter
+from scipy import ndimage
 
 
 import collections
@@ -35,6 +38,12 @@ parser.add_argument('-n', '--norm', type=str, default='log',
 
 parser.add_argument('-g', '--gamma', type=float, default=0.2,
         help='gamma value for power normalization of color.')
+
+parser.add_argument('--vmin', type=float,
+        help='minimum value for colormap.')
+
+parser.add_argument('--vmax', type=float,
+        help='maximum value for colormap.')
 
 parser.add_argument('--cmap', type=str, default='jet', 
         help='Name of matplotlib color map. Default: jet.')
@@ -98,20 +107,22 @@ if not isinstance(flist, list):
 DATA = collections.defaultdict(list)
 MOT = collections.defaultdict(list)
 
-
 for f in flist:
     sf = specfile.SpecFile(f)
     cols = sf.labels(0)
-    print f
+    print(f)
     for sc in sf:
         #print sc.number
-        try:
-            if sc.data_column_by_name("mpx4int").max() < 1e2:
-                continue
-        except:
-            continue
+#        try:
+#            if sc.data_column_by_name("mpx4int").max() < 1e2:
+#                continue
+#        except:
+#            continue
         for col in cols:
-            DATA[col].append(sc.data_column_by_name(col))
+            cdata = sc.data_column_by_name(col)
+            #if col == args.monitor:
+            #    cdata = ndimage.uniform_filter1d(cdata, 5)
+            DATA[col].append(cdata)
         for mot in sc.motor_names:
             MOT[mot].append(sc.motor_position_by_name(mot))
     #print DATA[col][-1].shape
@@ -122,14 +133,15 @@ h = sc.scan_header_dict["S"].split()
 motor1 = h[2]
 motor2 = h[6]
 
-_re_comment = "HEADING\[ascan\s+\w+[\d\.\s]+\]"
-pscan_comment = re.findall(_re_comment, sc.scan_header_dict["C"])[0]
-motor3 = pscan_comment.split()[1]
-_printmotors.remove(motor3)
-size3 = pscan_comment.split()[-2]
-pscan_cmd = pscan_comment.split("[")[1][:-1]
-#print motor3, size3
-#C pscan - fastscan / lines[2500] ncols[7] mode[psi] HEADING[ascan  eta 52.3 54.3  20 0.5]
+movement = 0
+for mname,pos in MOT.items():
+    pos = pl.array(pos)
+    relmove = (pos.max() - pos.min())/abs(pos).max()
+    if pl.isnan(relmove):
+        continue
+    if relmove > movement:
+        motor3 = mname
+        movement = relmove
 
 arraysizey = int(h[5])
 arraysizex = int(h[9])
@@ -138,7 +150,6 @@ scansize = len(DATA[col])
 
 skip = 0
 for d in DATA:
-    print d,
     if len(DATA[d])>1:
         l1 = len(DATA[d][-1])
         l2 = len(DATA[d][-2])
@@ -147,7 +158,7 @@ for d in DATA:
             skip = 1
     DATA[d] = pl.vstack(DATA[d])
     DATA[d] = DATA[d].reshape(scansize-skip,arraysizex, arraysizey)
-    print DATA[d].shape
+    print(d,DATA[d].shape)
 
 
 scansize = scansize - skip
@@ -160,9 +171,8 @@ if args.monitor in DATA:
     figtitle += ";  normalized to %s"%args.monitor
 figtitle += os.linesep
 figtitle += ", ".join(["%s=%.3f"%(m,MOT[m][0]) for m in _printmotors])
-figtitle += os.linesep + " ".join(h)
-figtitle += ";    " + pscan_cmd
-print figtitle
+figtitle += os.linesep + " ".join(h[1:])
+print(figtitle)
 
 isort = pl.argsort(MOT[motor3])
 for col in plotcol:
@@ -170,7 +180,7 @@ for col in plotcol:
         ds = col.split(",")
         DATA[col] = sum(DATA[k] for k in ds if len(DATA[k]))
     if col not in DATA:
-        print col
+        print(col)
         raise ValueError("Column not in data: %s"%col)
     x = DATA[_motordef[motor1]]
     y = DATA[_motordef[motor2]]
@@ -178,10 +188,13 @@ for col in plotcol:
     if args.monitor in DATA:
         d /= DATA[args.monitor]
     tks = pl.linspace(d.min()**(gamma), d.max()**(gamma), 7)**(1./gamma)
-    print tks
     #norm = Normalize.Normalize(vmin=d.min(), vmax=d.max(), stretch=args.norm, exponent=gamma)
     imin, imax = int(d.size*0.001),  int(d.size*0.999)
     Imin, Imax = pl.sort(d.ravel())[[imin, imax]]
+    if args.vmin is not None:
+        Imin = args.vmin
+    if args.vmax is not None:
+        Imax = args.vmax
     #Imin = d.min()
     print("Column: %s, Imin: %g, Imax: %g"%(col, Imin, Imax))
     #nrow = int(pl.ceil(pl.sqrt(scansize)*9./16))

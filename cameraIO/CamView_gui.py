@@ -16,7 +16,7 @@ print("Using PyQt %s"%QtCore.QT_VERSION_STR)
 
 import numpy as np
 
-from .baslertools_aj import launch_live_viewer
+from baslertools_aj import launch_live_viewer
 
 class GoLiveAction(PlotActions.PlotAction):
     def __init__(self, plot, parent=None):

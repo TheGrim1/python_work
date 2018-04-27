@@ -1,6 +1,5 @@
 from __future__ import division
 
-from builtins import range
 from past.utils import old_div
 import sys, os
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))

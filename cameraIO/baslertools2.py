@@ -1,12 +1,10 @@
 from __future__ import print_function
-from builtins import map
-from builtins import object
 import os,time,sys
 import struct
 import numpy
 import numpy as np
-import qimage2ndarray
 
+sys.path.insert(0,'.')
 os.environ['QUB_SUBPATH'] = 'qt4'
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import Qt
@@ -14,13 +12,15 @@ from PyQt4.QtCore import Qt
 from PyTango import DeviceProxy   # better to use PyTango.gevent ?
 
 # from bliss.data.routines.pixmaptools import qt4 as pixmaptools
-import pixmaptools.qt4 as pixmaptools
-
-
+# import pixmaptools.qt4 as pixmaptools
+from Qub.CTools import pixmaptools
+import qimage2ndarray
 #print "set video_live TRUE"
 #device.video_live=True
 
-lutMode = pixmaptools.LUT.Scaling.YUV422PACKED
+#lutMode = pixmaptools.LUT.Scaling.YUV422PACKED
+lutMode = pixmaptools.LUT.Scaling.YUV422
+
 
 class error(Exception): pass
 
@@ -57,6 +57,7 @@ class CameraProxy(object):
 
     def acquire_qimage(self):
         device = self.device
+
         image_data = device.video_last_image
         if not self.j % 50:
             print("cycle:", self.j, "last_image_acquired =", device.video_last_image_counter)
@@ -73,6 +74,7 @@ class CameraProxy(object):
 
 
         scaling = pixmaptools.LUT.Scaling()
+
         scaling.autoscale_min_max(raw_buffer, width, height, lutMode)
         # scaling.set_custom_mapping(12 , 50)
     
@@ -140,7 +142,6 @@ class Viewer(object):
             self.marker.set_pos(pos)
         
         self.i += 1
-
         painter.begin(qimage)
         painter.setPen(QtGui.QPen(Qt.red)) 
         self.marker.paint()
@@ -150,7 +151,6 @@ class Viewer(object):
         #painter.drawLine(200,230,240,270)
         painter.end()
         self.label.setPixmap(QtGui.QPixmap.fromImage(qimage))
-
 
 class Marker(object):
 

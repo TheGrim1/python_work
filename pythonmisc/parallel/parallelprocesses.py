@@ -7,10 +7,6 @@ from __future__ import division
 # All rights reserved.
 #
 
-from builtins import map
-from builtins import next
-from builtins import range
-from past.utils import old_div
 import multiprocessing
 import time
 import random
@@ -39,7 +35,7 @@ def plus(a, b):
     return a + b
 
 def f(x):
-    return old_div(1.0, (x-5.0))
+    return float(1.0/ (x-5.0))
 
 def pow3(x):
     return x**3

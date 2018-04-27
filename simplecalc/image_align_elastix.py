@@ -1,11 +1,9 @@
 from __future__ import print_function
 from __future__ import division
-from builtins import range
-from past.utils import old_div
 import numpy as np
 import SimpleITK as sitk
 
-def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parameterMapkwargs):
+def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, fixed_image_no=0 , **parameterMapkwargs):
     '''
     uses elastix recognition to find the affine transform between imagesstack[0] and all others
     mode:
@@ -21,12 +19,12 @@ def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parame
     the elastix parameterMap parameters maps can be passed in the dict parameterMapkwargs
     '''
     
-    shift = [[0,0]]
+    shift = []
     if type(thetas) == type(None):
         thetas = np.zeros(imagestack.shape[0])
     else:
         if COR == None:
-            COR = (old_div(imagestack.shape[1],2.0),old_div(imagestack.shape[2],2.0))
+            COR = ((imagestack.shape[1]/2.0),(imagestack.shape[2]/2.0))
         imagestack = rotate_series(imagestack, -np.asarray(thetas), COR = COR, copy = False)
     
     images = [sitk.GetImageFromArray(imagestack[i]) for i in range(imagestack.shape[0])]
@@ -43,30 +41,30 @@ def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, **parame
     # default elastix parameters:
     parameterMap['MaximumNumberOfIterations'] = ['512']
     parameterMap['FinalBSplineInterpolationOrder'] = ['1']
-    parameterMap['NumberOfResolutions'] = ['32','16','8','4','2']
+    parameterMap['NumberOfResolutions'] = ['4','2']
     # custom parameters:
     for key, value in list(parameterMapkwargs.items()):
         parameterMap[key] = value
 
-    fixedImage = images[0]
+    fixedImage = images[fixed_image_no]
     elastixImageFilter = sitk.ElastixImageFilter()
     elastixImageFilter.SetFixedImage(fixedImage)
     elastixImageFilter.SetParameterMap(parameterMap)
     elastixImageFilter.LogToConsoleOn()
     
-    for i,image in enumerate(images[1::]):
+    for i,image in enumerate(images):
 
         elastixImageFilter.SetMovingImage(image)
         elastixImageFilter.Execute()
 
         resultimage = elastixImageFilter.GetResultImage()
-        imagestack[i+1] = sitk.GetArrayFromImage(resultimage)
+        imagestack[i] = sitk.GetArrayFromImage(resultimage)
         #imagestack[i] = np.where(sitk.GetArrayFromImage(resultimage)<0.1,0,sitk.GetArrayFromImage(resultimage))
 
         if mode == 'rigid':
             print('found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters'])
             angle, dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']
-            thetas[i+1] += (np.float(angle)/np.pi*180)
+            thetas[i] += (np.float(angle)/np.pi*180)
         elif mode == 'translation':
             print('found parameters ', elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters'])
             dx, dy = elastixImageFilter.GetTransformParameterMap()[0]['TransformParameters']

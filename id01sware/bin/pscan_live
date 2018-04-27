@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Live feedback of a PSCAN
+# Tracker feedback for clicked positons
 #raise Exception("Needs Testing...!")
 # built-in:
 import os
@@ -20,6 +22,11 @@ else:
 import numpy as np
 import matplotlib.pyplot as pl
 
+if "--gray" in sys.argv:
+    cmap = pl.cm.gray
+else:
+    cmap = pl.cm.jet
+
 try:
     #raise #tests
     from id01lib import PScanTracker, SpecClientWrapper
@@ -39,7 +46,7 @@ def thread1(threadName,tracker):
         tracker.reload()
 
 
-specname = "nano2:psic_nano"
+specname = "nano3:psic_nano"
 
 specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
 
@@ -49,7 +56,7 @@ specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=Fal
 fig = pl.figure()
 ax = fig.add_subplot(111)
 tracker = PScanTracker.PScanTracker(ax, specsession, norm=mynorm)
-
+tracker.im.set_cmap(cmap)
 try:
     thread.start_new_thread(thread1,('thread-1',tracker))
 except Exception as emsg:

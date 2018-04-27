@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 # global imports
-from builtins import range
 from multiprocessing import Pool
 import sys, os
 import matplotlib.pyplot as plt

@@ -40,6 +40,20 @@ def troi_to_slice(troi):
 
     return [slice(ystart,yend,1),slice(xstart,xend,1)]
 
+def xy_to_corners(xy):
+    return troi_to_corners(xy_to_troi(xy))
+    
+                    
+
+def troi_to_corners(troi):
+    corners_list=[]
+    corners_list.append([troi[0][0],troi[0][1]])
+    corners_list.append([troi[0][0] + troi[1][0],troi[0][1]])
+    corners_list.append([troi[0][0],troi[0][1] + troi[1][1]])
+    corners_list.append([troi[0][0] + troi[1][0],troi[0][1] + troi[1][1]])
+    
+    return corners_list
+
 def array_as_list(array):
     '''
     resorts array into [[x0,y0,z0],....]

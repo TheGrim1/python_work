@@ -1,11 +1,12 @@
+
 from __future__ import print_function
 from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
+
+
 import shlex
 import subprocess
 import numpy as np
+import fabio
 import PIL.Image as Image
 import os
 
@@ -20,7 +21,7 @@ def imagefile_to_array(imagefname):
         im_arr = np.fromstring(image.tobytes(), dtype=np.uint8)
         rows   = image.size[1]
         cols   = image.size[0]
-        no_channels = len(im_arr)/rows/cols
+        no_channels = int(len(im_arr)/rows/cols)
         im_arr = im_arr.reshape((rows, cols, no_channels))
         im_arr = np.rollaxis(im_arr,-1)
     return im_arr
@@ -34,7 +35,7 @@ def array_to_imagefile(data, imagefname,verbose=False):
     if data.ndim == 2:
         data = np.dstack([data,data,data])
         data = np.rollaxis(data,-1)
-        #print data.shape
+        # print(data.shape)
     img = Image.fromarray(np.uint8(np.rollaxis(np.rollaxis(data,-1),-1)))
         
     img.convert("RGB")
@@ -45,45 +46,40 @@ def array_to_imagefile(data, imagefname,verbose=False):
     return 1
 
 
+def edf_to_image(edf_fname, image_fname):
+    data = fabio.open(edf_fname).data
+    data = optimize_greyscale(data)
+    array_to_imagefile(data, image_fname)
+
+
 def optimize_greyscale(data_in, perc_low=1, perc_high = 99,
-                       foreground_is_majority = True, out_max = 255, dtype = "uint8"):
+                       out_max = 255, dtype = "uint8", mask = None):
     '''
     optimizes the scaling of data to facilitate alignment procedures
     inverts scale if at percentile (<prec_low> + <perc_high>)/2 the luninosity is less* than 0.5
     * swithched with <foreground_is_majority>
     default is change dytpe to: "int8" else pass None
     '''
-    low  = np.percentile(data_in,perc_low)
-    high = np.percentile(data_in,perc_high)
+    if type(mask)==type(None):
+        low  = np.percentile(data_in,perc_low)
+        high = np.percentile(data_in,perc_high)
+    else:
+        low  = np.percentile(np.where(mask,0,data_in),perc_low)
+        high = np.percentile(np.where(mask,0,data_in),perc_high)
+        
     #print '0-',low,high
     data = np.copy(data_in)
     data = data*1.0 # floatify
-    data = old_div((data - low), (high-low))
+    data = (data - low)/(high-low)
 
-    #print '1-',np.min(data),np.max(data)
-    
     data = np.where(data<0,   0.0,data)
     data = np.where(data>1.0, 1.0,data)
 
-    #print '2-',np.min(data),np.max(data)
-
-    print(np.percentile(data,50))
-    if np.percentile(data,50) > 0.5:
-        print('inverted')
-        
-        data = 1.0 - data
-
-    #print '3-',np.min(data),np.max(data)
-
     optimized = data * out_max
-
-    #print '4-',np.min(optimized),np.max(optimized)
     
     if dtype == "uint8":
         optimized = np.asarray(np.where(optimized<0,   0,optimized), dtype = np.uint8)
         
-    #print '5-',np.min(optimized),np.max(optimized)
-    
     return optimized
 
 

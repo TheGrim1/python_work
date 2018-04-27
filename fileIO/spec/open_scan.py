@@ -1,5 +1,4 @@
 from __future__ import print_function
-from builtins import object
 import numpy as np
 from silx.io.spech5 import SpecH5
 import timeit
@@ -111,7 +110,83 @@ def open_dscans(fname = "/data/id13/inhouse6/THEDATA_I6_1/d_2016-11-17_inh_ihsc1
     return data , np.asarray(at_positions), scan_positions 
 
 
+def get_specscan_lines(fname = '/data/id13/inhouse2/AJ/skript/xsocs/my_example/r1_w3_E63/spec_dummy.dat',
+                       scanlist = [23],
+                       verbose = False):
+    ''' reads all lines in specscanfname for each scan in scanlist into a list
+    returns a dict of these lists
+    includes item 'F' for the file header'''
 
+    f = open(fname, 'r')
+    reader = f.readlines()
+    readdict = {}
+    # still need fileheader:
+    readdict.update({'F':[]})
+    readinto = False
+    
+    for i, l in enumerate(reader):
+        
+        try:
+            linesplit = l.lstrip().split(' ')
+            if linesplit[0] == '#S' and int(linesplit[1]) in scanlist:
+                readinto = int(linesplit[1])
+                readdict.update({readinto:[]})
+                if verbose:
+                    print('reading scanno ' + str(readinto))
+            elif linesplit[0] == '#F':
+                readinto = 'F'
+                if verbose:
+                    print('reading fileheader')                    
+            elif linesplit[0] == '#S' and int(linesplit[1]) not in scanlist:
+                readinto = False
+                
+            if readinto:
+                readdict[readinto].append(l)
+                
+        except IndexError:
+            if verbose:
+                print('discarding:')
+                print(l)
+
+    for scanno in scanlist:
+        if scanno not in readdict.keys():
+            print('did not find scanno '+str(scanno))
+
+    if verbose:
+        print('done')
+                    
+    return readdict
+
+def write_specscan_lines_to_file(readdict,
+                                 fname = '/data/id13/inhouse2/AJ/skript/xsocs/my_example/r1_w3_E63/spec_dummy.dat',
+                                 verbose = False):
+    ''' after get_specscan_lines, use this to write a new specfile from the dict of lines
+    '''
+
+
+
+    f = open(fname, 'w')
+    fileheader = readdict.pop('F')
+    if verbose:
+        print('writing fileheader')
+    for l in fileheader:
+        f.write(l)
+        
+    scanlist = readdict.keys()
+    scanlist.sort()       
+
+    for scanno in scanlist:
+        if verbose:
+            print('writing scanno '+str(scanno))
+        towrite = readdict[scanno]
+        for l in towrite:
+            f.write(l)
+            
+    if verbose:
+        print('done')
+        
+
+    
 if __name__ == "__main__":
     'test'
     

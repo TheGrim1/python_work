@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+#  plot all of the ROIs currently defined on a detector
+#raise Exception("Needs Testing...!")
+# TODO: decide on ax.annotate in PScanTracker
+#       add deltas between points?
+# built-in:
+import os
+import sys
+import time
+import thread
+
+
+if "--log" in sys.argv:
+    mynorm = "log"
+elif "--gamma" in sys.argv:
+    iarg = sys.argv.index("--gamma")
+    mynorm = float(sys.argv[iarg+1])
+    #mynorm = "linear"
+else:
+    mynorm = "linear"
+
+# community:
+import numpy as np
+import matplotlib.pyplot as pl
+from matplotlib.patches import Rectangle
+from matplotlib.colors import LogNorm
+try:
+    #raise #tests
+    from id01lib import PScanTracker, SpecClientWrapper
+except:
+    print("trying local import.")
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+    from id01lib import PScanTracker, SpecClientWrapper
+
+
+specname = "nano3:psic_nano"
+
+specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
+
+specsession.send_sc(str('ct'))
+lima_roi, device = specsession.find_roi_list()
+
+image = specsession.get_last_image(device)
+
+fig = pl.figure()
+ax = fig.add_subplot(111)
+im = ax.imshow(image,norm=LogNorm())
+pl.colorbar(im)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+currentAxis = pl.gca()
+
+colours = ['b','g','r','c','m','y','k','w','b','g','r','c','m','y','k','w','b','g','r','c','m','y','k','w'] 
+
+# find limaroi 
+_limaroi = specsession.get_sv("LIMA_ROI")
+
+for i,roi in enumerate(lima_roi):
+  xmin= int(_limaroi['%s'%roi]['xmin'])
+  xmax= int(_limaroi['%s'%roi]['xmax'])
+  ymin= int(_limaroi['%s'%roi]['ymin'])
+  ymax= int(_limaroi['%s'%roi]['ymax'])
+  #print  xmin, xmax, ymin,ymax
+  currentAxis.add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill= None, alpha=1,edgecolor=colours[i]))#, label='roi1')
+  ax.annotate('%s'%roi, xy=(xmin, ymin), xycoords='data',
+                xytext=(-30,15), textcoords='offset points',
+                arrowprops=dict(arrowstyle="->", color = colours[i])
+                )
+
+try:
+   if sys.argv[1]!='0':
+       print "rois saved to %s"%sys.argv[1]
+       pl.savefig(sys.argv[1])
+   else:
+       pl.show()
+except:
+   print "to save the image provide an argument"
+   pl.show()    
+print ".. press any key (except spacebar) to continue .."
+specsession.send_sc('printf("wait for me")')
+sys.exit() 
+
+
+"""
+# /users/blissadm/local/spec/macros/kmap_utils.mac
+def lima_plotroi '{
+  command=sprintf("u python bin/lima_plotroi %s &","$1")
+  eval(command)
+}'
+
+"""

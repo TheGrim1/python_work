@@ -12,8 +12,7 @@
 import os
 import glob
 from id01lib import id01h5 # all the merging is there
-from silx.io.spech5 import SpecH5
-from datetime import datetime
+
 samples = [
             "align",
             "desy8_hzo"
@@ -28,11 +27,3 @@ with id01h5.ID01File("all_scans_in_one.h5") as h5f:
         
         for path in flist:
             sample.importSpecFile(path, verbose=True, compr_lvl=6)
-
-    h5f.flush()
-
-
-
-
-
-

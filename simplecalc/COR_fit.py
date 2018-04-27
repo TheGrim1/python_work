@@ -1,4 +1,3 @@
-from builtins import object
 from scipy.optimize import leastsq
 import numpy as np      
 from matplotlib import pyplot as plt
@@ -33,7 +32,7 @@ class SinFit(object):
 
 def COR_from_yth(yth):
     '''
-    expects a np.array with the centered x values for a given Theta (in degrees)
+    expects a np.array with the centered y values for a given Theta (in degrees)
     returns the COR in units of x
     '''
     XPP = np.linspace(-180.0,360.0,67)

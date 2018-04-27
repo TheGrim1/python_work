@@ -2,7 +2,6 @@
 
 """
 from __future__ import print_function
-from builtins import str
 import numpy as np
 from o8qq.qqudo1.api import utilapi as uti
 from o8qq.qqudo1.api import ptiapi

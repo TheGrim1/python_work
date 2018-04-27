@@ -3,7 +3,6 @@ from __future__ import print_function
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/open_h5.py
 
 # global imports
-from builtins import range
 import sys, os
 import matplotlib.pyplot as plt
 import numpy as np

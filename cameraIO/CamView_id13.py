@@ -26,8 +26,7 @@ from __future__ import absolute_import
 from __future__ import division
 from future import standard_library
 standard_library.install_aliases()
-from builtins import range
-from past.utils import old_div
+
 import os
 import sys
 import time
@@ -461,7 +460,7 @@ class Window(Q.QMainWindow):
         output = "Offset estimated for %s movement of %f: (%.2f, %.2f) px" \
              %(motorName, motorStep, offset[0], offset[1])
         self.echo(output)
-        dv_vs_dm = old_div(offset, motorStep)
+        dv_vs_dm = (offset/ motorStep)
         
         
         self.control.Input["CalRes_%i"%motorNum].setText("%.2f, %.2f"%tuple(dv_vs_dm))

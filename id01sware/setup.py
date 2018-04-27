@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 #from distutils.core import setup
+import os
+#https_proxy="http://proxy.esrf.fr:3128"
+os.environ["https_proxy"] = "http://proxy.esrf.fr:3128" # for pip
 from setuptools import setup
 
 
@@ -13,6 +16,7 @@ setup(
     packages = ['id01lib',
                 'id01lib.ptycho',
                 'id01lib.plot',
+                'id01lib.process',
                 'id01lib.xrd'
                 ],
     package_data = {
@@ -22,6 +26,16 @@ setup(
 #            'id01_microscope_contrast=id01lib.camtools:get_microscope_contrast',
 #        ],
 #    },
+    install_requires=[
+                      'numpy',
+                      'matplotlib',
+                      'scipy',
+                      'h5py',
+                      'silx>=0.5.0',
+                      'xrayutilities',
+                      'Pillow',
+                      #'SpecClient',
+                     ],
     scripts = [
                 'bin/CamView',
                 'bin/pscan_live',

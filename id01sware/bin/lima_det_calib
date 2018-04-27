@@ -1,0 +1,214 @@
+#!/usr/bin/env python
+# SL find detector distances and do calibration nu/del scans in a single optimised macro
+# going to be very fancy because Peter has a definition for detector orientation/ interaction
+#
+# logic
+# take an image find the beam
+# move del -0.1 take an image get pix per deg
+# estimate position of beam on pixel 50 50
+# take an image, log the 2d array
+# do an ascan to pixel 50,450
+# use the last detector image to estimate distance
+# do an ascan from 50-450 to 450-450 
+# do a check for pixel per degree from the nu rotation
+#
+# save all the files in a logical place
+#
+#raise Exception("Needs Testing...!")
+# built-in:
+import os
+import sys
+import time
+import thread
+
+
+# community:
+import numpy as np
+import matplotlib.pyplot as pl
+#import image_registration as imreg  # replace this with scipy equivalent
+import datetime
+from skimage.feature import register_translation
+from scipy.ndimage.fourier import fourier_shift
+from scipy.ndimage.measurements import center_of_mass
+
+
+try:
+    #raise #tests
+    from id01lib import SpecClientWrapper
+except:
+    print("trying local import.")
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+    from id01lib import SpecClientWrapper
+
+def pixmotpos(pos, pixperdeg, ref_pix, ref_pix_ang):
+  '''
+  set the origin of the detector at 0,0 get the angles
+  find all positions relative to this
+  ref_pix_ang = [nu/del]
+  
+  '''
+  origin = ref_pix_ang-ref_pix/pixperdeg
+  pixpos = origin+np.array(pos)/pixperdeg
+  return pixpos
+
+specname = "nano3:psic_nano"
+specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
+roi_list, device = specsession.find_roi_list()
+
+if device == 'mpx4':
+  pix_size = 0.055
+elif device == 'eiger2M':
+  pix_size = 0.075
+  
+# get last image from the detector
+image = specsession.get_last_image(device)
+
+##
+# quick pixperdeg calibration
+_del_no=int(specsession.get_sv("del"))
+_nu_no=int(specsession.get_sv("nu"))
+
+_mot_del_start = float(specsession.get_sv("A[%i]"%_del_no)['%i'%_del_no])
+_mot_nu_start = float(specsession.get_sv("A[%i]"%_nu_no)['%i'%_nu_no])
+
+if device == 'mpx4':
+    _mpxy_no=int(specsession.get_sv("mpxy"))
+    _mpxz_no=int(specsession.get_sv("mpxz"))
+    _mot_mpxy_start = float(specsession.get_sv("A[%i]"%_mpxy_no)['%i'%_mpxy_no])
+    _mot_mpxz_start = float(specsession.get_sv("A[%i]"%_mpxz_no)['%i'%_mpxz_no])
+
+specsession.send_sc('limashowroi 0')
+specsession.send_sc('ct 0.5')
+
+_det0 = specsession.get_last_image(device)
+com0 = center_of_mass(_det0)
+
+specsession.send_sc('umvr del 0.1')
+specsession.send_sc('ct 0.5')
+_det1 = specsession.get_last_image(device)
+com1 = center_of_mass(_det1)
+
+pixperdeg = abs((com0[0]-com1[0])/0.1)
+
+# we know from our orientation that moving negative in delta moves the beam on the detector 
+# negative in pixels along the y axis
+# we also know that moving negative in nu moves the beam on the detector
+# negative in pixels along the x-axis
+
+_mot_del = float(specsession.get_sv("A[%i]"%_del_no)['%i'%_del_no])
+_mot_nu = float(specsession.get_sv("A[%i]"%_nu_no)['%i'%_nu_no])
+
+# check for safety
+if ((_mot_del_start <= 2) and (_mot_nu_start <= 2)):
+  safety_pixpos0 =  [50,50]
+  safety_pixpos1 =  [450,450]
+elif (_mot_del_start >= 2):
+  safety_pixpos0 =  [50,50]
+  safety_pixpos1 =  [450,50]
+elif (_mot_nu_start >= 2):
+  safety_pixpos0 =  [50,50]
+  safety_pixpos1 =  [50,450]
+
+if device == 'mpx4':
+  pixpos0 = pixmotpos(np.array([50,50]),pixperdeg,np.array([com1[0],com1[1]]),np.array([_mot_del,_mot_nu]))
+elif device == 'eiger2M':
+  pixpos0 = pixmotpos(np.array([com1[0]-100,com1[1]-100]),pixperdeg,np.array([com1[0],com1[1]]),np.array([_mot_del,_mot_nu]))  
+
+specsession.send_sc('umv del %.3f nu %.3f'%(pixpos0[0],pixpos0[1]))
+specsession.send_sc('ct 0.5')
+_det0 = specsession.get_last_image(device)
+com0 = center_of_mass(_det0)
+
+if device == 'mpx4':
+  pixpos1 = pixmotpos(np.array([450,450]),pixperdeg,np.array([com1[0],com1[1]]),np.array([_mot_del,_mot_nu]))
+elif device == 'eiger2M':
+  pixpos1 = pixmotpos(np.array([com1[0]+100,com1[1]+100]),pixperdeg,np.array([com1[0],com1[1]]),np.array([_mot_del,_mot_nu]))  
+    
+if ((_mot_del_start <= 2) and (_mot_nu_start <= 2)):
+    specsession.send_sc('mesh nu %.3f %.3f 4 del  %.3f %.3f 4 0.5'%(pixpos0[1],pixpos1[1],pixpos0[0],pixpos1[0]))
+elif (_mot_del_start >= 2):
+    specsession.send_sc('ascan del %.3f %.3f 4 0.5'%(pixpos0[0],pixpos1[0]))
+elif (_mot_nu_start >= 2):
+    specsession.send_sc('ascan nu %.3f %.3f 4 0.5'%(pixpos0[1],pixpos1[1]))    
+
+print 'please wait ...'
+specsession.send_sc('umv del %.3f nu %.3f'%(pixpos1[0],pixpos1[1]))
+specsession.send_sc('ct 0.5')
+_det1 = specsession.get_last_image(device)
+com1 = center_of_mass(_det1)
+
+# define a new pixperdeg more precise
+# NB: only use DEL as it is on top of NU
+pixperdeg = (com1[0]-com0[0])/abs(pixpos0[0]-pixpos1[0])
+
+det_distance_COM = (pixperdeg*pix_size)/np.tan(np.deg2rad(1.0))
+
+tmp_det0 = np.zeros((_det0.shape[0]*2,_det0.shape[1]))
+tmp_det1 = np.zeros((_det0.shape[0]*2,_det0.shape[1]))
+tmp_det0[_det0.shape[0]/2:_det0.shape[0]+_det0.shape[0]/2,:] = _det0
+tmp_det1[_det0.shape[0]/2:_det0.shape[0]+_det0.shape[0]/2,:] = _det1
+#cc = imreg.GetImageRegistration(tmp_det0,tmp_det1,precision=1000)
+cc, error, diffphase = register_translation(tmp_det0,tmp_det1, upsample_factor=1000)
+
+# direction independent here - if you use it for other things be careful
+pixperdeg = abs(cc[0])/abs(pixpos0[0]-pixpos1[0])
+
+det_distance_CC = (pixperdeg*pix_size)/np.tan(np.deg2rad(1.0))
+
+print "Detector distance calibration"
+print "COM: ", det_distance_COM
+print "CC: ", det_distance_CC
+
+if (_mot_del_start < 2) and device == 'mpx4':
+    print "Find central pixel: mpx4"
+    specsession.send_sc('umv del 0 nu 0 mpxy 0 mpxz 0')
+    specsession.send_sc('ct 0.5')
+    _det_cp = specsession.get_last_image(device)
+    cen_pix = center_of_mass(_det_cp)
+elif (_mot_del_start < 2) and device == 'eiger2M':
+    print "Find central pixel: eiger2M"
+    specsession.send_sc('umv del 0 nu 0')
+    specsession.send_sc('ct 0.5')
+    _det_cp = specsession.get_last_image(device)
+    cen_pix = center_of_mass(_det_cp)
+    
+# return del/nu to original position
+specsession.send_sc('umv del %.3f nu %.3f'%(_mot_del_start,_mot_nu_start))
+if device == 'mpx4':
+    specsession.send_sc('umv mpxy %.3f mpxz %.3f'%(_mot_mpxy_start,_mot_mpxz_start))
+specsession.send_sc('limashowroi 100')
+specsession.send_sc('ct 0.5')
+
+# include xrutils here? maybe one day
+print ".. you can use the two ascans as an input into xray utilities to calibrate the detector .."
+print ".. press any key (except spacebar) to continue.."
+
+# define instrument variable in spec - hard set so will overwrite
+#chpdeg
+
+cmds = []
+cmds.append('ID01META_STATIC_instrument["EXPH"] = 1')
+cmds.append('ID01META_STATIC_instrument["EXPH"]["pixperdeg"] =  %.3f'%pixperdeg)
+cmds.append('ID01META_STATIC_instrument["EXPH"]["det_distance_COM"] =  %.3f'%(det_distance_COM/1000.)) # in metres
+cmds.append('ID01META_STATIC_instrument["EXPH"]["det_distance_CC"] =  %.3f'%(det_distance_CC/1000.)) # in metres
+cmds.append('ID01META_STATIC_instrument["EXPH"]["timestamp"] = \"%s\"'%(datetime.datetime.now().isoformat()))
+
+if (_mot_del_start < 2):
+  cmds.append('ID01META_STATIC_instrument["EXPH"]["cen_pix_x"] =  %.3f'%cen_pix[1])
+  cmds.append('ID01META_STATIC_instrument["EXPH"]["cen_pix_y"] =  %.3f'%cen_pix[0])
+# add central pixel calibration
+#cmds.append_sc('syms -v *instrument*')
+
+
+for cmd in cmds:
+    print("--> %s"%cmd)
+    specsession.send_sc(cmd)
+sys.exit()
+
+
+"""
+def det_calib '{
+  # Calibration only valid in NU at del = 0 !!! 
+  u python /users/blissadm/local/python/detector_calib_fancy_mesh.py & 
+}'
+"""

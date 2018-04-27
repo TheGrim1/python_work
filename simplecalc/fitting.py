@@ -11,8 +11,6 @@ do_logistic_fit(data)
 from __future__ import print_function
 from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 import numpy as np
 import scipy.odr
 import scipy.optimize as optimize
@@ -20,6 +18,90 @@ import matplotlib.pyplot as plt
 import math
 
 
+def do_lower_linear_guess(data, no_points):
+    '''
+    provides a lower estimate for a linear background usefull as starting parameters for fitting complicated functions
+    evenly distributes data[:,0] into no_points and chooses min slope between these points
+    and a corresponding offset so that data - linear fit is allways positive
+    '''
+    
+    datalength = len(data[:,0])
+    selected_indexes = [x*int(datalength/no_points) for x in range(no_points)]
+    selected_indexes.append(datalength-1)
+    points = data[selected_indexes,:]
+    # sort according to value:
+
+    switch = zip(points[:,1],points[:,0])
+    switch.sort()
+    switch = np.asarray(switch)
+
+    points = np.asarray(zip(switch[:,1],switch[:,0]))
+
+    slopes = [abs((points[0,1]-points[x+1,1])/(points[0,0]-points[x+1,0])) for x in range(no_points-1)]
+
+    slope = min(slopes)
+    slope = np.sign(data[-1,1] - data[0,1])*slope
+
+    
+    offset_guess = (-points[0,0]*slope) + points[0,1]
+    
+    residual = data[:,1] - linear_func([slope, offset_guess], data[:,0])
+    offset = offset_guess + residual.min()
+
+    # #DEBUG:
+    # plt.plot(data[:,0],residual,'-y')
+    # plt.plot(data[:,0],data[:,1],data[:,0],linear_func([slope, offset], data[:,0]))
+    # plt.plot(points[:,0],points[:,1],'rx')
+    # plt.show()
+    
+    return slope, offset
+        
+
+def empirical_func(p, t, data):
+    y = p[0]*np.interp(t+p[2],data[:,0],data[:,1]) + p[1]
+    return y
+
+def do_empirical_fit(data, empirical_function, verbose=False):
+    '''
+    tested
+    fit function is A0 * (empirical_function[t + A2]) + A1 with 
+    returns (A0,A1,A2) = beta
+    '''
+    def fit_function(p,t):
+        return empirical_func(p,t,empirical_function)
+
+    _func = fit_function
+    Model = scipy.odr.Model(_func)
+    Data = scipy.odr.RealData(data[:,0], data[:,1])
+    startguess = [1,0,0] # no changes
+
+    Odr = scipy.odr.ODR(Data, Model, startguess , maxit = 1000000)
+    Odr.set_job(fit_type=2)    
+    output = Odr.run()
+    #output.pprint()
+    beta     = output.beta
+    betastd  = output.sd_beta
+    residual = _func(beta, data[:,0]) - data[:,1]
+
+    if verbose:
+        fig, ax = plt.subplots()
+    #    print "poly", fit_np
+        print("fit result amp: \n", beta[0])
+        print("fit result offset: \n", beta[1])
+        print("fit result shift: \n", beta[2])
+
+        ax.plot(data[:,0], data[:,1], "bo")
+        # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
+        ax.plot(data[:,0], _func(beta, data[:,0]), "r--", lw = 2)
+        # ax.plot(data[:,0], _func([max_guess, min_guess, inflection_guess, sigma_guess ], data[:,0]), "g--", lw = 2)
+
+        plt.tight_layout()
+
+        plt.show()
+        
+    return beta
+
+    
 def sin_func(p, t):
     '''
     p[0] = amp
@@ -78,10 +160,17 @@ def general_logistic_func(p, t):
     p[3] = sigma (approx)
     '''
     
-    return old_div(p[0], (1 + math.e**(-(0.5*np.pi/p[3])*(t-p[2])))) + p[1]
+    return p[0]/ (1 + math.e**(-(0.5*np.pi/p[3])*(t-p[2]))) + p[1]
 
 def do_logistic_fit(data, verbose = False):
-
+    '''
+    only works for "increasing" function
+    p[0] = max
+    p[1] = min
+    p[2] = inflection point
+    p[3] = sigma (approx)
+    '''
+    
     _func = general_logistic_func
     Model = scipy.odr.Model(_func)
     Data = scipy.odr.RealData(data[:,0], data[:,1])
@@ -136,7 +225,7 @@ def error_func(p,t):
 
     
     # A&S formula 7.1.26
-    r = old_div(1.0,(1.0 + a6*t))
+    r = 1.0/(1.0 + a6*t)
     y = 1.0 - (((((a5*r + a4)*r) + a3)*r + a2)*r + a1)*r*math.exp(-t*t)
 
     return sign*y # erf(-x) = -erf(x)
@@ -148,15 +237,15 @@ def gauss_func(p, t):
     p1 = mu
     p2 = sigma
     '''
-    return p[0]*(old_div(1,math.sqrt(2*math.pi*(p[2]**2))))*math.e**(old_div(-(t-p[1])**2,(2*p[2]**2)))
+    return p[0]*1/(math.sqrt(2*math.pi*(p[2]**2)))*math.e**((-(t-p[1])**2/(2*p[2]**2)))
 
 def do_gauss_fit(data, verbose = False):
     
     Model = scipy.odr.Model(gauss_func)
     Data = scipy.odr.RealData(data[:,0], data[:,1])
     a_guess = np.max(data[:,1])
-    sigma_guess = 50*np.absolute(data[0,0]-data[0,1])
-    mu_guess    = data[:,0][np.where(data[:,1]==np.max(data[:,1]))]
+    sigma_guess = 50*np.absolute(data[0,0]-data[1,0])
+    mu_guess    = data[:,0][np.argmax(data[:,1])]
 
     Odr = scipy.odr.ODR(Data, Model, [a_guess,mu_guess, sigma_guess], maxit = 10000000)
     Odr.set_job(fit_type=2)    
@@ -227,7 +316,7 @@ def do_quadratic_fit(data, verbose = False):
 #    print "poly", fit_np
 
 
-    if vebose:
+    if verbose:
         fig, ax = plt.subplots()
         print("fit result y = %s x2 + %s x + %s  " % (beta[0],beta[1],beta[2]))
         ax.plot(data[:,0], data[:,1], "bo")
@@ -267,15 +356,14 @@ def do_cubic_fit(data, verbose=False):
 
 def polynomial_func(beta, t):
     '''
-    test : failed  TODO
+    test : works
     '''
-    
     p = beta[::-1]
-    return np.polynomial.polynomial.polyval(p,t)
+    return np.polynomial.polynomial.polyval(t,p)
 
 def do_polynomial_fit(data, degree, verbose = False):
     '''
-    test : failed  TODO
+    test works
     '''
     print('data in fitting:')
     print('x:')
@@ -328,39 +416,11 @@ def do_exp_fit(data, verbose = False):
 
     return beta
 
-def poisson_func(p,t):
-    print('p[1] ', p[1])
-    print('np.math.factorial(p[0]) ', np.math.factorial(p[0]))
-    print('np.exp(-t) ', np.exp(-t))
-    print('p[1](t**p[0]/np.math.factorial(p[0]))* np.exp(-t)\n', p[1] * (old_div(t**p[0],np.math.factorial(p[0])))* np.exp(-t))
-    return p[1] * (old_div(t**p[0],np.math.factorial(p[0])))* np.exp(-t)
-
-def do_poisson_fit(data, verbose=False):
-    '''
-    fit poisson function to data.
-    '''
-
-    parameters, cov_matrix = optimize.curve_fit(poisson_func, data[:,0], data[:,1]) 
-    beta = parameters
-    print(beta)
-    #betastd = output.sd_beta
-    #    print "poly", fit_np
-
-    if verbose:
-        fig, ax = plt.subplots()
-        print("fit result y = %s * x^%s/(%s!) * e^(-x)" % (beta[1],beta[0],beta[0]))
-        ax.plot(data[:,0], data[:,1], "bo")
-        #    plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
-        ax.plot(data[:,0], exp_func(beta, data[:,0]), "r--", lw = 2)
-        plt.tight_layout()
-        plt.show()
-
-    return beta
 
 
-def main(row = [1365., 1365., 1365.],
-         col = [1632., 1638.5, 1644.5],
-         frame = [37,36,35],
+def main(row = [1353., 1353., 1353.],
+         col = [980., 987., 995.],
+         frame = [87,86,85],
          ):
     
     dist = [math.sqrt(row[i]**2 + col[i]**2) for i in range(len(row))]
@@ -368,7 +428,7 @@ def main(row = [1365., 1365., 1365.],
     data[:,0] = np.array(frame) 
     data[:,1] = np.array(dist)
     
-    do_linear_fit(data)
+    do_linear_fit(data,verbose=True)
 
 
 if __name__ == "__main__":

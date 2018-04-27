@@ -12,9 +12,7 @@ Classes :
   _ThreadedSpecConnectionsManager
   _SpecConnectionsManager
 """
-from __future__ import absolute_import
 
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.1'
 
@@ -24,8 +22,8 @@ import weakref
 import sys
 import gc
 
-from . import SpecConnection
-from . import SpecEventsDispatcher
+import SpecConnection
+import SpecEventsDispatcher
 
 _SpecConnectionsManagerInstance = None
 
@@ -39,7 +37,7 @@ def SpecConnectionsManager():
     return _SpecConnectionsManagerInstance
 
 
-class _SpecConnectionsManager(object):
+class _SpecConnectionsManager:
     """Class for managing connections to Spec
     """
     def __init__(self):
@@ -70,7 +68,7 @@ class _SpecConnectionsManager(object):
 
 
     def closeConnections(self):
-        for connectionName in list(self.connections.keys()):
+        for connectionName in self.connections.keys():
             self.closeConnection(connectionName)
 
 

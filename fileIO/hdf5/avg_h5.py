@@ -6,8 +6,7 @@ from __future__ import division
 # cp avg_h5.py /data/id13/inhouse2/AJ/skript/fileIO/hdf5/avg_h5.py
 
 # global imports
-from builtins import range
-from past.utils import old_div
+
 import h5py
 import sys
 import os
@@ -26,7 +25,7 @@ def avg_h5(data,
     newshape        = [data.shape[x] for x in range(len(data.shape)) if x != index]
     newdata         = np.zeros(shape = newshape)
     np.sum(data, axis = index, out = newdata)
-    newdata *= (old_div(1.0, n))
+    newdata *= (1.0/ n)
     newdata         = newdata.reshape(newshape)
 
     return newdata

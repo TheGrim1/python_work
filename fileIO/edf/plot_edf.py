@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 # global imports
 
-from builtins import range
 import sys, os
 import matplotlib.pyplot as plt
 import time

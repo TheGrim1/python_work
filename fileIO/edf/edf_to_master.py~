@@ -1,0 +1,14 @@
+import h5py
+import fabio
+
+
+def edf_to_master(source_fname, dest_fname, frames_per_file=2000):
+    '''
+    for laziness I write all the .edf(.gz) files into a structure similar to the Eiger datasaving format.
+    the master file contains some detector info and a hard link to the data in entry/data/data_000001
+    the data file contains only data in entry/data/data
+    '''
+
+    source_f = fabio.open(source_fname)
+    
+    with 

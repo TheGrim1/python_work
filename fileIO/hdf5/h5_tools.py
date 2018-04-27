@@ -1,5 +1,4 @@
 from __future__ import print_function
-from builtins import range
 import h5py
 import numpy as np
 import sys, os
@@ -32,6 +31,52 @@ def get_shape(fnamelist,framelist=None,group="entry/data/data", troi = None):
         # print('framelist given, datashape is now %s' % datashape)
         
     return datashape
+
+def get_datagroup_shape(datagroup, troi=None, verbose=False):
+    '''
+    shape of all datasets in datagroup stacked. Usefull for ID13 Eiger master files
+    '''
+    datashape = [0,0,0]
+    datakey_list = datagroup.keys()
+    if verbose:
+        print('in get_datagroup_shape, got datakey_list: ')
+        print(datakey_list)
+        
+    for datakey in datakey_list:
+        try:
+            dataset = datagroup[datakey]
+            if verbose:
+                print(type(dataset))
+                print(datakey + ' has shape:')
+                print(dataset.shape)
+                    
+            datashape[0]+=dataset.shape[0]
+        except KeyError:
+            print('Non-existant dataset: %s' % datakey)
+                
+                
+    datatype = dataset.dtype
+    if type(troi)!=type(None):
+        datashape[1] = (troi[1][0])
+        datashape[2] = (troi[1][1])
+    else:
+        datashape[1] = dataset.shape[1]
+        datashape[2] = dataset.shape[2]
+        
+    return datashape, datatype
+
+def parse_master_fname(data_fname):
+    master_path = os.path.dirname(data_fname)
+    master_fname = os.path.basename(data_fname)[:os.path.basename(data_fname).find("data")]+'master.h5'
+    return master_path + os.path.sep + master_fname
+
+
+def parse_data_fname_tpl(master_fname):
+    master_path = os.path.dirname(master_fname)
+    data_fname_tpl = os.path.basename(master_fname)[:os.path.basename(master_fname).find("master")]+'data_{:06d}.h5'
+    return master_path + os.path.sep + data_fname_tpl
+
+
 
 def filter_relevant_peaks(data, peaks, verbose = False):
     newpeaks = np.zeros(shape=peaks.shape)
@@ -231,3 +276,16 @@ def open_full_dataset(fname,
         data[i] = onedata
     
     return data
+
+
+
+        
+def get_eigerrunno(master_fname):
+    '''
+    parsed from self.master_fname
+    '''
+
+    eiger_runno = int(master_fname.split('_')[-2])
+    return eiger_runno
+
+

@@ -18,5 +18,10 @@ def format_coord(self, x, y):
 
 
 def format_axes(ax):
+    """
+        This is supposed to be used with `imshow` images
+        and will show the current value when hovering over the
+        pixels.
+    """
     ax.format_coord = types.MethodType(format_coord, ax)
 

@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-from builtins import object
 import cameraIO.BaslerGrab as bg
 
 class USBCameras(object):

@@ -1,0 +1,220 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb  7 21:02:27 2018
+
+Liveviewer for reading out detector images on the fly
+
+@author: opid01  - S.Leake 
+
+
+"""
+
+# /*##########################################################################
+#
+# Copyright (c) 2017 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""This script shows how to subclass :class:`PlotWidget` to tune its tools.
+
+It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
+a colorbar by using pluggable widgets:
+
+- QAction from :mod:`silx.gui.plot.actions`
+- QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
+- QToolBar from :mod:`silx.gui.plot.PlotTools`
+- :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
+"""
+
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "05/09/2017"
+
+from PyTango import DeviceProxy
+
+from silx.gui import qt
+from silx.utils.deprecation import deprecated
+from silx.gui.plot import PlotWidget, PlotWindow
+from silx.gui.plot import actions
+from silx.gui.plot import items
+from silx.gui.plot.PlotTools import LimitsToolBar,PositionInfo
+from silx.gui.plot.Profile import ProfileToolBar
+from silx.gui.plot.ColorBar import ColorBarWidget
+
+
+class Plot2D(PlotWindow):
+    """PlotWindow with a toolbar specific for images.
+
+    This widgets provides the plot API of :~:`.PlotWidget`.
+
+    :param parent: The parent of this widget
+    :param backend: The backend to use for the plot (default: matplotlib).
+                    See :class:`.PlotWidget` for the list of supported backend.
+    :type backend: str or :class:`BackendBase.BackendBase`
+    """
+
+    def __init__(self, devProxy="id01/liveviewer/mpx_1x4",devAttr="Image", parent=None, backend=None):
+        # List of information to display at the bottom of the plot
+        posInfo = [
+            ('X', lambda x, y: x),
+            ('Y', lambda x, y: y),
+            ('Data', self._getImageValue)]
+
+        super(Plot2D, self).__init__(parent=parent, backend=backend,
+                                     resetzoom=True, autoScale=False,
+                                     logScale=False, grid=False,
+                                     curveStyle=False, colormap=True,
+                                     aspectRatio=True, yInverted=True,
+                                     copy=True, save=True, print_=True,
+                                     control=False, position=posInfo,
+                                     roi=False, mask=True)
+        if parent is None:
+            self.setWindowTitle('Plot2D')
+        self.getXAxis().setLabel('Columns')
+        self.getYAxis().setLabel('Rows')
+
+        self.profile = ProfileToolBar(plot=self)
+        self.addToolBar(self.profile)
+
+        self.getColorBarWidget().setVisible(True)
+
+        # Put colorbar action after colormap action
+        actions = self.toolBar().actions()
+        for index, action in enumerate(actions):
+            if action is self.getColormapAction():
+                break
+        self.toolBar().insertAction(
+            actions[index + 1],
+            self.getColorBarWidget().getToggleViewAction())
+        
+        self.tangoDev=DeviceProxy(devProxy)
+        self.devAttr=devAttr
+
+        self.timer=qt.QTimer()
+        self.timer.timeout.connect(self._updateImage)
+        self.timer.start(500)
+        
+        self.toggle=True
+
+    def _getImageValue(self, x, y):
+        """Get status bar value of top most image at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The value at that point or '-'
+        """
+        value = '-'
+        valueZ = -float('inf')
+        mask = 0
+        maskZ = -float('inf')
+
+        for image in self.getAllImages():
+            data = image.getData(copy=False)
+            isMask = isinstance(image, items.MaskImageData)
+            if isMask:
+                zIndex = maskZ
+            else:
+                zIndex = valueZ
+            if image.getZValue() >= zIndex:
+                # This image is over the previous one
+                ox, oy = image.getOrigin()
+                sx, sy = image.getScale()
+                row, col = (y - oy) / sy, (x - ox) / sx
+                if row >= 0 and col >= 0:
+                    # Test positive before cast otherwise issue with int(-0.5) = 0
+                    row, col = int(row), int(col)
+                    if (row < data.shape[0] and col < data.shape[1]):
+                        v, z = data[row, col], image.getZValue()
+                        if not isMask:
+                            value = v
+                            valueZ = z
+                        else:
+                            mask = v
+                            maskZ = z
+        if maskZ > valueZ and mask > 0:
+            return value, "Masked"
+        return value
+
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.ProfileToolBar`
+        """
+        return self.profile
+
+
+    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
+    def getProfileWindow(self):
+        return self.getProfilePlot()
+
+    def getProfilePlot(self):
+        """Return plot window used to display profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self.profile.getProfilePlot()
+        
+    def _updateImage(self,):
+        if not self.toggle:
+            xmin,xmax=self.getGraphXLimits()
+            ymin,ymax=self.getGraphYLimits() 
+        
+        try:    
+			self.addImage(self.tangoDev.read_attribute(self.devAttr).value)
+        except:
+			#print("failed to poll the image")
+			pass 
+			
+        if not self.toggle:
+            self.setGraphXLimits(xmin,xmax)
+            self.setGraphYLimits(ymin,ymax)  
+        else:
+            self.toggle=False
+        #print(".")
+
+
+def main():
+    global app
+    app = qt.QApplication([])
+
+    # Create the ad hoc plot widget and change its default colormap
+    devProxy="id01/liveviewer/mpx_1x4"
+    devAttr="Image"
+    plot = Plot2D(devProxy,devAttr)
+    colourmap={'name': 'temperature', 'normalization': 'log'}
+    plot.setDefaultColormap(colourmap)
+    plot.show()
+    # interact with spec in some way   
+
+    import sys
+    
+    try:
+        #raise #tests
+        from id01lib import SpecClientWrapper
+    except:
+        print("trying local import.")
+        sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+        from id01lib import SpecClientWrapper
+        
+    app.exec_()
+
+
+if __name__ == '__main__':
+    main()

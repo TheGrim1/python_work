@@ -1,14 +1,27 @@
+"""
+    This file contains functions to convert ID01 data
+    into reciprocal space based on xrayutilities.
+
+    In short:
+        get_qspace_vals:
+            calculates the coordinates of reciprocal space that are
+            covered by a certain spec scan.
+
+        scan_to_qspace_h5:
+            based on get_qspace_vals, this one does an actual rebinning
+            of the data into 3d (2d or 1d) reciprocal space (projections).
+
+        kmap_get_qcoordinates:
+            similar to get_qspace_vals, but to be applied on 5D KMAP data
+            in hdf5 format.
+"""
 from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import numpy as np
 import xrayutilities as xu
 import scipy.signal
+import h5py
 
-
-from .detectors import MaxiPix # default detector
+from .detectors import MaxiPix, Eiger2M # default detector MaxiPix
 #from .detectors import Andor
 from .geometries import ID01psic # default geometry
 #from .geometries import ID01ff # sample mounted sideways # not necessary, it's included in ID01psic
@@ -24,10 +37,10 @@ def get_qspace_vals(scan, cen_pix_hor,
                           ndir=[0,0,1],
                           roi=None,
                           Nav=None,
+                          spherical=False,
                           ignore_mpx4trans=False):
     """
-        ID01-specific file to convert an hdf5 formatted scan
-        from angles to qspace.
+        ID01-specific function to calculate qspace coordinates of a scan.
 
         Inputs:
             cen_pix_* : int
@@ -54,6 +67,11 @@ def get_qspace_vals(scan, cen_pix_hor,
             ndir : 3-tuple(float)
                 vector parallel to the sample normal
                 (see xrayutilities.experiment)
+            spherical : bool
+                Whether to return Q in spherical coordinates. Then returns
+                    rotx (roll, second rotation)
+                    roty (pitch, first rotation)
+                    Qabs (length of Q vector)
     """
 
 
@@ -67,8 +85,12 @@ def get_qspace_vals(scan, cen_pix_hor,
 
     cen_pix = [cen_pix_vert, cen_pix_hor]
     if isinstance(detector, MaxiPix) and not ignore_mpx4trans:
-            cen_pix[0] += motors["mpxz"].value/1000. / detector.pixsize[0]
-            cen_pix[1] -= motors["mpxy"].value/1000. / detector.pixsize[1]
+        mpxy = motors["mpxy"].value
+        mpxz = motors["mpxz"].value
+        cen_pix[0] += mpxz/1000. / detector.pixsize[0]
+        cen_pix[1] -= mpxy/1000. / detector.pixsize[1]
+        print("Correcting mpxy=%.2f, mpxz=%.2f  ==>  cen_pix = (%.1f, %.1f)"
+              %(mpxy, mpxz, cen_pix[0], cen_pix[1]))
 
     # convention for coordinate system:
     hxrd = xu.HXRD(ipdir, ndir, en=energy, qconv=geometry.getQconversion())
@@ -116,8 +138,14 @@ def get_qspace_vals(scan, cen_pix_hor,
             angles[angle] = np.ones(maxlen, dtype=float) * angles[angle]
 
     ### transform angles to reciprocal space coordinates for all detector pixels
-    qx, qy, qz = hxrd.Ang2Q.area(*list(angles.values()))
-    
+    qx, qy, qz = hxrd.Ang2Q.area(*angles.values())
+
+    if spherical:
+        _x, _y, _z = qy, qz, qx # rotate coord system
+        qz = np.sqrt(_x**2 + _y**2 + _z**2) # radial
+        qy = np.degrees(np.arccos(_z/qz)) #rot arount qy (first)
+        qx = np.degrees(np.arctan2(_y,_x)) #rot around qx (second)
+
     return qx, qy, qz
 
 
@@ -220,7 +248,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
     safemax = lambda arr: arr.max() if arr.size else 0
     for dim in (qx, qy, qz):
         maxstep = max((safemax(abs(np.diff(dim, axis=j))) for j in range(3)))
-        maxbins.append(int(old_div(abs(dim.max()-dim.min()),maxstep)))
+        maxbins.append(int(abs(dim.max()-dim.min())/maxstep))
     
     print("Max. number of bins: %i, %i, %i"%tuple(maxbins))
 
@@ -246,7 +274,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
         if all([b==-1 for b in nbins]): 
             nbins = [int(maxbins[j]) for j in idim]
         elif all([b<0 for b in nbins]): 
-            nbins = [int(old_div(maxbins[j],abs(nbins[i]))) for (i,j) in enumerate(idim)]
+            nbins = [int(maxbins[j]/abs(nbins[i])) for (i,j) in enumerate(idim)]
         elif all([b>0 for b in nbins]):
             pass
         else:
@@ -260,7 +288,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
         if all([b==-1 for b in nbins]):
             nbins = [int(max(maxbins))]
 
-
+    print("Using binning: %s"%str(nbins))
 
 
     ### preprocess images from hdf5
@@ -276,7 +304,7 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
         raise ValueError("Found negative readings in monitor: %s"%monitor)
 
     for idx in range(num_im): # TODO: parallelize
-        frame = old_div(image_data[idx],mon[idx])
+        frame = image_data[idx]/mon[idx]
         detector.correct_image(frame) # detector specific stuff
         if medfilter: # kill some hot pixels, doesn't really work with the gaps
             frame = scipy.signal.medfilt2d(frame,[3,3])
@@ -328,17 +356,83 @@ def scan_to_qspace_h5(scan, cen_pix_hor,
 
 
 
-def kmap_get_qcoordinates(kmap_masterh5, energy, cenpix, ddistance, ignore_mpx4trans=False):
+def kmap_get_qcoordinates(kmap_masterh5, energy=None,
+                                         cenpix=None,
+                                         ddistance=None,
+                                         detector=MaxiPix(),
+                                         **kwargs):
+    """
+        Function to compute the cube of q-space coordinates for a 5d kmap
+        scan.
+
+
+        Inputs:
+            kmap_masterh5: string
+                path to the hdf5 kmap master file
+
+        Optional inputs:
+            energy: float
+                beam energy in keV. Taken from the kmap hdf5 file if not
+                given
+            ddistance : float
+                sample to detector distance in meters. Taken from the kmap 
+                hdf5 file if not given
+            cenpix : 2-tuple(int)
+                Pixels of the direct beam at nu = del = 0.
+                Order is (first dimension, second dimension) which is 
+                usually (y, x). Taken from the kmap hdf5 file if not given
+
+            detector : `AreaDetector` class instance
+                describes the detector
+        Optional key word arguments:
+            ignore_mpx4trans : bool
+                defines whether cenpix corresponds to mpxy = mpxz = 0
+                (as in the output of `det_calib`)
+
+            +key word arguments of `get_qspace_vals`
+    """
     Qx, Qy, Qz = [], [], []
+    if isinstance(kmap_masterh5, str):
+        kmap_masterh5 = h5py.File(kmap_masterh5, "r")
+
+    ignore_mpx4trans = kwargs.pop("ignore_mpx4trans", False) \
+                       or not isinstance(detector, MaxiPix)
+
+    #print(ignore_mpx4trans)
+
     for name in sorted(kmap_masterh5):
         entry = kmap_masterh5[name]
         
+        if energy is None:
+            _energy = entry["instrument/detector/beam_energy"].value/1000.
+            print("found energy=%.3fkeV"%_energy, end=",  ")
+        else:
+            _energy = energy
+
+        if cenpix is None:
+            _cenpix = (entry["instrument/detector/center_chan_dim0"].value,
+                       entry["instrument/detector/center_chan_dim1"].value)
+            print("found cen pix=(%.1f, %.1f)"%_cenpix, end=",  ")
+        else:
+            _cenpix = cenpix
+
+        if ddistance is None:
+            pixperdeg = (entry["instrument/detector/chan_per_deg_dim0"].value,
+                         entry["instrument/detector/chan_per_deg_dim1"].value)
+            _ddistance = pixperdeg[0]*detector.pixsize[0]/np.tan(np.radians(1))
+            print("found detector distance=%.3f"%_ddistance)
+        else:
+            _ddistance = ddistance
+        
+
         qx, qy, qz = get_qspace_vals(entry,
-                          cenpix[1],
-                          cenpix[0],
-                          ddistance,
-                          energy=energy,
-                          ignore_mpx4trans=ignore_mpx4trans)
+                          _cenpix[1],
+                          _cenpix[0],
+                          _ddistance,
+                          energy=_energy,
+                          ignore_mpx4trans=ignore_mpx4trans,
+                          detector=detector,
+                          **kwargs)
         Qx.append(qx)
         Qy.append(qy)
         Qz.append(qz)

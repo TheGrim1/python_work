@@ -8,6 +8,7 @@
 #----------------------------------------------------------------------
 #
 # Todo:
+#       - autoappend to an hdf5 if the sample exists
 #       - parallelization
 #         (does it make sense if harddisk I/O is the biggest part of the work?)
 #       - read/write of 2d slices of .edf cubes faster than whole cube?
@@ -17,6 +18,9 @@
 #
 #----------------------------------------------------------------------
 """
+ A layer on top of h5py and silx.io for conversion of ID01 data
+ to hd5f 
+
  New proposed hdf5 file structure
  To be discussed...
 
@@ -71,12 +75,8 @@
       3.1/
           ...
 """
-from __future__ import print_function
 
 
-from builtins import map
-from builtins import str
-from builtins import range
 import os
 import sys
 import gzip
@@ -90,7 +90,9 @@ import silx.io
 from silx.io import specfile
 import silx.third_party.EdfFile as EdfFile
 import silx.io.fabioh5
-from silx.io.spectoh5 import write_spec_to_h5
+#from silx.io.spectoh5 import write_spec_to_h5
+
+from id01lib.settings import edf_header_types, detector_aliases
 #EdfImage = silx.io.fabioh5.fabio.edfimage.EdfImage
 
 
@@ -107,29 +109,6 @@ DefaultInstrument["source"] = dict(_descr="energy, U gap, lambda, current")
 DefaultInstrument["sample_environment"] = dict(_descr="gas, temperature, etc.")
 
 DefaultMeasurement = dict()
-
-
-
-_edf_header_types = {
-    'ByteOrder': bytes,
-    'DataType': bytes,
-    'Dim_1': int,
-    'Dim_2': int,
-    #'HeaderID': bytes, # do not use it according to PB
-    'Image': int,
-    'Offset_1': int,
-    'Offset_2': int,
-    'Size': int,
-    'BSize_1': int,
-    'BSize_2': int,
-    'ExposureTime': float,
-    'Title': bytes,
-    'TitleBody': bytes,
-    'acq_frame_nb': int,
-    'time': np.string_,
-    'time_of_day': float,
-    'time_of_frame': float
-    }
 
 
 
@@ -154,9 +133,16 @@ def _makedefaults(g, defaults, verbose=False):
             _makedefaults(newgroup, v)
         else:
             if verbose:
-                print("setting %s/%s = %s"%(g.name, k, str(v)))
+                sys.stdout.write("setting %s/%s = %s%s"%(g.name, k, str(v), os.linesep))
             g[k] = v
     return
+
+
+def _len(obj):
+    try:
+        return len(obj)
+    except:
+        return 0
 
 
 def _spech5_deepcopy(scan, origin="/"):
@@ -197,8 +183,8 @@ def _read_edf_first_acq_nr(edfpath):
         raise ValueError("Unsupported file: %s"%edfpath)
     with loader(edfpath) as fh:
         header = fh.read(400)
-    lines = header.splitlines()
-    acq_frame_nb = [s for s in lines if s.startswith(b'acq_frame_nb')][0]
+    lines = header.decode().splitlines()
+    acq_frame_nb = [s for s in lines if s.startswith('acq_frame_nb')][0]
     acq_frame_nb = int(acq_frame_nb.split()[-2])
     return acq_frame_nb
 
@@ -234,6 +220,8 @@ class Scan(h5py.Group):
         if isinstance(edf, EdfFile.EdfFile):
             pass
         elif isfile(edf):
+            if isinstance(edf, bytes):
+                edf = edf.decode()
             edf = EdfFile.EdfFile(edf, fastedf=True)
 
         if not edf.NumImages:
@@ -241,12 +229,12 @@ class Scan(h5py.Group):
 
         newshape = (edf.NumImages, edf.Images[0].Dim2, edf.Images[0].Dim1)
         if self.debug:
-            print("Loaded image. Shape %ix%ix%x"%newshape)
+            sys.stdout.write("Loaded image. Shape %ix%ix%i"%newshape + os.linesep)
         d = collections.defaultdict(list) # all data (images + meta)
 
         for i in range(edf.NumImages):
             d["data"].append(edf.GetData(i))
-            for (k,v) in itertools.chain(list(edf.GetHeader(i).items()), list(edf.GetStaticHeader(i).items())):
+            for (k,v) in itertools.chain(edf.GetHeader(i).items(), edf.GetStaticHeader(i).items()):
                 d[k].append(v)
 
         d["data"] = np.array(d["data"]) # now only metadata
@@ -273,17 +261,17 @@ class Scan(h5py.Group):
                                   maxshape=(None,newshape[1],newshape[2]),
                                   compression="gzip",
                                   compression_opts=compr_lvl,
-                                  dtype=data.dtype) # Todo: think about chunks
+                                  dtype=data.dtype) # Todo: think about chunks - only implement for kmaps
             detector["data"][...] = data
 
             # rocess metadata
             others = detector.create_group("others")
             #_makedefaults(others, det["others"]) # creates non-resizable stuff
-            for name, value in list(d.items()): # copy all metadata
+            for name, value in d.items(): # copy all metadata
                 if self.debug:
                     print(name)
-                if name in _edf_header_types:
-                    mdtype = _edf_header_types[name]
+                if name in edf_header_types:
+                    mdtype = edf_header_types[name]
                     if mdtype is bytes:
                         mdtype = h5py.special_dtype(vlen=bytes)
                     else:
@@ -312,14 +300,16 @@ class Scan(h5py.Group):
             detector["data"].resize((newlen,newshape[1],newshape[2]))
             detector["data"][-newshape[0]:] = data
             if self.debug:
-                print("New dataset size: %ix%ix%i"%detector["data"].shape)
+                sys.stdout.write("New dataset size: "
+                                 "%ix%ix%i"%detector["data"].shape
+                                 + os.linesep)
             # process metadata
             others = detector["others"]
-            for name, value in list(d.items()): # copy all metadata
+            for name, value in d.items(): # copy all metadata
                 if name not in others:
                     continue
-                if name in _edf_header_types:
-                    mdtype = _edf_header_types[name]
+                if name in edf_header_types:
+                    mdtype = edf_header_types[name]
                     #if not mdtype in (bytes, np.string_):
                     value = np.array(value, dtype=mdtype)
                 newlen = others[name].shape[0] + len(value)
@@ -388,7 +378,7 @@ class Scan(h5py.Group):
             detector["data"][-shape[0]:] = data
 
             others = detector["others"]
-            for name, value in list(det["others"].items()): # copy all metadata
+            for name, value in det["others"].items(): # copy all metadata
                 newlen = others[name].shape[0] + value.shape[0]
                 others[name].resize((newlen,)) # strictly 1d
                 others[name][-value.shape[0]:] = value
@@ -407,8 +397,8 @@ class Scan(h5py.Group):
         data = self["measurement"].get(image, None)
         if data is None:
             raise ValueError("Image `%s` not found in scan."%image)
-        xmin, xmax = list(map(int, sorted((xmin, xmax))))
-        ymin, ymax = list(map(int, sorted((ymin, ymax))))
+        xmin, xmax = map(int, sorted((xmin, xmax)))
+        ymin, ymax = map(int, sorted((ymin, ymax)))
         roi = data[:,ymin:ymax, xmin:xmax].sum((1,2)) # y is the first image dimension
         if store:
             if roinum is not None:
@@ -424,53 +414,59 @@ class Scan(h5py.Group):
                         break
                     i+=1
             new = self["measurement"].create_dataset(roiname, data=roi)
-            print("Created dataset %s"%new.name)
+            sys.stdout.write("Created dataset %s"%new.name + os.linesep)
         return roi
 
     def fetch_edf_spec(self, pathonly=False, verbose=True, imgroot=None,
                              **edf_kw):
         fast = self.attrs["_fast"]
-        header = self["instrument/specfile/scan_header"].value.splitlines()
-        fheader = self["instrument/specfile/file_header"].value.splitlines()
-        specpath = self.attrs["_specfile"]
+        header = self["instrument/specfile/scan_header"].value
+        header = header.decode().splitlines()
+        fheader = self["instrument/specfile/file_header"].value
+        fheader = fheader.decode().splitlines()
+        specpath = os.path.realpath(self.attrs["_specfile"])
         # this is useful to get relative paths in case the complete data 
         # has been moved:
         for line in fheader:
             if line.startswith("#F"):
-                orig_spec_path = line.lstrip("#F ")
+                orig_spec_path = os.path.realpath(line.lstrip("#F "))
                 break
         orig_folder = os.path.dirname(orig_spec_path)
+        #print specpath, orig_folder
         ##
         if fast:
-            #impath = [s for s in header if b"imageFile" in s][0]
-            impath = [s for s in header if s.startswith(b"#C imageFile")]
+            #impath = [s for s in header if "imageFile" in s][0]
+            impath = [s for s in header if s.startswith("#C imageFile")]
             if not impath:
                 return []
             impath = impath[0]
             impath = impath.split()[2:]
-            impath = dict((s.strip(b"]").split(b"[") for s in impath))
+            impath = dict((s.strip("]").split("[") for s in impath))
             if imgroot is None:
-                imgroot = impath[b"dir"]
+                imgroot = os.path.realpath(impath["dir"])
                 # prefer relative because data is often moved:
                 imgroot = os.path.relpath(imgroot, orig_folder)
                 imgroot = os.path.join(os.path.dirname(specpath), imgroot)
                 imgroot = os.path.abspath(imgroot)
             generic_path = os.path.join(
                     imgroot,
-                    impath[b"prefix"] + impath[b"idxFmt"] + impath[b"suffix"]
-                            )
-            idx = int(impath[b"nextNr"])
+                    impath["prefix"] + impath["idxFmt"] + impath["suffix"]
+                    )
+            idx = int(impath["nextNr"])
             #impath = generic_path%idx
-            detname = ""
-            all_paths = FastEdfCollect(generic_path.decode(), idx)
+            detname = "" # not used in pscans
+            all_paths = FastEdfCollect(generic_path, idx)
         else:
-            impath = [s for s in header if s.startswith(b"#ULIMA_")][0]
+            impath = [s for s in header if s.startswith("#ULIMA_")][0]
             detname, impath = impath.split()
+            impath = os.path.realpath(impath)
             # prefer relative because data is often moved:
             impath = os.path.relpath(impath, orig_folder)
+            #print impath
             impath = os.path.join(os.path.dirname(specpath), impath)
             impath = os.path.abspath(impath)
             detname = detname[7:] # discard "#ULIMA_"
+            detname = detector_aliases.get(detname, detname)
             if imgroot is not None:
                 impath = os.path.join(imgroot, os.path.basename(impath))
 
@@ -480,7 +476,7 @@ class Scan(h5py.Group):
             startnr = int(inr[0])
             assert "_%05d"%startnr in impath, \
                  "Error: %sinr not in image path"%detname
-            impath = impath.decode().replace("_%05d"%startnr, "_%05d")
+            impath = impath.replace("_%05d"%startnr, "_%05d")
             all_paths = [impath%i for i in inr]
 
         all_paths = np.array(all_paths, dtype=np.string_)
@@ -490,22 +486,28 @@ class Scan(h5py.Group):
                                            dtype=all_paths.dtype,
                                            data=all_paths)
 
+        _i=0
         for impath in all_paths:
-            impath = impath.decode()
+            impath = impath
             if not isfile(impath):
-                print("Warning: File not found: %s. Skipping..."%impath)
+                sys.stdout.write("Warning: File not found: %s. Skipping..."%impath + os.linesep)
                 continue
             if pathonly:
                 if not verbose:
                     break
-                print("  Found path %s"%impath)
+                sys.stdout.write("  Found path %s"%impath + os.linesep)
             else:
                 try:
                     if verbose:
-                        print("  Fetching %s"%impath)
+                        sys.stdout.write("  progress: %.2f%%: %s "%((float(_i)/float(len(all_paths)))*100,impath))
+                        sys.stdout.write("\r") # carriage return only. does it work on Win?
+                        sys.stdout.flush()
                     self.addEdfFile(impath, **edf_kw)
                 except Exception as emsg:
-                    print("Could not load file: %s"%emsg)
+                    sys.stdout.write("Could not load file: %s"%emsg)
+                    sys.stdout.write(os.linesep)
+            _i+=1
+        sys.stdout.write(os.linesep)
         return all_paths
 
 
@@ -558,6 +560,8 @@ class Sample(h5py.Group):
             scan = Scan(self[name].id)
 
         for f in datafiles:
+            if isinstance(f, bytes):
+                f = f.decode()
             if isinstance(f, EdfFile.EdfFile):
                 scan.addEdfFile(f) # fast !
 
@@ -583,7 +587,8 @@ class Sample(h5py.Group):
         #fast = filename.split("_")[-2] == "fast"
         fast = "_fast_" in os.path.basename(filename)
         root = specscan.name.split("/")[1]
-        specnumber = int(root.split(".")[0]) #+ (1 if fast else 0)
+        #specnumber = int(root.split(".")[0]) #+ (1 if fast else 0)
+        specnumber = [int(n) for n in root.split(".")] #+ (1 if fast else 0)
 
         if number is None:
             if fast:
@@ -594,9 +599,13 @@ class Sample(h5py.Group):
 
         if isinstance(number, int):
             if fast:
-                name = '%i.0.kmap_%05i'%(number, specnumber)
+                name = '%i.0.kmap_%05i'%(number, specnumber[0])
+                if len(specnumber)==2:
+                    name = name + ".%i"%specnumber[1]
             else:
                 name = '%i.1'%number
+        elif _len(number)==2:
+            name = '%i.%i'%tuple(number)
         else:
             name = number
 
@@ -608,15 +617,17 @@ class Sample(h5py.Group):
                 self.pop(name)
                 scan = self.addScan(name)
             else:
-                print("Warning: Scan already exists %s in %s. Omitting"\
-                        %(name, self.name))
+                sys.stdout.write("Warning: Scan %5s already exists in %s. "
+                                 "Omitting. Consider the `overwrite` keyword%s"
+                        %(name, self.name, os.linesep))
                 return
 
         scan.attrs["_fast"] = fast
         scan.attrs["_specfile"] = filename
 
         if verbose:
-            print("Importing spec scan %s from %s to %s..."%(root, filename, scan.name))
+            sys.stdout.write("Importing spec scan %s from %s to %s...%s"
+                             %(root, filename, scan.name, os.linesep))
 
         #specscan.copy(specname, self, name=name) #copying does not work with spech5
         # will be replaced by spectoh5.SpecToHdf5Writer:
@@ -629,11 +640,31 @@ class Sample(h5py.Group):
 
 
 
-    def importSpecFile(self, specfile, numbers=(), newnumbers=(), exclude=[], **addSpec_kw):
+    def importSpecFile(self, specfile, numbers=(), exclude=[], **addSpec_kw):
+        """
+            Convenience method that imports whole or parts of specfiles into the
+            current `Sample` group.
+            
+            Inputs:
+                specfile : str or silx.io.spech5.SpecH5
+                    The .spec file as path or SpecH5 instance
+                
+                numbers : sequence of (str or int) OR dict-like
+                    The subset of scans to import (all if None).
+                    If the `numbers` input is a dict, it represents
+                    a mapping of scan numbers/names to new, arbitrary
+                    names.
+
+                exclude : sequence
+                    a subset of scans to omit.
+
+            For additional key word arguments see `addSpecScan`.
+
+        """
         if isfile(specfile):
             s5f = silx.io.open(specfile)
-        elif isinstance(specfile, silx.io.spech5.SpecH5):
-            s5f = specfile
+        #elif isinstance(specfile, silx.io.spech5.SpecH5):
+        #    s5f = specfile
         else:
             if isinstance(specfile, str):
                 raise TypeError("File not found: %s"%specfile)
@@ -642,23 +673,28 @@ class Sample(h5py.Group):
 
         if not numbers:
             numbers = list(s5f.keys())
-        if isinstance(numbers[0], int):
-            scannos = [(i-1) for i in numbers]
-        else:
-            scannos = numbers
+        if isinstance(numbers, collections.Sequence):
+            numbers = dict(zip(numbers, numbers))
 
 
-        for i, scanno in enumerate(scannos):
-            if scanno in exclude:
+        for i, number in enumerate(numbers):
+            if number in exclude:
                 continue
+
+            if isinstance(number, int):
+                scanno = number - 1
+            else:
+                scanno = number
+
             try:
                 scan = s5f[scanno]
             except Exception as emsg:
-                print("Warning: Could not load scan %s - %s:"%(specfile,str(scanno)))
-                print("    %s. Skipping..."%emsg)
+                sys.stdout.write("Warning: Could not load scan %s - %s:%s"
+                                 %(specfile,str(scanno), os.linesep))
+                sys.stdout.write("    %s. Skipping..."%emsg + os.linesep)
                 continue
             self.addSpecScan(scan,
-                             newnumbers[i] if newnumbers else None,
+                             numbers[number],
                              **addSpec_kw)
 
 
@@ -674,7 +710,7 @@ class Sample(h5py.Group):
         times = collections.OrderedDict()
         imgfiles = []
         firstimg = dict()
-        for name, scan in list(self.items()):
+        for name, scan in self.items():
             starttime = scan.get("start_time", False)
             if not starttime:
                 continue
@@ -683,9 +719,9 @@ class Sample(h5py.Group):
             scanimages = scan.get('measurement/image_files', [])
             if not scanimages:
                 continue
-            imgfiles.extend(list(map(os.path.basename, scanimages)))
+            imgfiles.extend(map(os.path.basename, scanimages))
 
-        _alltimes = np.array(list(times.values()))
+        _alltimes = np.array(times.values())
         _allscans = list(times)
 
         # now process all images in image_dir that are not in imgfiles
@@ -701,8 +737,8 @@ class Sample(h5py.Group):
                 edf = EdfFile.EdfFile(path, fastedf=True)
                 try:
                     edfheader = edf.GetHeader(edf.NumImages-1)
-                except:
-                    print("Warning: corrupted file %s"%path)
+                except: 
+                    sys.stdout.write("Warning: corrupted file %s"%path + os.linesep)
                     continue
                 if not "time_of_day" in edfheader:
                     nextname = "others"
@@ -724,15 +760,15 @@ class Sample(h5py.Group):
                 destg = scan[dest]
 
                 skipit = False
-                for grp in list(destg.values()):
+                for grp in destg.values():
                     if path in grp.get("image_files", []):
                         skipit = True
                 if skipit:
                     continue
 
                 ii += 1
-                print("Adding single frame #%i (%s) to %s"
-                      %(ii, fname, nextname))
+                sys.stdout.write("Adding single frame #%i (%s) to %s%s"
+                      %(ii, fname, nextname, os.linesep))
 
                 detname = scan.addEdfFile(edf, subdir=dest,
                                                compr_lvl=compr_lvl)
@@ -750,7 +786,7 @@ class Sample(h5py.Group):
                 detector['image_files'][-1] = path
 
             else:
-                continue # todo: implement other types
+                continue # todo: implement other typesprint
 
         return paths
 
@@ -770,6 +806,10 @@ class ID01File(h5py.File):
     """
     _samples = []
     def addSample(self, name, description=None):
+        if name in self:
+            sys.stdout.write("Warning: returning already existing sample: %s%s"
+                             %(name, os.linesep))
+            return self[name]
         with h5py._hl.base.phil:
             name, lcpl = self._e(name, lcpl=True)
             gid = h5py.h5g.create(self.id, name, lcpl=lcpl)
@@ -815,54 +855,3 @@ def FastEdfCollect(generic_path, idx):
 
 
 
-if __name__=="__main__":
-    ### TEST:
-
-    datadir = "/data/visitor/ma3331/id01/"
-    fastspecfile = "knno-47-008-GSO_fast_%05i.spec"%13
-    fastpath = os.path.join(datadir, fastspecfile)
-    specpath = "/data/visitor/ma3331/id01/knno-47-008-GSO.spec"
-
-
-    if not isfile(fastpath):
-        raise IOError("File not found: %s"%fastpath)
-
-    sf = specfile.SpecFile(fastpath)
-    for scan in sf:
-        impath = [s for s in scan.scan_header if "imageFile" in s][0]
-        impath = impath.split()[2:]
-        impath = dict((s.strip("]").split("[") for s in impath))
-        generic_path = os.path.join(impath["dir"],
-                                    impath["prefix"] + impath["idxFmt"] + impath["suffix"])
-        idx = int(impath["nextNr"])
-        print((generic_path, idx))
-
-
-
-
-    test = ID01File("/tmp/test2.h5")
-    test.clear()
-    a = test.addSample("GS2", "irgendwas")
-    a = test["GS2"]
-    b = a.addScan(1)#, e,e,e,e)
-    b = a["1.0"]
-    c = test.addSample("GS3", "irgendwas")
-    print(a["1.0/instrument"])
-
-    b.debug = True
-    if 0:
-        paths = FastEdfCollect(generic_path, 11)
-        edf = EdfFile(paths[0]) #pick one
-        b2 = a.addScan(1, edf) #this is another way to do it
-        b.addEdfFile(edf.FileName) # add something big
-        dat = test["GS2/1.0/instrument/detector_0"]["data"]
-        print((b==b2)) # should be true
-        print(b["instrument/detector_0/others/time"].value) # some metadata
-
-    #a.importSpecFile(specpath)
-
-    a.importSpecFile(fastpath)
-    #sm = e["scan_0/instrument/detector_0"]["others"]
-    #print sm.keys() # all columns of metadata
-
-    test.close()

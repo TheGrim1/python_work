@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from past.utils import old_div
 import os
 import h5py
 import numpy as np
@@ -93,7 +89,7 @@ def mycontour(data, numlevels=150, saveto=None, labels=None):
         x = data[3*col]
         y = data[3*col+1]
         z = data[3*col+2]
-        print((col, z.shape))
+        print(col, z.shape)
         img = plt.contourf(x,y,z.T,numlevels) #Darstellung der gesamten Summation
         if not labels is None:
             label = labels[col]
@@ -202,8 +198,8 @@ elif plot_type==3:
     
     levels = np.linspace(INT.min(), INT.max(), nlevel+2)[1:-1]
     for ii, level in enumerate(levels):
-        color = list(cmap(old_div(float(ii),(nlevel-1))))
-        color[-1] = (old_div(float(ii+1),(nlevel)))**1
+        color = list(cmap(float(ii)/(nlevel-1)))
+        color[-1] = (float(ii+1)/(nlevel))**1
         window.addIsosurface(level, color)
 
     window.show()

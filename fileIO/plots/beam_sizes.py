@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import division
-from past.utils import old_div
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -38,7 +37,7 @@ def normalize_scan_data(data):
     '''
 
     data[:,1] += -np.min(data[:,1])
-    data[:,1] *= old_div(1.0,np.max(data[:,1]))
+    data[:,1] *= (1.0/np.max(data[:,1]))
     data[:,0] += -data[:,0][np.where(data[:,1]==np.max(data[:,1]))]
     
     return data

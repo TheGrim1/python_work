@@ -1,0 +1,19 @@
+import sys, os
+
+import h5py
+import numpy as np
+
+
+class pynx_h5_reader(object):
+    def __init__(self, h5_fname):
+        self.h5_fname = h5_fname
+
+    def get_object():
+        with h5py.File(self.h5_fname) as h5_f:
+            return np.asarra(h5_f['obj'])
+
+    def get_probe():
+        with h5py.File(self.h5_fname) as h5_f:
+            return np.asarra(h5_f['obj'])
+        
+        

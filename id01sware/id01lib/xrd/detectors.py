@@ -1,6 +1,7 @@
-from __future__ import division
-from past.utils import old_div
-from builtins import object
+"""
+    This is the file where detectors are defined.
+    Todo: Andor and Eiger
+"""
 import numpy as np
 
 
@@ -36,10 +37,38 @@ class MaxiPix(AreaDetector):
         """
             Mind the gap.
         """
-        image *= 9
-        image[255:258] = old_div(image[255],3)
-        image[258:261] = old_div(image[260],3)
-        image[:,255:258] = (old_div(image[:,255],3))[:,None]
-        image[:,258:261] = (old_div(image[:,260],3))[:,None]
+        image *= 9   # TODO: warum? the pixel at the edge has 3 times more counts, should be distributed to the other pixels.
+        image[255:258] = image[255]/3
+        image[258:261] = image[260]/3
+        image[:,255:258] = (image[:,255]/3)[:,None]
+        image[:,258:261] = (image[:,260]/3)[:,None]
 
+    @staticmethod
+    def ff_correct_image(image):
+        """
+            perhaps a flatfield here
+        """
+        pass
+
+
+class Eiger2M(AreaDetector):
+    def __init__(self, mask=None):
+        super(Eiger2M, self).__init__(directions=("z-", "y+"),
+                                      pixsize=75e-6,
+                                      pixnum=(2164,1030),
+                                      mask=mask
+                                     )
+    @staticmethod
+    def ff_correct_image(image):
+        """
+            perhaps a flatfield here
+        """
+        pass
+
+    @staticmethod
+    def mask_image(image):
+        """
+            Mind the BIG gaps and the bad columns
+        """
+        pass
 

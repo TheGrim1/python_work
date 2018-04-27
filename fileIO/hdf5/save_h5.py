@@ -3,7 +3,6 @@ from __future__ import print_function
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 import sys, os
 import h5py
 import numpy as np

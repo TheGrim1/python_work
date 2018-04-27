@@ -1,6 +1,4 @@
 from __future__ import print_function
-from builtins import map
-from builtins import object
 import os,time,sys
 import struct
 import numpy as np
@@ -12,14 +10,6 @@ from PyQt4.QtCore import Qt
 
 from PyTango import DeviceProxy   # better to use PyTango.gevent ?
 
-# from bliss.data.routines.pixmaptools import qt4 as pixmaptools
-import pixmaptools.qt4 as pixmaptools
-
-
-#print "set video_live TRUE"
-#device.video_live=True
-
-lutMode = pixmaptools.LUT.Scaling.YUV422PACKED
 
 class error(Exception): pass
 
@@ -115,12 +105,18 @@ def launch_live_viewer(devname):
     devname = "USB%1d" % int(devnumber)
     '''
     if devname[:3].upper() == 'USB':
+        if 'USBCameras' not in dir():
+            print('inporting USBCameras ')
+            import CamView_USBCameras.USBCameras as USBCameras
         devnum= int(devname[3])
         cp = USBCameras()
         test = cp.grab_image(devnum)
         print('test image shape = ', test.shape)
         
     else:
+        if 'ETHCameras' not in dir():
+            print('inporting ETHCameras ')
+            import CamView_ETHCameras.ETHCameras as ETHCameras
         cp = ETHCameras([devname])
         # get test image to init:
         devnum = 1

@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+#  interactive PSCAN tracker
+#  click on the position you want to move to
+# refurbish pscan_align for nano3
+#raise Exception("Needs Testing...!")
+# built-in:
+import os
+import sys
+import time
+
+
+if "--log" in sys.argv:
+    mynorm = "log"
+elif "--gamma" in sys.argv:
+    iarg = sys.argv.index("--gamma")
+    mynorm = float(sys.argv[iarg+1])
+    #mynorm = "linear"
+else:
+    mynorm = "linear"
+
+# community:
+import numpy as np
+import matplotlib.pyplot as pl
+
+try:
+    #raise #tests
+    from id01lib import PScanTracker, SpecClientWrapper
+except:
+    print("trying local import.")
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+    from id01lib import PScanTracker, SpecClientWrapper
+
+specname = "nano3:psic_nano"
+
+specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
+
+fig = pl.figure()
+ax = fig.add_subplot(111)
+tracker = PScanTracker.PScanTracker(ax, specsession, norm=mynorm,exit_onclick=True)
+pl.show()
+
+
+try:
+  tracker.specclient.send_sc(str('umv %s %.3f'%(tracker.POI_mot_nm[0],tracker.POI[0])))
+  tracker.specclient.send_sc(str('umv %s %.3f'%(tracker.POI_mot_nm[1],tracker.POI[1])))
+except:
+  print "problem encountered moving"
+
+print "##you picked##"
+
+print '%s : %.3f'%(tracker.POI_mot_nm[0],tracker.POI[0])
+print '%s : %.3f'%(tracker.POI_mot_nm[1],tracker.POI[1])
+print ".. press any key (except spacebar) to continue.."
+
+sys.exit()
+

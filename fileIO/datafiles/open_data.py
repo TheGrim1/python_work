@@ -1,11 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import sys, os
-import fakenews
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = fakenews.Dummy()
+
 
 def open_data(filename, delimiter = ' ', quotecharlist= ['#'],verbose = False):
     '''reads <filename> as a <delimiter> seperated datafile and returns the data as np.array \n ignores lines staring with something in quotecharlist '''
@@ -73,3 +69,32 @@ if __name__ == '__main__':
     
 #    print args
     main(args)
+
+    
+def read_calorimeter_datafiles(fnamelist):
+# read all outputs data = [[[x0],[y0]],etc.
+    data          = []
+    time          = []
+    temp          = []
+
+    for fname in fnamelist:
+        if fname.endswith(".txt"):
+            try:
+                print("reading %s " % fname)
+                f = open(fname,"r")
+                cfg=f.readlines()
+   
+                for i in range(3,len(cfg)):
+                    dataline = cfg[i].split()
+#                    print dataline
+                    time.append(float(dataline[0]))
+                    temp.append(float(dataline[1]))
+                f.close()
+                data.append([time,temp])
+                time          = []
+                temp          = []
+            except IndexError as TypeError: 
+                print("Error reading %s" % os.path.join(src,fname))
+                
+    return data
+

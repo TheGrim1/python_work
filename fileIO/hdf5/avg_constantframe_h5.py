@@ -4,8 +4,7 @@ from __future__ import division
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/do_stuff.py
 
 #global
-from builtins import range
-from past.utils import old_div
+
 import os
 import sys
 import h5py
@@ -115,7 +114,7 @@ def main(filelist):
                     print(" some indexfault in file %s, frame %s" % (destfilelist[frame],frame))
                     nfiles -=1
 
-    newdata = old_div(newdata, nfiles)
+    newdata = (newdata/ nfiles)
     print("maximum of newdata:")
     print(newdata[:,:,:].max())
 #    print "newdata has shape:"

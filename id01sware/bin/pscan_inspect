@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+# PSCAN tracker feedback of multiple positions to a 'group' in SPEC called 'inspect'
+#    groupmove inspect p0 ...
+#raise Exception("Needs Testing...!")
+# TODO: decide on ax.annotate in PScanTracker
+#       add deltas between points?
+# built-in:
+import os
+import sys
+import time
+import thread
+
+
+if "--log" in sys.argv:
+    mynorm = "log"
+elif "--gamma" in sys.argv:
+    iarg = sys.argv.index("--gamma")
+    mynorm = float(sys.argv[iarg+1])
+    #mynorm = "linear"
+else:
+    mynorm = "linear"
+
+# community:
+import numpy as np
+import matplotlib.pyplot as pl
+
+try:
+    #raise #tests
+    from id01lib import PScanTracker, SpecClientWrapper
+except:
+    print("trying local import.")
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+    from id01lib import PScanTracker, SpecClientWrapper
+
+
+specname = "nano3:psic_nano"
+
+specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
+
+fig = pl.figure()
+ax = fig.add_subplot(111)
+tracker = PScanTracker.PScanTracker(ax, specsession, norm=mynorm)
+
+pl.show()
+
+specsession.send_sc(str('groupadd inspect nano3:psic_nano/%s nano3:psic_nano/%s'%(tracker.POI_mot_nm[0],tracker.POI_mot_nm[1])))
+
+
+for i,xy in enumerate(tracker.POI_list):
+	specsession.send_sc(str('groupaddpos inspect p%i %.3f %.3f'%(i,xy[0],xy[1])))
+
+#try:
+#  tracker.specclient.send_sc(str('umv %s %.3f'%(tracker.POI_mot_nm[0],tracker.POI[0])))
+#  tracker.specclient.send_sc(str('umv %s %.3f'%(tracker.POI_mot_nm[1],tracker.POI[1])))
+#except:
+#  print "problem encountered moving"
+
+print "## the points have been added to the inspect group##"
+print "## groupmove inspect p0 ...##"
+print ".. press any key (except spacebar) to continue.."

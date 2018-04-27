@@ -2,8 +2,6 @@ from __future__ import print_function
 # use to gzip files in place using more than one process
 # AJ 07.2016
 
-from builtins import input
-from builtins import str
 import os
 from multiprocessing import Pool
 import time

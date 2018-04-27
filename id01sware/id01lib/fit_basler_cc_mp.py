@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 #----------------------------------------------------------------------
 # Description: 
 #   functions for analysing limatake multiple image acquisitions intensity fluctuations
@@ -13,10 +10,6 @@ from __future__ import division
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------
 
-from builtins import input
-from builtins import range
-from builtins import object
-from past.utils import old_div
 import numpy as np
 import matplotlib.pyplot as pl
 import h5py
@@ -26,7 +19,7 @@ import os
 from multiprocessing import Process, Lock, Queue
 
 from id01lib import hdf5_writer as h5w
-from . import ImageRegistration as IR
+import ImageRegistration as IR
 from PyMca5 import EdfFile
 
 pixel_size = np.array([55, 55])  # microns
@@ -51,7 +44,7 @@ pixel_size = np.array([55, 55])  # microns
 
 def gauss_func(x, a, x0, sigma):
 
-    return a*np.exp(old_div(-(x-x0)**2,(2*sigma**2)))
+    return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 
 def COM(arr):
@@ -64,7 +57,7 @@ def COM(arr):
         grid_dims.append(slice(0, axis))
     grid = np.ogrid[grid_dims]
     for axis in grid:
-        loc = np.r_[loc, old_div(np.sum(arr*axis),np.double(tot))]
+        loc = np.r_[loc, np.sum(arr*axis)/np.double(tot)]
     return loc
 
 def get_roi_sum(array,roi = [[0,516],[0,516]]):
@@ -90,12 +83,12 @@ def analyse_limatake(h5fn, dict_rois, x = "/scan_0000/data/time_of_frame", y = "
     y = h5w.get_dataset(h5fn,key = y)
    
     pl.figure()
-    for roi in list(dict_rois.keys()):
+    for roi in dict_rois.keys():
         tmp_y = get_roi_sum(y, [[dict_rois[roi][1],\
                                     dict_rois[roi][2]],\
                                    [dict_rois[roi][3],\
                                     dict_rois[roi][4]]])
-        tmp_y = old_div(tmp_y,np.mean(tmp_y))
+        tmp_y = tmp_y/np.mean(tmp_y)
         pl.plot(x, tmp_y, label = roi)
         h5w.add_dataset(h5fn,x,group,key = roi+"/x")
         #print(group+roi+"/x")
@@ -109,7 +102,7 @@ def analyse_limatake(h5fn, dict_rois, x = "/scan_0000/data/time_of_frame", y = "
     pl.clf()
     
     pl.figure()
-    for roi in list(dict_rois.keys()):
+    for roi in dict_rois.keys():
         tmp_y = get_roi_sum(y, [[dict_rois[roi][1],\
                                     dict_rois[roi][2]],\
                                    [dict_rois[roi][3],\
@@ -118,13 +111,13 @@ def analyse_limatake(h5fn, dict_rois, x = "/scan_0000/data/time_of_frame", y = "
         N = tmp_y.shape[0]
         T = np.round(x[1]-x[0],2)
         yf = np.fft.fft(tmp_y)
-        xf = np.linspace(0.0,old_div(1.0,(2.0*T)),old_div(N,2))
+        xf = np.linspace(0.0,1.0/(2.0*T),N/2)
         #print(xf[:],(2.0/N*np.abs(yf[:int(N/2)]))
-        pl.plot(xf[:],2.0/N*np.abs(yf[:int(old_div(N,2))]),label = roi)
+        pl.plot(xf[:],2.0/N*np.abs(yf[:int(N/2)]),label = roi)
         h5w.add_dataset(h5fn,xf,group,key = roi+"/xf")
         h5w.add_dataset(h5fn,yf,group,key = roi+"/yf")  
     pl.xlim(0.1, x[-1])
-    pl.ylim(0,np.max(2.0/N*np.abs(yf[2:int(old_div(N,2))])))
+    pl.ylim(0,np.max(2.0/N*np.abs(yf[2:int(N/2)])))
     pl.legend()
     pl.title('Beam Frequencies')
     pl.xlabel('Frequency (Hz)')
@@ -163,7 +156,7 @@ def CCworker(ref_data, tmp_data, time_stamp, time_zero, dump):
         return
 
 
-class CrossCorrelator(object):
+class CrossCorrelator():
 
     def __init__(self, ref_im_fn, all_im_fns=[], h5fn="CC.h5", roi=[[0, 966], [0, 1296]]):
         self.ref_fn = ref_im_fn
@@ -221,10 +214,10 @@ class CrossCorrelator(object):
 
         # set the number of images to save
         if lim_B-_tot_ims >= _data.NumImages:
-            _no_ims_fn = range(_data.NumImages)
+            _no_ims_fn = xrange(_data.NumImages)
             # print _no_ims_fn
         else:
-            _no_ims_fn = range(lim_B-_tot_ims)
+            _no_ims_fn = xrange(lim_B-_tot_ims)
             # print _no_ims_fn
 
         _l.acquire()
@@ -385,10 +378,10 @@ class CrossCorrelator(object):
         pl.ylabel("Position (um)")
         pl.legend()
         pl.savefig(fn)
-        print(("peak(x) mean:", np.mean(self.output['x']*pixel_size[0]), "std: ", \
-            np.std(self.output['x']*pixel_size[0])))
-        print(("peak(y) mean:", np.mean(self.output['y']*pixel_size[1]), "std: ", \
-            np.std(self.output['y']*pixel_size[1])))
+        print("peak(x) mean:", np.mean(self.output['x']*pixel_size[0]), "std: ", \
+            np.std(self.output['x']*pixel_size[0]))
+        print("peak(y) mean:", np.mean(self.output['y']*pixel_size[1]), "std: ", \
+            np.std(self.output['y']*pixel_size[1]))
         pl.clf()
 
 
@@ -397,7 +390,7 @@ def plot_max(h5fn, out_fn="max.pdf"):
     ID01_h5 = h5py.File(h5fn, 'r')
     pl.figure(1)
     x = ID01_h5['timestamp_stats']
-    pl.plot(x[:ID01_h5['max'].shape[0]]-x[0], old_div(ID01_h5['max'][:],np.mean(ID01_h5['max'][:])), 'b', label="max")
+    pl.plot(x[:ID01_h5['max'].shape[0]]-x[0], ID01_h5['max'][:]/np.mean(ID01_h5['max'][:]), 'b', label="max")
     pl.title(h5fn)
     pl.xlabel("Time(s)")
     pl.ylabel("Intensity (normalised)")
@@ -411,7 +404,7 @@ def plot_sum(h5fn, out_fn="sum.pdf"):
     ID01_h5 = h5py.File(h5fn, 'r')
     pl.figure(1)
     x = ID01_h5['timestamp_stats']
-    pl.plot(x[:ID01_h5['sum'].shape[0]]-x[0], old_div(ID01_h5['sum'][:],np.mean(ID01_h5['sum'][:])), 'b', label="sum")
+    pl.plot(x[:ID01_h5['sum'].shape[0]]-x[0], ID01_h5['sum'][:]/np.mean(ID01_h5['sum'][:]), 'b', label="sum")
     pl.title(h5fn)
     pl.xlabel("Time(s)")
     pl.ylabel("Intensity (normalised)")
@@ -456,9 +449,9 @@ def plot_mpxsum(h5fn, out_fn="mpxsum.pdf"):
     pl.figure(1)
     x = ID01_h5['timestamp_stats']
     tmp = (ID01_h5['mpx1x4']['f0']+ID01_h5['mpx1x4']['f1'])-(ID01_h5['mpx1x4']['f2']+ID01_h5['mpx1x4']['f3'])  # left/right
-    pl.plot(x[:tmp.shape[0]]-x[0], old_div(tmp[:],np.mean(tmp)), 'b', label="left-right")
+    pl.plot(x[:tmp.shape[0]]-x[0], tmp[:]/np.mean(tmp), 'b', label="left-right")
     tmp = (ID01_h5['mpx1x4']['f0']+ID01_h5['mpx1x4']['f2'])-(ID01_h5['mpx1x4']['f1']+ID01_h5['mpx1x4']['f3'])  # top/bot
-    pl.plot(x[:tmp.shape[0]]-x[0], old_div(tmp[:],np.mean(tmp)), 'r', label="top-bot")
+    pl.plot(x[:tmp.shape[0]]-x[0], tmp[:]/np.mean(tmp), 'r', label="top-bot")
     pl.title(h5fn)
     pl.xlabel("Time(s)")
     pl.ylabel("Intensity (normalised to mean)")
@@ -485,14 +478,14 @@ def plot_fft_quelquechose(h5fn, key='', fmt='.pdf', show=True):
     # fast for interactive file browsing
     ID01_h5 = h5py.File(h5fn, 'r')
     if key == '':
-        print(list(ID01_h5.keys()))
-        key = input('provide a key from the list above: ')
+        print(ID01_h5.keys())
+        key = raw_input('provide a key from the list above: ')
 
     pl.figure(1)
     # we have irregular data - beware really should be doing a non-uniform fft
     x = ID01_h5['timestamp_stats']
-    x1 = np.linspace(0.0,old_div(1.0,(2.0*(x[1]-x[0]))), old_div(x.shape[0],2))
-    y1 = np.abs(np.fft.fft(ID01_h5[key][:]))[:old_div(x.shape[0],2)]
+    x1 = np.linspace(0.0,1.0/(2.0*(x[1]-x[0])), x.shape[0]/2)
+    y1 = np.abs(np.fft.fft(ID01_h5[key][:]))[:x.shape[0]/2]
     pl.plot(x1,  y1, 'r--', label=key)
     pl.title(h5fn)
     pl.xlabel("Freq (Hz)")
@@ -512,12 +505,12 @@ def plot_quelquechose(h5fn, key='', fmt='.pdf', show=True):
     # fast for interactive file browsing
     ID01_h5 = h5py.File(h5fn, 'r')
     if key == '':
-        print(list(ID01_h5.keys()))
-        key = input('provide a key from the list above: ')
+        print(ID01_h5.keys())
+        key = raw_input('provide a key from the list above: ')
 
     pl.figure(1)
     x = ID01_h5['timestamp_stats']
-    pl.plot(x[:ID01_h5[key].shape[0]]-x[0], old_div(ID01_h5[key][:],np.mean(ID01_h5[key][:])), 'r--', label=key)
+    pl.plot(x[:ID01_h5[key].shape[0]]-x[0], ID01_h5[key][:]/np.mean(ID01_h5[key][:]), 'r--', label=key)
     pl.title(h5fn)
     pl.xlabel("Time(s)")
     pl.ylabel("Intensity")

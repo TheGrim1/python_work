@@ -1,0 +1,36 @@
+import fabio
+from silx import sx
+import os
+import numpy as np
+from plot_array import plot_array
+
+def read_xbic_edfs(xbic_edf_folder):
+
+
+    edf_fname_list = os.listdir(xbic_edf_folder)
+    edf_fname_list = [xbic_edf_folder + fname for fname in edf_fname_list if fname.find('edf')]
+    edf_fname_list.sort()
+    
+    dummy = fabio.open(edf_fname_list[0]).data
+    dtype = dummy.dtype
+    dshape = dummy.shape
+
+    print('found datashape {} and dtype {}'.format(dshape,dtype))
+    
+    xbic_data = np.zeros(dtype = dtype,shape=(len(edf_fname_list),dshape[0],dshape[1]))
+
+    for i,fname in enumerate(edf_fname_list):
+        print('reading file {}'.format(fname))
+        xbic_data[i]=fabio.open(fname).data
+
+    return xbic_data
+
+if __name__ == '__main__':
+    xbic_edf_folder = '/data/visitor/ma3564/id16b/sample_h/wire_2_b/xbic/'
+    xbic_data = read_xbic_edfs(xbic_edf_folder)
+    plot_array(xbic_data)
+    print('press any key to quit')
+    input()
+    plot_array(np.where(xbic_data<1,1,0))
+    print('press any key to quit')
+    input()

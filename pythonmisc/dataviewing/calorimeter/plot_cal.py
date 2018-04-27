@@ -1,7 +1,5 @@
 from __future__ import print_function
 from __future__ import division
-from builtins import range
-from past.utils import old_div
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -92,9 +90,9 @@ def plotmany_overt(header, data ,ylabel = "signal [arb. units]"):
         ax1.tick_params(axis='y', which='both', labelleft='on', labelright='off')
         
         if i == 7:
-            ax1.plot(data[:,0], data[:,i+1]+old_div(i,7.0),label=header[i+1],color = "darkred", linewidth = 2)
+            ax1.plot(data[:,0], data[:,i+1]+float(i/7.0),label=header[i+1],color = "darkred", linewidth = 2)
         else:
-            ax1.plot(data[:,0], data[:,i+1]+old_div(i,7.0),label=header[i+1],color = "darkblue", linewidth = 2)
+            ax1.plot(data[:,0], data[:,i+1]+float(i/7.0),label=header[i+1],color = "darkblue", linewidth = 2)
 #        plt.legend()
 #        plt.title(header[i+1])
         ax2.set_xlabel("time [ms]",size=20)

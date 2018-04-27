@@ -1,5 +1,4 @@
 from __future__ import print_function
-from builtins import range
 from o8qq.qqudo1.api import ptiapi
 from o8qq.qqudo1.cumulative import cumulative1 as cumu1
 from cumulative import run_cumulative_imgs

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #----------------------------------------------------------------------
 # Description:
 # Author: Carsten Richter <carsten.richter@esrf.fr>
@@ -30,7 +30,13 @@ for p_i in range(len(sys.path)):
         sys.path.append(sys.path.pop(p_i))
 
 
+devicetype = "CPU" if "--cpu" in sys.argv else "GPU"
+
 import time
+import collections
+import platform
+PV = platform.python_version()
+print("Python version %s"%PV)
 import numpy as np
 print("Using numpy %s"%np.__version__)
 from scipy import linalg, ndimage
@@ -40,8 +46,6 @@ from PyQt4 import QtGui as Q
 from PyQt4 import QtCore
 print("Using PyQt %s"%QtCore.QT_VERSION_STR)
 
-import platform
-PV = platform.python_version()
 _use_console = True
 _use_console = _use_console and PV.startswith("3.")
 
@@ -80,12 +84,16 @@ _hints["POI to COR"] = ('Move selected Point Of Interest into Center Of '
                       'Rotation')
 _hints["Get Sharpness"] = ('Compute a measure for the sharpness of the image '
                         'in arbitrary units. Uses the latest image.')
+_hints["AutoFocus"] = ('Use ROI sharpness and optimization of a motor position '
+                       'to focus the image.')
 _hints["selectPOI"] = 'Select Point of Interest (POI)'
 _hints["Navg"] = 'Number of subsequent camera images to average'
 _hints["enhance"] = 'Strech contrast of the camera image'
 _hints["saveit"] = 'Save the new image to the current directory'
 
 
+_valid = {int:Q.QIntValidator(),
+          float:Q.QDoubleValidator()}
 
 class CrosshairAction(PlotActions.CrosshairAction):
     """
@@ -226,7 +234,6 @@ class ControlWidget(Q.QWidget):
         self.splitter = splitter = Q.QSplitter(QtCore.Qt.Horizontal) 
         layout.addWidget(splitter)
         _reg = self.registerWidget
-        _onlyint = Q.QIntValidator()
         self.form = form = Q.QFrame(self)
         form.setFrameShape(Q.QFrame.StyledPanel)
         form.layout = Q.QFormLayout(form)
@@ -243,7 +250,7 @@ class ControlWidget(Q.QWidget):
 
         
         Navg = Q.QLineEdit("1")
-        Navg.setValidator(_onlyint)
+        Navg.setValidator(_valid[int])
         Navg.setStatusTip(_hints['Navg'])
         Navg.setMaxLength(3)
         Navg.setFixedWidth(25)
@@ -260,7 +267,7 @@ class ControlWidget(Q.QWidget):
         form.layout.addRow(hbox)
 
         hbox = Q.QHBoxLayout()
-        for k in ("E&xposure", "Get CO&R", "POI to COR", "Get Sharpness"):
+        for k in ("E&xposure", "Get CO&R", "POI to COR", "Get Sharpness", "AutoFocus"):
             name = k.replace("&","")
             btn = _reg(Q.QPushButton(k, self), name)
             btn.setStatusTip(_hints[name])
@@ -399,6 +406,7 @@ class Window(Q.QMainWindow):
         control.Input["Get COR"].clicked.connect(self.get_center_of_rotation)
         control.Input["POI to COR"].clicked.connect(self.poi_to_cor)
         control.Input["Get Sharpness"].clicked.connect(self.calc_sharpness)
+        control.Input["AutoFocus"].clicked.connect(self.autofocus)
         control.Input["Cal1"].clicked.connect(lambda: self.calibrate(1))
         control.Input["Cal2"].clicked.connect(lambda: self.calibrate(2))
         
@@ -477,7 +485,7 @@ class Window(Q.QMainWindow):
         imLeft = self.plotLeft.get_roi_data()
         imRight = self.plotRight.get_roi_data()
         
-        sa = sift.LinearAlign(imLeft, devicetype='GPU')
+        sa = sift.LinearAlign(imLeft, devicetype=devicetype)
         res = sa.align(imRight, shift_only=True, return_all=True,
                        double_check=False, relative=False, orsa=False)
         
@@ -515,7 +523,7 @@ class Window(Q.QMainWindow):
         sigma = 1.6 # default value
         t0 = time.time()
         try:
-            sa = sift.LinearAlign(imLeft, devicetype='GPU',init_sigma=sigma)
+            sa = sift.LinearAlign(imLeft, devicetype=devicetype,init_sigma=sigma)
             res = sa.align(imRight, shift_only=False, return_all=True, 
                            double_check=False, relative=False, orsa=False)
         except Exception as emsg:
@@ -569,7 +577,59 @@ class Window(Q.QMainWindow):
         imLeft = self.plotLeft.get_roi_data().astype(float)
         sharpness = image.contrast(imLeft)
         self.echo("Computed sharpness of the left image ROI: %f"%sharpness)
+    
+    def autofocus(self):
+        url = str(self.control.Input["url"].text())
+        Navg = int(self.control.Input["Navg"].text())
+        do_enhance = bool(self.control.Input["enhanced"].checkState())
         
+        roi = self.plotLeft.roi
+        if not roi is None:
+            roi = tuple(roi[1]) + tuple(roi[0])
+        if not hasattr(self, "_AutoFocus"):
+            self._AutoFocus = image.AutoFocus(url)
+
+        af = self._AutoFocus
+        af.url = url
+        af.roi = roi
+        
+        ddefaults = collections.OrderedDict()
+        ddefaults["motor"] = af.motor
+        ddefaults["lower_limit"] = af._ll
+        ddefaults["upper_limit"] = af._ul
+        ddefaults["Navg"] = Navg
+        ddefaults["contrast"] = image._models
+        ddefaults["enhance"] = do_enhance
+        #print(ddefaults)
+
+        dialog = AutoFocusDialog(self, defaults=ddefaults)
+        dialog.exec_()
+        results = dict.fromkeys(ddefaults)
+        for field in ddefaults:
+            result = dialog.Input[field]
+            if isinstance(ddefaults[field], bool):
+                result = bool(result.checkState())
+            elif isinstance(ddefaults[field], list):
+                result = str(result.currentText())
+            else:
+                result = type(ddefaults[field])(result.text())
+            results[field] = result
+
+        af.motor = results["motor"]
+        af.limits = results["lower_limit"], results["upper_limit"]
+        af.navg = results["Navg"]
+        af.stretch = results["enhance"]
+        af.contrast = results["contrast"]
+        if not dialog.result():
+            return
+        self.echo("Starting autofocus...")
+        try:
+            fit = af.focus()
+            self.echo("Done. Status: %s"%fit.message)
+            self.echo("New Position: %s=%f"%(af.motor,fit.x.item()))
+        except Exception as emsg:
+            self.echo("Error: %s"%emsg)
+
     def plot_matchpoints(self, res):
         roi = self.plotLeft.roi
         dx, dy = np.array(roi)[:,0] if roi is not None else (0,0)
@@ -624,6 +684,79 @@ class Window(Q.QMainWindow):
             sys.exit()
         else:
             pass
+
+
+class AutoFocusDialog(Q.QDialog):
+    Input = dict()
+    def __init__(self, parent=None, defaults=dict()):
+        super(AutoFocusDialog, self).__init__(parent)
+        self.resize(300,200)
+        self.defaults = defaults
+        self.home()
+
+    def home(self):
+        font = Q.QFont()
+        font.setPointSize(9)
+        self.setFont(font)
+        
+        _reg = self.registerWidget
+        layout = Q.QHBoxLayout(self)
+        self.form = form = Q.QFrame(self)
+        form.setFrameShape(Q.QFrame.StyledPanel)
+        form.layout = Q.QFormLayout(form)
+        #form.layout = Q.QGridLayout()
+
+        defaults = self.defaults
+        for i, field in enumerate(defaults):
+            #hbox = Q.QHBoxLayout()
+            val = defaults.get(field, None)
+            if isinstance(val, bool):
+                qobj = Q.QCheckBox(field, self)
+                qobj.setCheckState(val)
+            elif isinstance(val, list):
+                qobj = Q.QComboBox(self)
+                qobj.addItems(val)
+            else:
+                qobj = Q.QLineEdit(str(val))
+                for chktyp in _valid:
+                    if isinstance(val, chktyp):
+                        qobj.setValidator(_valid[chktyp])
+            qobj = _reg(qobj, field)
+            qlabel = Q.QLabel(field.capitalize())
+            form.layout.addRow(qlabel, qobj)
+        #form.layout.addRow(Q.QPushButton("Start"), Q.QPushButton("Cancel"))
+        buttonBox = Q.QDialogButtonBox(Q.QDialogButtonBox.Cancel | Q.QDialogButtonBox.Ok)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        form.layout.addRow(buttonBox)
+        layout.addWidget(form)
+        self.setLayout(layout)
+
+    def showEvent(self, event):
+        geom = self.frameGeometry()
+        geom.moveCenter(Q.QCursor.pos())
+        self.setGeometry(geom)
+        super(AutoFocusDialog, self).showEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Enter:
+            pass
+        elif event.key() == QtCore.Qt.Key_Escape:
+            self.hide()
+            event.accept()
+        else:
+            super(AutoFocusDialog, self).keyPressEvent(event)
+
+    def registerWidget(self, QtObject, name):
+        self.Input[name] = QtObject
+        if isinstance(QtObject, Q.QLineEdit):
+            #QtObject.setFixedWidth(length)
+            pass
+        else:
+            QtObject.resize(QtObject.minimumSizeHint())
+            #QtObject.resize(200)
+        return QtObject
+
 
 
 def run():

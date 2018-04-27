@@ -1,0 +1,12 @@
+import sys,os
+
+class parallel_timer(object):
+    """
+    can be used to time independent processes using filebased communicaion
+    initializ with a temp directory
+    will os.mkdir(parrallel_timer_<random_int>)
+    and create a file per process with fname = parallel_timer.newfile()
+    the independent external child process should delete the file when it is finished
+
+    the spawning process can poll paralle
+    """

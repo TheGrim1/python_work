@@ -1,0 +1,35 @@
+
+import scipy.ndimage as nd
+import numpy as np
+import fitting
+
+def focus_in_imagestack(imagestack, fit=True, verbose = False):
+    '''
+    returns the index of the image within imagestack that has the largest var() when convoluted with the laplacian -> it is most focussed
+    if fit==True: fits a gaussian to the focal metric and returns its minimum
+    '''
+
+    
+    focmetric_list = [(i,nd.laplace(image).var()) for (i,image) in enumerate(imagestack)]
+    
+    focmetric_array = np.asarray(focmetric_list)
+    # subtract background
+    
+    if verbose:
+        print('found focalmetric:')
+        print focmetric_list
+        
+    if fit:
+        focmetric_array[:,1] += -np.min(focmetric_array[:,1])
+        beta = fitting.do_gauss_fit(focmetric_array, verbose=verbose)
+        foc_index = beta[1]
+        return foc_index, beta[2] 
+    else:
+        foc_index = np.argmax(focmetric_array[:,1])
+        return foc_index
+
+
+    
+    
+
+

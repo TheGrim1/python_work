@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for thefile in *.txt ; do
+   grep -v "text to remove" $thefile > $thefile.$$.tmp
+   mv $thefile.$$.tmp $thefile
+done

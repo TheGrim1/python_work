@@ -1,6 +1,3 @@
-from builtins import str
-from builtins import chr
-from builtins import object
 import types
 import logging
 
@@ -81,7 +78,7 @@ class SpecArrayError(Exception):
 
 
 def isArrayType(datatype):
-    return type(datatype) == int and datatype >= ARRAY_MIN and datatype <= ARRAY_MAX
+    return type(datatype) == types.IntType and datatype >= ARRAY_MIN and datatype <= ARRAY_MAX
 
 
 def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
@@ -91,7 +88,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
 
     if datatype == ARRAY_STRING:
         # a list of strings
-        newArray = [_f for _f in [x != chr(0) and x or None for x in data.split(chr(0))] if _f]
+        newArray = filter(None, [x != chr(0) and x or None for x in data.split(chr(0))])
         return newArray
     else:
         newArray = None
@@ -103,7 +100,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
             # convert from a Num* array to a SpecArrayData instance
             # (when you send)
             if len(data.shape) > 2:
-                raise SpecArrayError("Spec arrays cannot have more than 2 dimensions")
+                raise SpecArrayError, "Spec arrays cannot have more than 2 dimensions"
 
             try:
                 if type(data) == numpy.ndarray:
@@ -132,7 +129,7 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
             try:
                 numtype = SPEC_TO_NUM[datatype]
             except:
-                raise SpecArrayError('Invalid Spec array type')
+                raise SpecArrayError, 'Invalid Spec array type'
             else:
                 if numpy:
                     newArray = numpy.fromstring(data, dtype=numtype)
@@ -147,12 +144,12 @@ def SpecArray(data, datatype = ARRAY_CHAR, rows = 0, cols = 0):
         if isArrayType(datatype):
             newArray = SpecArrayData(data, datatype)
         else:
-            raise SpecArrayError('Invalid Spec array type')
+            raise SpecArrayError, 'Invalid Spec array type'
 
     return newArray
 
 
-class SpecArrayData(object):
+class SpecArrayData:
     def __init__(self, data, datatype, shape):
         self.data = data
         self.type = datatype

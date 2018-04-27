@@ -1,9 +1,6 @@
 from __future__ import print_function
 from __future__ import division
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import sys, os
 import h5py
 import numpy as np
@@ -111,7 +108,7 @@ def update_command(nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
         steps = int(parsed_motor[3])
 
         
-        positions = np.arange(start,stop+old_div((stop-start),steps),old_div((stop-start),steps))
+        positions = np.arange(start,stop+((stop-start)/steps),((stop-start)/steps))
         new_nx_g.insert(nx.NXpositioner(name = motor,
                                         value= positions,
                                         unit = default_units(motor)))
@@ -122,49 +119,57 @@ def update_command(nx_g, properties = {'cmd'    :'dscan dummy 0 1 1',
     nx_g.insert(new_nx_g)
     return nx_g
 
-def update_from_ponifile(nx_g, properties = {'fname':None}):
+def update_from_ponifile(nx_g, properties = {'fname':None}, groupname=None):
     '''
     reads a .poni file into the group
     '''
     new_nx_g = nx.NXcollection(name='calibration')
     poni_fname = properties['fname']
-    new_nx_g.insert(nxparse_calibration(poni_fname))
+    groupname  = groupname   
+    new_nx_g.insert(nxparse_calibration(poni_fname, name=groupname))
     nx_g.insert(new_nx_g)
     
     return nx_g
 
-def nxparse_calibration(calib_fname):
-    nx_calib = nx.NXcollection(name = 'Eiger4M')
+def nxparse_calibration(calib_fname, name = None, verbose = False):
+    if name == None:
+        nx_calib = nx.NXcollection(name = 'Eiger4M')
+    else:
+        nx_calib = nx.NXcollection(name = name)
 
     if calib_fname == None:
         calib_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/al2o3_calib1_max.poni'
         print('WARNING: using default dummy file:')
-
-    print('reading calib file')
-    print(calib_fname + '\n')
+        
+    if verbose:
+        print('reading calib file')
+        print(calib_fname + '\n')
 
     nx_calib.attrs['ponifile_original_path'] = calib_fname
     nx_calib.attrs['ponifile_relative_path'] = os.path.relpath(calib_fname)
     
     calib_f = open(calib_fname, 'r')
     calib_lines = calib_f.readlines()
+    
+    for current_line in calib_lines[::-1][0:9]:
 
-    for i in range(9):
-        current_line = calib_lines[::-1][i]
         name         = current_line.split(':')[0].lstrip().rstrip()
-        value        = float(current_line.split(':')[1].lstrip().rstrip())
-        units        = default_units(name)
+        try:
+            value        = float(current_line.split(':')[1].lstrip().rstrip())
+            units        = default_units(name)
         
-        nx_calib.insert(nx.NXfield(name=name,
-                                   value=value,
-                                   units=units))
+            nx_calib.insert(nx.NXfield(name=name,
+                                       value=value,
+                                       units=units))
+        except ValueError:
+            pass
 
     i = 8
     found = False
     while not found:
         i+=1
         current_line  = calib_lines[::-1][i]
-        foundlocation = current_line.find('Calibration done at')
+        foundlocation = current_line.find(' at ')
         if foundlocation > 0:
             found = True
             date_str  = current_line[current_line.find('at ')+3::].rstrip()
@@ -204,7 +209,7 @@ def update_initial_spec(nx_g, properties = {'fname':None}):
         scan_no =  properties['spec_scan_no_next']
     else:
         sfh5        = SpecH5(spec_fname)
-        scan_list   = list(sfh5.keys())
+        scan_list   = sfh5.keys()
         scan_no_list = [int(x.split('.')[0]) for x in scan_list]
         scan_no_list.sort()
         last_scan_no =  scan_no_list[-1]
@@ -218,8 +223,91 @@ def update_initial_spec(nx_g, properties = {'fname':None}):
     # getting all counters: sfh5['13.1/measurement'].keys()
 
     nx_g.insert(new_nx_g)
-    return nx_g
     
+    return nx_g
+
+def update_final_spec(nx_g, properties = {'fname':None, 'scanno':None}, verbose = False):
+    '''
+    reads a specfile and finds the scanno
+    adds defined counters into respective groups in nx_g
+    '''
+    
+    new_nx_g = nx.NXcollection(name='spec')
+    spec_fname = properties['fname']
+    scanno = properties['scanno']
+    scan_group = '{}.1'.format(scanno)
+
+    
+    if spec_fname == None:
+        spec_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup.dat'
+        print('WARNING: using default dummy file:')
+
+    if verbose:
+        print('reading file:')
+        print(spec_fname)
+        print('scan number {}\n'.format(scanno))
+
+    specfile_open = False
+    while not specfile_open:
+        try:
+            sfh5 = SpecH5(spec_fname)
+            specfile_open = True
+        except ValueError as msg:
+            print('*'*25)
+            print(msg)
+            print('Got ValueError opening specfile, retrying')
+            print('*'*25)
+            
+    # sfh5 = SpecH5(spec_fname)
+    scan_list   = list(sfh5.keys())
+
+    if scan_group not in scan_list:
+        print(scan_list)
+        raise ValueError('Scan number {} not found in scan list printed above'.format(scan_group))
+
+    new_nx_g.attrs['specfile_original_path'] = spec_fname
+    new_nx_g.attrs['specfile_relative_path'] = os.path.relpath(spec_fname)
+
+    new_nx_g.insert(nx.NXfield(name = 'spec_scanno', value = scanno))
+
+    # sloshing over all counters and positioners
+
+    meas_group = scan_group+'/measurement'
+    nx_measurement = nx.NXcollection(name='measurement')
+    counter_list = sfh5[meas_group].keys()    
+    for counter in counter_list:
+        counter_group = meas_group+'/'+counter 
+        nx_measurement.insert(nx.NXfield(name = counter, value = sfh5[counter_group].value))
+
+    nx_g.insert(nx_measurement)    
+
+    if verbose:
+        print('updating with counters:')
+        print(counter_list)
+
+    pos_group = scan_group+'/instrument/positioners'
+    nx_positioners = nx.NXcollection(name='positioners')
+    positioner_list = sfh5[pos_group].keys()  
+    for positioner in positioner_list:
+        positioner_group = pos_group+'/'+positioner 
+        nx_positioners.insert(nx.NXfield(name = positioner, value = sfh5[positioner_group].value))
+
+    if verbose:
+        print('updating with positioners:')
+        print(positioner_list)
+
+    nx_g.insert(nx_positioners)
+
+    new_nx_g.insert(nx.NXfield(name='start_time', value = sfh5[scan_group]['start_time']))
+    new_nx_g.insert(nx.NXfield(name='title', value = sfh5[scan_group]['title']))
+
+    nx_g.insert(new_nx_g)
+
+    sfh5.close()
+
+        
+    return nx_g
+
 def update_motors_from_doolog(nx_g, properties = {'fname':None}, verbose=False):
     '''
     specific solution for the ID13 microbranch currently working on a default doolog file
@@ -333,7 +421,6 @@ def update_from_xiasettings(nx_g, properties = {'fname':None},  verbose = False)
     new_nx_g.attrs['xia_data_prefix'] = xiaprefix
     new_nx_g.attrs['xia_data_next_scannumber'] = xiano
     
-
     print('writing hard coded default XRF attenuators, including air attenuation!')
     
     nx_attenuators = new_nx_g['attenuators'] = nx.NXcollection()
@@ -381,6 +468,9 @@ def update_from_xiasettings(nx_g, properties = {'fname':None},  verbose = False)
 def update_from_eiger_master(nx_g, properties = {'fname':None}, verbose = False):
     '''
     specific solution for eiger master files, get default values from ['entry/instrument/detector'] and data from entry/data/data
+    something sometimes goes wrong with the h5 file containing nx_g after adding the hard links.
+    RuntimeError: Unable to create link (can't locate ID)
+    No idea why, but closing and reopening the file fixes the issue.
     '''
 
     ### open the eiger master file:
@@ -392,6 +482,12 @@ def update_from_eiger_master(nx_g, properties = {'fname':None}, verbose = False)
         print('WARNING: using default master filename')
         master_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup1_8_master.h5'
 
+    if os.path.exists(master_fname):
+        if verbose:
+            print('found master file at ' + master_fname)
+    else:
+        raise ValueError('master file not found at ' + master_fname)
+        
     nx_eiger = nx.nxload(master_fname, 'r')
     nx_eigersource= nx_eiger['entry/instrument/detector']
 
@@ -438,9 +534,9 @@ def update_from_eiger_master(nx_g, properties = {'fname':None}, verbose = False)
 
     ### nexusformat external links:
     local_nxpath     = new_nx_g.nxname + '/data'
-    external_nxpath  = 'entry/data/'
+    external_nxpath  = '/entry/data/'
     # print local_nxpath
-    nx_g[local_nxpath] = nx.NXlink(external_nxpath, file = rel_master_fname)
+    nx_g[local_nxpath] = nx.NXlink(external_nxpath, file = master_fname)
     nx_g[local_nxpath].attrs['sigal'] = 'data'
     
     # ## this seems dangrous to me, opening the file again:
@@ -453,7 +549,66 @@ def update_from_eiger_master(nx_g, properties = {'fname':None}, verbose = False)
     
     return nx_g
 
+def update_from_id01_master(nx_g, properties = {'fname':None}, verbose = False):
+    '''
+    specific solution for master files created from id01 edf files with edf_to_master, get default values from ['entry/instrument/detector'] and data from entry/data/data
+    something sometimes goes wrong with the h5 file containing nx_g after adding the hard links.
+    '''
+
+    ### open the eiger master file:
     
+    new_nx_g = nx.NXdetector(name='maxipix')
+    master_fname = properties['fname']
+    if master_fname == None:
+        print('WARNING: using default master filename')
+        master_fname = '/data/id13/inhouse6/COMMON_DEVELOP/py_andreas/nexustest_aj/files/setup1_8_master.h5'
+
+    if os.path.exists(master_fname):
+        if verbose:
+            print('found master file at ' + master_fname)
+    else:
+        raise ValueError('master file not found at ' + master_fname)
+        
+    nx_eiger = nx.nxload(master_fname, 'r')
+    nx_eigersource= nx_eiger['entry/instrument/detector']
+
+    ### get the Eigers properties
+    
+    list_to_get = ['description',
+                   'x_pixel_size',
+                   'y_pixel_size']
+
+    if verbose:
+        print('updating group %s from file %s with:' % (nx_g.nxpath, master_fname))
+        print(list_to_get)
+        
+    for ds in list_to_get:
+        new_nx_g.insert(nx_eigersource[ds])
+
+    
+    new_nx_g.attrs['maxipix_master_original_path'] = master_fname
+    rel_master_fname = os.path.relpath(master_fname)
+    new_nx_g.attrs['maxipix_master_relative_path'] = rel_master_fname
+    
+    nx_eiger.close()
+
+    ### link the actual data:
+
+#    print 'nx_g.nxroot: %s'%nx_g.nxroot.nxfilename
+    
+    nx_g.insert(new_nx_g)
+
+    ### nexusformat external links:
+    local_nxpath     = new_nx_g.nxname + '/data'
+    external_nxpath  = '/entry/data/'
+    # print local_nxpath
+    nx_g[local_nxpath] = nx.NXlink(external_nxpath, file = master_fname)
+    nx_g[local_nxpath].attrs['sigal'] = 'data'
+    
+    return nx_g
+
+
+
 def insert_dataset(nx_g,
                    data = np.random.randint(5,10,7),
                    **kwargs):

@@ -1,0 +1,97 @@
+import h5py
+import numpy as np
+import sys, os
+import datetime
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+
+from simplecalc.slicing import troi_to_corners
+
+def find_my_h5_files(masterfolder):
+
+    folder_list = [masterfolder+os.path.sep+x for x in os.listdir(masterfolder)]
+    my_h5_fname_list=[]
+    
+    for folder in folder_list:
+        for fname in os.listdir(folder):
+            if fname.find('integrated.h5')>0:
+                my_h5_fname_list.append(folder+os.path.sep+fname)
+    
+    return my_h5_fname_list
+
+def init_xyzth_merged_h5(h5_f):
+
+    h5_f.attrs['file_name']        = h5_f.filename
+    h5_f.attrs['creator']          = os.path.basename(__file__)
+    h5_f.attrs['HDF5_Version']     = h5py.version.hdf5_version
+    h5_f.attrs['NX_class']         = 'NXroot'
+    h5_f.create_group('entry')
+    h5_f['entry'].attrs['NX_class'] = 'NXentry'
+    h5_f.attrs['file_time']  = "T".join(str(datetime.datetime.now()).split())
+    h5_f['entry'].create_group('xzyth_merged')
+    h5_f['entry/xyzth_merged'].attrs['NX_class'] = 'NXcollection'
+    h5_f.flush()
+
+def process_integrated_dataset(args):
+    pass
+
+def do_merge(masterfolder='', vebose=False):
+
+    my_h5_fname_list = find_my_h5_files(masterfolder)
+    no_processes = 5
+    savedir = os.path.sep.join([masterfolder,'xyzth_merged'])
+    master_fname = os.path.sep.join([savedir,'xyzth_merged.h5'])
+
+    
+    qx_size = 100
+    qy_size = 100
+    qz_size = 100
+    
+    if not os.path.exists(savedir):
+        os.mkdir(savedir)
+        print("making directory %s" % savedir)
+    
+    if not os.path.exists(master_fname):
+        os.remove(master_fname)
+        print('removing {}'.format(master_fname))
+        
+
+    q_dataset = np.zeros(shape=(qx_size, qy_size, qz_size) , dtype= np.float32)
+
+    # each process works through a set of frameno's, opens all hdf5 files
+    # and fills the respective xyzth array we prepare next!
+    
+    with h5py.File(my_h5_fname_list[0]) as h5_source:
+        troiname_list = h5_source['entry/integrated'].keys()
+        todolist = []
+        with h5py.File(master_fname) as h5_dest:
+
+            init_xyzth_merged_h5(h5_dest)
+            h5_dest_group = h5_dest['entry/Qxzy_merged']
+            
+            for troiname in troiname_list:
+                troigroup = h5_dest_group.create_group(troiname)
+                troigroup.attrs['NXclass']='NXprocess'
+                dest_grouppath = 'entry/Qxzy_merged/'.format(troiname)
+                source_grouppath = 'entry/integrated/{}/tth_2D/data'.format(troiname)
+                datashape = h5_source[source_grouppath].shape
+                datatype =  h5_source[source_grouppath].dtype
+                tth_troi = h5_source['integrated/{}/axes/tthtroi'.format(troiname)]
+                eta = h5_source['integrated/{}/eta'.format(troiname)]
+                wavelength = h5_source['integrated/{}/calibration/{}/Wavelength'.format(troiname,troiname)]
+                tth_corners_list = troi_to_corners(tth_troi)
+                Qxzy_corners = []
+                for tth,chi in tth_corners_list:
+                    Qxzy_corners.append(get_Qxzy(tth,chi,eta,wavelength))
+                
+                # middle of xyzth:
+                # range in Qx,Qy,Qz:
+                # setup data in h5_dest:
+                # pickle and run
+                
+
+            
+        
+if __name__ == "__main__":
+    masterfolder = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_xzth/'
+    do_merge(masterfolder=masterfolder)

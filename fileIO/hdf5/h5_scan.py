@@ -1,7 +1,5 @@
 from __future__ import print_function
 # global imports
-from builtins import range
-from builtins import object
 import h5py
 import sys, os
 import matplotlib.pyplot as plt
@@ -10,6 +8,8 @@ import json
 import ast
 import time
 import pyFAI
+from xrayutils import lam2en as lam2en
+import nexusformat.nexus as nx
 
 # local imports
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
@@ -74,11 +74,11 @@ class h5_scan(object):
         '''
         return self.data['meta'][key]
 
-    def data(self, key):
+    def data(self):
         '''
         return the value in data['key']
         '''
-        return self.data['spec'][key]
+        return self.data['spec']
 
     def spec(self,key):
         '''
@@ -152,9 +152,9 @@ class h5_scan(object):
         
 
     
-    def integrate_self(self, verbose = False, npt_rad = None, npt_azim = None, unit = 'q_nm^-1'):
+    def integrate_self(self, verbose = False, npt_rad = None, npt_azim = None):
         print('\nINTEGRATING, verbose = %s\n' % verbose)
-        
+
         self.create_poni_for_troi()
         
         ai = pyFAI.AzimuthalIntegrator()
@@ -179,20 +179,36 @@ class h5_scan(object):
 
             i_over_q[0,:,frame], i_over_q[1,:,frame] = ai.integrate1d(data = data, mask = mask, npt = npt_rad , unit=unit)
 
-            roi_q[:,:,frame],qrange,azimrange  = ai.integrate2d(data = data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit=unit)
+            roi_q[:,:,frame],qrange,azimqrange  = ai.integrate2d(data = data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='q_nm^-1')
 
+            roi_2th[:,:,frame],2thrange,azim2thrange  = ai.integrate2d(data = data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='2th_deg')
 
+        wavelength = ai.get_wavelength()
+        energy =  lam2en(wavelength*1e-10)/1000
         qtroi                 = xy_to_troi(min(azimrange),max(azimrange),min(qrange),max(qrange))
+
         if verbose:
-            print('q-unit = %s, qtroi = '%unit)
+            print('q-unit = %s, qtroi = '%'q_nm^-1')
             print(qtroi)
             print('qrange    = from %s to %s'% (max(qrange),min(qrange)))
             print('azimrange = from %s to %s'% (max(azimrange),min(azimrange)))
+            print('2Theta range = from %s to %s' %(max(2thrange),min(2thrange)))
 
         self.update_meta('qtroi',qtroi)
-        self.update_meta('qunit',unit)
-        self.data['i_over_q'] = i_over_q
-        self.data['roi_q']    = roi_q
+        self.update_meta('qunit','q_nm^-1')
+        self.data.insert(nx.NXfield(name = 'I_radial', value = i_over_q[0:,:]))
+        self.data.insert(nx.NXfield(name = 'q_radial', value = i_over_q[1:,:],units='q_nm^-1'))
+
+        self.data.insert(nx.NXfield(name = 'frame_no', np.asarray(range(datashape[2]))))
+        
+        self.data.insert(nx.NXfield(name = 'roi_q', value = roi_q))
+        self.data.insert(nx.NXfield(name = 'qrange', value = qrange,units='q_nm^-1'))
+        self.data.insert(nx.NXfield(name = 'azimqrange', value = azimqrange,units='q_nm^-1'))
+        
+        
+        self.data.insert(nx.NXfield(name = 'roi_2th', value = roi_2th))
+        self.data.insert(nx.NXfield(name = '2thrange', value = qrange,units='2th_deg'))
+        self.data.insert(nx.NXfield(name = 'azim2thrange', value = qrange,units='2th_deg'))
 
 # file IO ----------------------------------------
 

@@ -1,8 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from builtins import str
-from builtins import range
-from past.utils import old_div
+
 import sys, os
 import numpy as np
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
@@ -35,7 +33,7 @@ def combine_datasets(datadict):
             xlen = max(dataset.shape[0],xlen)
 
     dataheader.insert(0,'common x')
-    xaxis = np.atleast_1d(np.arange(xmin,xmax, old_div((float(xmax-xmin)),(2*xlen))))
+    xaxis = np.atleast_1d(np.arange(xmin,xmax, ((float(xmax-xmin))/(2*xlen))))
     fulldata = np.zeros(shape = (len(xaxis), len(dataheader)))
 #    print xaxis.shape
 #    print fulldata.shape
@@ -128,7 +126,7 @@ def normalize_xanes(data, e0, preedge, postedge, fitorder = 1, edgemode = 'fit',
             print('anormal normalization function, not normalizing')
 
     if not postdatafail:
-        normdata[:,1] = old_div(normdata[:,1], diff)
+        normdata[:,1] = normdata[:,1]/ diff
     else:
         normdata[:,1] = normdata[:,1]
 
@@ -207,7 +205,7 @@ def normalize_self(data):
     '''
 
     data = data - np.min(data)
-    data = old_div(data, np.max(data))
+    data = data/ np.max(data)
     return data
 
 def find_value(fun1, y, x0):
@@ -224,7 +222,7 @@ def find_intersection(fun1, fun2, x0):
 
 def avg_array(basedata,newdata,n):
     
-    basedata += old_div(newdata, n)
+    basedata += newdata/ n
     
     return basedata
 
@@ -242,7 +240,7 @@ def get_fwhm(data):
     else:
         print('invalid data shape!')
 
-    half_max = old_div(np.max(Y), 2.)
+    half_max = np.max(Y)/ 2.
     #find when function crosses line half_max (when sign of diff flips)
     #take the 'derivative' of signum(half_max - Y[])
     d = np.sign(half_max - np.array(Y[0:-1])) - np.sign(half_max - np.array(Y[1:]))
@@ -272,9 +270,9 @@ def add_peaks(peak1, peak2):
     
     a3   = a1+a2
     
-    mu3  = old_div((a1*mu1 + a2*mu2),(a3))
+    mu3  = (a1*mu1 + a2*mu2)/(a3)
 
-    sig3 = old_div(((a1*sig1**2 + a2*sig2**2) + (a1*mu1**2 + a2*mu2**2)),(a3)) - (old_div((a1*mu1+a2*mu2),a3))**2 
+    sig3 = (((a1*sig1**2 + a2*sig2**2) + (a1*mu1**2 + a2*mu2**2))/(a3)) - (((a1*mu1+a2*mu2)/a3))**2 
 
     peak3 = [a3,mu3,sig3]
     return peak3
@@ -289,7 +287,7 @@ def subtract_c_bkg(data, percentile = 20):
     return data
     
 
-def define_a_line_as_mask(exampledatashape, inclination=old_div(-82.0,54), yintersect=100, width=4, verbose=False):
+def define_a_line_as_mask(exampledatashape, inclination=(-82.0/54), yintersect=100, width=4, verbose=False):
     '''
     not really on funbctional level, but worked once like this:
     '''
@@ -314,7 +312,7 @@ def line_maskfunc(x, y, inclination, yintersect, width):
     '''
     m = inclination
     c = yintersect
-    if old_div(np.abs(-m*x + y -c),np.sqrt(m**2 +1)) <= 2:
+    if (np.abs(-m*x + y -c)/np.sqrt(m**2 +1)) <= 2:
         nearwire = True
     else:
         nearwire = False
@@ -348,3 +346,5 @@ def circle_maskfunc(x, y, cy, cx, radius):
         return True
     else:
         return False
+
+    

@@ -2,9 +2,6 @@ from __future__ import print_function
 from __future__ import division
 from future import standard_library
 standard_library.install_aliases()
-from builtins import range
-from past.utils import old_div
-from builtins import object
 import os
 import sys
 import subprocess
@@ -309,7 +306,7 @@ def foldersize(path):
 #   print "%s-%s-%s" %(Y,m,d)
 
     a2=a[2].split(":") 
-    h    = int(a2[0]) - old_div(int(a[3]),100)
+    h    = int(a2[0]) - int(int(a[3])/100)
     if h < 0:
         h += 24
         d -= 1

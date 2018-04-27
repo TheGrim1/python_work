@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+#  interactive draw an ROI of choice and update SPEC limaroi
+# refurbish pscan_align for nano3
+#raise Exception("Needs Testing...!")
+# built-in:
+import os
+import sys
+import time
+
+
+
+# community:
+import numpy as np
+import matplotlib.pyplot as pl
+
+try:
+    #raise #tests
+    from id01lib import PScanTracker, SpecClientWrapper
+except:
+    print("trying local import.")
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+    from id01lib import PScanTracker, SpecClientWrapper
+
+
+
+specname = "nano3:psic_nano"
+
+specsession = SpecClientWrapper.SpecClientSession(specname=specname, verbose=False)
+roi_list, device = specsession.find_roi_list()
+special = ["symmetric", "vertical", "horizontal"] # for the cross hair
+
+if not len(sys.argv)>=2:
+    print("ERROR: no roi defined")
+    print(".. USAGE: lima_pickroi <roiname> ..")
+    sys.exit()
+
+user_roi = sys.argv[1]
+
+if sys.argv[1] not in roi_list and user_roi not in special:
+    print(".. %s currently selected .."%user_roi)
+    print(".. This ROI is not available for this detector, "
+          "see list above ..")
+    print(".. USAGE: lima_pickroi <roiname> ..")
+    print(".. USAGE: lima_pickroi [%s] [value].."%("|".join(special)))
+    sys.exit()
+
+
+
+data = specsession.get_last_image(device)
+
+
+if user_roi in ["horizontal", "vertical"]:
+    if user_roi == "horizontal":
+        dim = 1
+    else:
+        dim = 0
+
+    try:
+        num = int(sys.argv[2])
+    except:
+        num = 5
+
+    pos = np.linspace(0, data.shape[dim]-1, num+1)
+    coords = np.zeros((num, 4))
+    coords[:,2*(1-dim)]   = pos[:-1]
+    coords[:,2*(1-dim)+1] = pos[1:]
+
+    for j, roi in enumerate(coords):
+        cmd = 'limaroiadd roi%i 0 %i %i %i %i'%((device,j+1) + tuple(roi))
+        print("--> %s"%cmd)
+        specsession.send_sc(cmd)
+
+else: # start interactive picking
+    fig = pl.figure()
+    ax = fig.add_subplot(111)
+    #norm=self._norm(data[self.ind]))
+    ax.imshow(data, interpolation="nearest", origin="upper")
+    #annotate = PScanTracker.Annotate(ax, specsession, exit_onclick=False,
+    #                                 rectangle_onclick=True)
+    annotate = PScanTracker.GenericIndexTracker(ax,
+                                                norm="log",
+                                                exit_onclick=False,
+                                                rectangle_onclick=True)
+    pl.show()
+
+    if annotate.y0==annotate.y1 or  annotate.x0==annotate.x1:
+      print "..WARNING: two positions were the same"
+      sys.exit()
+
+    xpos = np.sort([annotate.x0, annotate.x1])
+    ypos = np.sort([annotate.y0, annotate.y1])
+
+    Xmin, Xmax = xpos.round().astype(int)
+    Ymin, Ymax = ypos.round().astype(int)
+
+
+    if user_roi in roi_list:
+        cmd = 'limaroiadd %s %s 0 %i %i %i %i'%(device,user_roi, Xmin, Xmax, Ymin, Ymax)
+        print("--> %s"%cmd)
+        specsession.send_sc(cmd)
+
+    elif user_roi == 'symmetric':
+        try:
+            distance = int(sys.argv[2])
+        except:
+            distance = 100
+
+
+        coords = np.array([
+                    [Xmin, Xmax, Ymin, Ymax],
+                    [Xmin - distance, Xmin, Ymin, Ymax],
+                    [Xmax, Xmax + distance, Ymin, Ymax],
+                    [Xmin, Xmax, Ymin - distance, Ymin],
+                    [Xmin, Xmax, Ymax, Ymax + distance]
+                 ])
+        coords[:,[0,1]] = np.clip(coords[:,[0,1]], 0, data.shape[1]-1)
+        coords[:,[2,3]] = np.clip(coords[:,[2,3]], 0, data.shape[0]-1)
+
+
+        #make all of the other ROIs
+        for j, roi in enumerate(coords):
+            cmd = 'limaroiadd %s roi%i 0 %i %i %i %i'%((device,j+1) + tuple(roi))
+            print("--> %s"%cmd)
+            specsession.send_sc(cmd)
+
+print(os.linesep)
+print(os.linesep)

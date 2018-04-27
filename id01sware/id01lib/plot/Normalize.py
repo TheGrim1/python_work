@@ -1,7 +1,5 @@
-from __future__ import division
 # The Normalize class is largely based on code provided by Sarah Graves.
 
-from past.utils import old_div
 import numpy as np
 import numpy.ma as ma
 
@@ -59,20 +57,20 @@ class Normalize(_Normalize):
         if np.equal(vmid, None):
             if stretch == 'log':
                 if vmin > 0:
-                    self.midpoint = old_div(vmax, vmin)
+                    self.midpoint = vmax / vmin
                 else:
                     raise Exception("When using a log stretch, if vmin < 0, then vmid has to be specified")
             elif stretch == 'arcsinh':
-                self.midpoint = old_div(-1., 30.)
+                self.midpoint = -1. / 30.
             else:
                 self.midpoint = None
         else:
             if stretch == 'log':
                 if vmin < vmid:
                     raise Exception("When using a log stretch, vmin should be larger than vmid")
-                self.midpoint = old_div((vmax - vmid), (vmin - vmid))
+                self.midpoint = (vmax - vmid) / (vmin - vmid)
             elif stretch == 'arcsinh':
-                self.midpoint = old_div((vmid - vmin), (vmax - vmin))
+                self.midpoint = (vmid - vmin) / (vmax - vmin)
             else:
                 self.midpoint = None
 
@@ -106,7 +104,7 @@ class Normalize(_Normalize):
                 mask = ma.getmask(val)
                 val = ma.array(np.clip(val.filled(vmax), vmin, vmax),
                                 mask=mask)
-            result = (val - vmin) * (old_div(1.0, (vmax - vmin)))
+            result = (val - vmin) * (1.0 / (vmax - vmin))
 
             # CUSTOM APLPY CODE
 
@@ -119,7 +117,8 @@ class Normalize(_Normalize):
 
             elif self.stretch == 'log':
 
-                result = old_div(ma.log10(result * (self.midpoint - 1.) + 1.), ma.log10(self.midpoint))
+                result = ma.log10(result * (self.midpoint - 1.) + 1.) \
+                       / ma.log10(self.midpoint)
 
             elif self.stretch == 'sqrt':
 
@@ -127,7 +126,8 @@ class Normalize(_Normalize):
 
             elif self.stretch == 'arcsinh':
 
-                result = old_div(ma.arcsinh(old_div(result, self.midpoint)), ma.arcsinh(old_div(1., self.midpoint)))
+                result = ma.arcsinh(result / self.midpoint) \
+                       / ma.arcsinh(1. / self.midpoint)
 
             elif self.stretch == 'power':
 
@@ -169,7 +169,7 @@ class Normalize(_Normalize):
 
         elif self.stretch == 'log':
 
-            val = old_div((ma.power(10., val * ma.log10(self.midpoint)) - 1.), (self.midpoint - 1.))
+            val = (ma.power(10., val * ma.log10(self.midpoint)) - 1.) / (self.midpoint - 1.)
 
         elif self.stretch == 'sqrt':
 
@@ -178,11 +178,11 @@ class Normalize(_Normalize):
         elif self.stretch == 'arcsinh':
 
             val = self.midpoint * \
-                  ma.sinh(val * ma.arcsinh(old_div(1., self.midpoint)))
+                  ma.sinh(val * ma.arcsinh(1. / self.midpoint))
 
         elif self.stretch == 'power':
 
-            val = ma.power(val, (old_div(1., self.exponent)))
+            val = ma.power(val, (1. / self.exponent))
 
         else:
 

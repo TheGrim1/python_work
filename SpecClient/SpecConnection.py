@@ -9,10 +9,7 @@ SpecClientNotConnectedError -- exception class
 SpecConnection
 SpecConnectionDispatcher
 """
-from __future__ import absolute_import
 
-from builtins import str
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -25,10 +22,10 @@ import string
 import logging
 import time
 from .SpecClientError import SpecClientNotConnectedError
-from . import SpecEventsDispatcher
-from . import SpecChannel
-from . import SpecMessage
-from . import SpecReply
+import SpecEventsDispatcher
+import SpecChannel
+import SpecMessage
+import SpecReply
 import traceback
 import sys
 
@@ -163,7 +160,7 @@ def connectionHandler(connection_ref, socket_to_spec):
    #process_channels_greenlet.kill()
    
 
-class SpecConnection(object):
+class SpecConnection:
     """SpecConnection class
 
     Signals:

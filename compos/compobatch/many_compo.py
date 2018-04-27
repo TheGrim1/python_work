@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from builtins import range
 import sys,os, ast
 # for Manfreds functions, doesn seem to work... have to setd20 before runnning
 # sys.path.append('/users/opid13/.muc_local/.MCB_DVP/PYTHON_LOCAL_INSTALL_20')

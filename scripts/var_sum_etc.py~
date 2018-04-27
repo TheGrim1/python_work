@@ -1,0 +1,46 @@
+
+
+
+def main():
+
+    data1_fname='/hz/data/id13/inhouse7/THEDATA_I7_1/d_2017-05-20_inh_ihls2807_jc/DATA/AUTO-TRANSFER/eiger1/boaz_al2o3_calib_172_data_000001.h5'
+
+    data2_fname='/hz/data/id13/inhouse7/THEDATA_I7_1/d_2017-05-20_inh_ihls2807_jc/DATA/AUTO-TRANSFER/eiger1/boaz_al2o3_calib_172_data_000002.h5'
+    data1=np.asarray(h5_f['entry/data/data'])
+
+    with h5py.File(data1_fname) as hf_5:
+        data1=np.asarray(h5_f['entry/data/data'])
+
+    with h5py.File(data2_fname) as hf_5:
+        data2=np.asarray(h5_f['entry/data/data'])
+
+    data1_sum = data1.sum(0)
+    mask=np.where(data1_sum>50000,1,0)
+    data1=np.where(mask,0,data1)
+    
+        
+data2=np.where(mask,0,data2)
+data1_sum=data1.sum(0)
+data2_sum=data2.sum(0)
+data1_max=data1.max(0)
+data2_max=data2.max()
+data2_max=data2.max(0)
+data1_avg=data1_sum/2000.0
+data2_avg=data2_sum/2000.0
+dadata_avg=data1_avg+data2_avg
+data_avg*=0.5
+data_max=np.where(data1_max>data2_max,data1_max,data2_max)
+data_avg=data1_avg+data2_avg
+probs=[(np.where(data==i,1,0).sum(0)+np.where(data==i,1,0).sum(0)) for i in range(5)]
+var=1/4000
+.0*((data1-data_avg)**2+(data2-data_avg)**2)
+((data1-data_avg)**2).sum(0)
+var1=((data1-data_avg)**2).sum(0)
+var2=((data2-data_avg)**2).sum(0)
+var=(var1+var2)/4000.0
+sx.imshow(var)
+
+    
+
+if __name__=='__main__':
+    main()

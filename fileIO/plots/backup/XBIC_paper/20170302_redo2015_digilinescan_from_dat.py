@@ -1,5 +1,4 @@
 from __future__ import division
-from builtins import range
 from past.utils import old_div
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 30})

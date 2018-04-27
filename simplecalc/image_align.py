@@ -1,14 +1,14 @@
 from __future__ import print_function
 from __future__ import division
-from builtins import range
-from past.utils import old_div
+
 import numpy as np
 import scipy.ndimage as nd
 #from silx.image import sift
 import timeit
+import time
 import sys, os
 import matplotlib.pyplot as plt
-import multiprocessing
+from multiprocessing import Pool, cpu_count
 
 # local imports
 path_list = os.path.dirname(__file__).split(os.path.sep)
@@ -25,7 +25,16 @@ from simplecalc.slicing import troi_to_slice
 from simplecalc.gauss_fitting import fit_2d_gauss
 from simplecalc.rotated_series import rotate_series
 from simplecalc.gauss_fitting import do_multi_gauss_fit
+from userIO.GenericIndexTracker import run_GenericIndexTracker
+from fileIO.datafiles import open_data
 
+def do_shift(imagestack, shift):
+    shift = list(shift)
+    for i in range(imagestack.shape[0]):
+        ishift = shift[i]
+        nd.shift(imagestack[i],ishift, output = imagestack[i])    
+    return imagestack
+    
 
 def centerofmass_align(imagestack, alignment= None):
     '''
@@ -56,6 +65,40 @@ def centerofmass_align(imagestack, alignment= None):
 
 
 
+def userclick_align(imagestack, norm='linear', coordinates_fname=None):
+    '''
+    prompts user input for each frame aligning them to the first frame and selected pixel
+    '''
+
+
+
+    # if coordinates_fname==None:
+    #     coordinates_fname = os.getcwd() + os.path.sep + "image_align_coordinates_{}.dat".format(int(time.time()))
+    # else:
+    #     if not os.path.exists(os.path.dirname(coordinates_fname)):
+    #         raise ValueError('path doe not exist accessible {}'.format(os.path.dirname(coordinates_fname)))
+    #     elif os.path.exists(coordinates_fname):
+    #         print('deleting previous coordinate file {}'.format(coordinates_file))
+    #         os.remove(coordinates_fname)
+                              
+    arg_list = [[imagestack, norm, coordinates_fname]]
+
+    coords = run_GenericIndexTracker(arg_list[0])
+
+    shift = np.asarray([[[coords[0,1] - x[1],coords[0,0]-x[0]] for x in coords]][0])
+
+    print(coords)
+    print(shift)
+    
+    for i in range(imagestack.shape[0]):
+        ishift = shift[i]
+        # print(ishift)
+        nd.shift(imagestack[i],ishift, output = imagestack[i])
+        
+    shift=np.asarray(shift)
+
+    return imagestack, shift
+
 
 def crosscorrelation_align_1d(imagestack, axis = 1):
     ''' 
@@ -81,7 +124,8 @@ def crosscorrelation_align_1d(imagestack, axis = 1):
 
 def crosscorrelation_align(imagestack):
     '''forms the cross correlation of all images with imagestack[0,:,:]
-    and shifts them to to the maximum memory intense use small ROIs!
+    and shifts them to to the maximum
+    memory intense use small ROIs!
     '''
     shift=[]
     reference = np.copy(imagestack[0])
@@ -106,10 +150,10 @@ the image!'''
     shift = []
 
 #    setup the potential to force the alignment in a certain direction
-    maxforce = old_div(imagestack[0,:,:].max(),10.0)
-    minforce = old_div(imagestack[0,:,:].min(),10.0) 
-    xstepforce = old_div((maxforce + minforce), len(imagestack[0,:,0]))
-    ystepforce = old_div((maxforce + minforce), len(imagestack[0,0,:]))
+    maxforce = imagestack[0,:,:].max()/10.0
+    minforce = imagestack[0,:,:].min()/10.0
+    xstepforce = (maxforce + minforce)/ len(imagestack[0,:,0])
+    ystepforce = (maxforce + minforce)/ len(imagestack[0,0,:])
 
     print('alignment = ')
     print(alignment)
@@ -167,15 +211,18 @@ def single_correlation_align_1d(reference, image, axis = 1):
     shifts image to the maximum
     returns (image, shift)
     '''
-    print('cpu_count() = %d\n' % multiprocessing.cpu_count())
+
+
+    PROCESSES = cpu_count()
+    print('cpu_count() = %d\n' % PROCESSES)
 
     #
     # Create pool
     #
 
-    PROCESSES = multiprocessing.cpu_count()
+
     print('Creating pool with %d processes\n' % PROCESSES)
-    pool = multiprocessing.Pool(PROCESSES)
+    pool = Pool(PROCESSES)
 
     shift       = np.zeros(reference.ndim)
     shift[axis] = 1.0
@@ -219,7 +266,7 @@ def single_correlation_align(reference, image):
 
     # print 'before refinement: ' , maxcorrelation 
     area           = np.array((10,10))
-    peak_troi      = (np.array(maxcorrelation) - old_div(area,2), area)
+    peak_troi      = (np.array(maxcorrelation) - int(area/2.0), area)
 
 
     fitting_region = np.array(correlation[troi_to_slice(peak_troi)])
@@ -369,7 +416,12 @@ def real_from_rel(frame,data,shift = [1,1]):
     return frames[frame]
 
 def image_align(imagestack, mode = {'mode':'sift'}):
-    'returns the imagestack array stack aligned to the r = reference = imagestack[:,:,0] in it. The relative shift ist areturned as a list of touples (r[0]-a[0],r[1]-a[1])'
+    '''
+    returns the imagestack array stack aligned to the r = reference = imagestack[:,:,0] in it. 
+    The relative shift ist areturned as a list of touples (r[0]-a[0],r[1]-a[1])
+    wrapper for the other functions in this file:
+    mask, crosscorrelation, forcedcrosscorrelation, centerofmass, elastix, crosscorrelation_1d, userclick
+    '''
 
     shift = []
     
@@ -377,6 +429,8 @@ def image_align(imagestack, mode = {'mode':'sift'}):
     #     (imagestack, shift) = sift_align(imagestack, threshold = mode['threshold'])
     if mode['mode'] == 'mask':
         (imagestack, shift) = mask_align(imagestack, threshold = mode['threshold'], alignment = mode['alignment'])
+    elif mode['mode'] == 'userclick':
+        (imagestack, shift) = userclick_align(imagestack) 
     elif mode['mode'] == 'crosscorrelation':
         (imagestack, shift) = crosscorrelation_align(imagestack)
     elif mode['mode'] == 'forcedcrosscorrelation':
@@ -415,7 +469,7 @@ def do_test():
     x         = np.atleast_2d(np.arange(100))
     y         = np.atleast_2d(np.arange(80)).T
     shift     = (5,15)
-    reference = -(old_div((50-x),100.0))**2 *(old_div((50-y),100.0))**2 + 0.0625
+    reference = -((50-x)/100.0)**2 *((50-y)/100.0)**2 + 0.0625
     print('min(reference) = ',np.min(reference))
     reference[50:55,50:55] = 0
     imagestack1    = nd.shift(reference,shift)

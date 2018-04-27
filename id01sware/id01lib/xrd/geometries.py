@@ -1,4 +1,11 @@
-from builtins import object
+"""
+    These classes define measurement geometries.
+    Based on the EmptyGeometry it should be easy to define new geometries,
+    e.g. for the full field diffraction setup.
+
+    ID01psic contains all movements of the Huber diffractometer
+    (vertical and horizontal)
+"""
 import collections
 import xrayutilities as xu
 
@@ -56,8 +63,9 @@ class ID01psic(EmptyGeometry):
         self.sample_rot['mu'] = 'z-' # check mu is not 0
         self.sample_rot['eta'] = 'y-'
         self.sample_rot['phi'] = 'z-'
-        self.sample_rot['rhy'] = 'x-' # can be useful to correct sample tilt?!
         self.sample_rot['rhx'] = 'y+' # can be useful to correct sample tilt?!
+        self.sample_rot['rhy'] = 'x-' # can be useful to correct sample tilt?!
+        self.sample_rot['rhz'] = 'z+' # can be useful to correct sample tilt?!
     
         self.detector_rot['nu'] = 'z-'
         self.detector_rot['delta'] = 'y-'

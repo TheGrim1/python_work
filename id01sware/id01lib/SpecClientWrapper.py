@@ -1,4 +1,7 @@
-from __future__ import print_function
+"""
+    A wrapper for the SpecClient (python2) package which is optimized
+    for ID01
+"""
 # 20170611
 # SL - Library of functions for interaction with spec variables with python
 #
@@ -6,27 +9,33 @@ from __future__ import print_function
 #
 # BEWARE: generally this is dangerous as it is run in the background without specs knowledge
 # 
+# TODO: clean str() calls in all dependent files 
 # 
 ################### le code #################
 
-from builtins import str
-from builtins import map
-from builtins import range
-from builtins import object
+SpecCommand = None
+SpecVariable = None
+
 try:
     from SpecClient_gevent import SpecVariable
     from SpecClient_gevent import SpecCommand
 except ImportError:
+    pass
+
+try:
     from SpecClient import SpecVariable
     from SpecClient import SpecCommand
+except ImportError:
+    pass
+
+if SpecCommand is None or SpecVariable is None:
+    print("Warning: Could not import SpecClient module")
 
 import numpy as np
-
-
 class SpecClientSession(object):
     def __init__(self, sv_limaroi = 'LIMA_ROI',
                        sv_limadev = 'LIMA_DEV',
-                       specname ='nano2:psic_nano',
+                       specname ='nano3:psic_nano',
                        verbose=True):
         self.sv_limaroi = sv_limaroi
         self.sv_limadev = sv_limadev
@@ -47,11 +56,16 @@ class SpecClientSession(object):
         return _sv.getValue()
         
     def send_sc(self,sc):
-        self.speccmd.executeCommand(sc)
+        return self.speccmd.executeCommand(str(sc))
         
     def set_sv(self, sv, sv_value):
         self.send_sc(sv+'='+str(sv_value))
         return self.get_sv(sv)
+        
+    def get_motor(self,mot_nm):
+		_mot_no=int(self.get_sv(mot_nm))
+		_mot_pos=float(self.get_sv("A[%i]"%_mot_no)['%i'%_mot_no])
+		return _mot_pos
 
     def find_roi_list(self):
         '''
@@ -68,7 +82,6 @@ class SpecClientSession(object):
         # find rois for active detector
         self.devices = devices = []
         for ii in range(1,no_devs+1,1):
-            #print _limadev['%i'%ii]
             name = _limadev['%i'%ii]
             dev = _limadev[name]
             if dev.get('active', False) == '1':
@@ -103,8 +116,8 @@ class SpecClientSession(object):
         _m2_nm = _pscan_vars["header/cmd"].split()[5]
 
         # motor start&end positions
-        _m1_se = list(map(float,_pscan_vars["header/cmd"].split()[2:4]))
-        _m2_se = list(map(float,_pscan_vars["header/cmd"].split()[6:8]))
+        _m1_se = map(float,_pscan_vars["header/cmd"].split()[2:4])
+        _m2_se = map(float,_pscan_vars["header/cmd"].split()[6:8])
 
         # get kmap column number
         piezo_counters = {'piy':'adcX','pix':'adcY','piz':'adcZ'}

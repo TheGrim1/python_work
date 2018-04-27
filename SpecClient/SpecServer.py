@@ -1,14 +1,9 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import map
-from builtins import str
-from builtins import range
 import asyncore
 import socket
 import types
 
-from . import SpecConnection
-from . import SpecMessage
+import SpecConnection
+import SpecMessage
 
 
 class BaseSpecRequestHandler(asyncore.dispatcher):
@@ -48,7 +43,7 @@ class BaseSpecRequestHandler(asyncore.dispatcher):
                 # dispatch incoming message
                 if self.message.cmd == SpecMessage.HELLO:
                     self.clientOrder = self.message.packedHeaderDataFormat[0]
-                    print("client byte order: ", self.clientOrder)
+                    print "client byte order: ", self.clientOrder
                     self.clientVersion = self.message.vers
                     self.clientName = self.message.name
                     self.send_hello_reply(self.message.sn, str(self.server.name))
@@ -107,10 +102,10 @@ class BaseSpecRequestHandler(asyncore.dispatcher):
             command = cmdstr[:cmdpartLength]
             args = eval(cmdstr[cmdpartLength:])
         except:
-            print('error parsing command string %s' % cmdstr)
+            print 'error parsing command string %s' % cmdstr
             return '', ()
         else:
-            if not type(args) == tuple:
+            if not type(args) == types.TupleType:
                 args = (args, )
 
             return command, args
@@ -137,7 +132,7 @@ class BaseSpecRequestHandler(asyncore.dispatcher):
             self.send_error(replyID, '', '"' + command + '" command does not exist.')
             return
 
-        print('executeCommandAndReply: func=%s, args=%s' % (repr(func), args))
+        print 'executeCommandAndReply: func=%s, args=%s' % (repr(func), args)
 
         if callable(func):
             try:

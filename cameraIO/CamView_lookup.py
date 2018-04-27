@@ -18,8 +18,8 @@ class LookupDict(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         '''
-        TODO: use set_item inteligently
-        here a calcutation of interdependent lookuptables (eg. phi - kappa) can be done
+        TODO: use setitem inteligently
+        here a calcutation of interdependent lookuptables (eg. phi - kappa) could be done
         '''
         self.store[key] = value
 
@@ -28,7 +28,7 @@ class LookupDict(collections.MutableMapping):
         '''
         update the internal position dictionary with curpos : {mot1_name:mot1_pos .. etc}
         '''
-        print("mockup:", currpos)
+        # print("mockup:", currpos)
         self.currpos.update(currpos)
 
     def wm(self, function):

@@ -6,19 +6,17 @@ Classes:
 SpecMotor -- class representing a motor in Spec
 SpecMotorA -- class representing a motor in Spec, to be used with a GUI
 """
-from __future__ import absolute_import
 
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
 import gevent
 from gevent.event import Event
 from .SpecClientError import SpecClientTimeoutError
-from . import SpecConnectionsManager
-from . import SpecEventsDispatcher
-from . import SpecWaitObject
-from . import SpecCommand
+import SpecConnectionsManager
+import SpecEventsDispatcher
+import SpecWaitObject
+import SpecCommand
 import logging
 import types
 import math
@@ -26,7 +24,7 @@ import math
 (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
 (NOLIMIT, LOWLIMIT, HIGHLIMIT) = (0,2,4)
 
-class SpecMotorA(object):
+class SpecMotorA:
     """SpecMotorA class"""
     def __init__(self, specName = None, specVersion = None, callbacks={}, timeout=None):
         """Constructor
@@ -52,7 +50,7 @@ class SpecMotorA(object):
           'motorPositionChanged': None,
           'motorStateChanged': None
         }
-        for cb_name in self.__callbacks.keys():
+        for cb_name in self.__callbacks.iterkeys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 
@@ -266,7 +264,7 @@ class SpecMotorA(object):
         Arguments:
         channelValue -- value of the channel
         """
-        if type(channelValue) == bytes:
+        if type(channelValue) == types.StringType:
             steps = channelValue.split()
             specSteps = steps[0]
             controllerSteps = steps[1]
@@ -342,7 +340,7 @@ class SpecMotorA(object):
         Arguments:
         absolutePosition -- position to move to
         """
-        if type(absolutePosition) != float and type(absolutePosition) != int:
+        if type(absolutePosition) != types.FloatType and type(absolutePosition) != types.IntType:
             logging.getLogger("SpecClient").error("Cannot move %s: position '%s' is not a number", self.specName, absolutePosition)
 
         self.__changeMotorState(MOVESTARTED)
@@ -452,7 +450,7 @@ class SpecMotor(SpecMotorA):
         Arguments:
         channelValue -- value of the channel
         """
-        if type(channelValue) == bytes:
+        if type(channelValue) == types.StringType:
             steps = channelValue.split()
             specSteps = steps[0]
             controllerSteps = steps[1]

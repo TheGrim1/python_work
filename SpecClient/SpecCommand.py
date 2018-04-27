@@ -8,11 +8,7 @@ BaseSpecCommand
 SpecCommand
 SpecCommandA
 """
-from __future__ import absolute_import
 
-from builtins import map
-from builtins import str
-from builtins import object
 __author__ = 'Matias Guijarro'
 __version__ = '1.0'
 
@@ -23,9 +19,9 @@ import gevent
 from gevent.event import Event
 from .SpecConnection import SpecClientNotConnectedError
 from .SpecReply import SpecReply
-from . import SpecConnectionsManager
-from . import SpecEventsDispatcher
-from . import SpecWaitObject
+import SpecConnectionsManager
+import SpecEventsDispatcher
+import SpecWaitObject
 from .SpecClientError import SpecClientTimeoutError, SpecClientError
 
 
@@ -40,7 +36,7 @@ class wrap_errors(object):
         func = self.func
         try:
             return func(*args, **kwargs)
-        except Exception as e:
+        except Exception, e:
             return SpecClientError(e)
 
     def __str__(self):
@@ -62,7 +58,7 @@ def wait_end_of_spec_cmd(cmd_obj):
       return cmd_obj._last_reply.data
 
 
-class BaseSpecCommand(object):
+class BaseSpecCommand:
     """Base class for SpecCommand objects"""
     def __init__(self, command = None, connection = None, callbacks = None, timeout=None):
         self.command = None
@@ -72,7 +68,7 @@ class BaseSpecCommand(object):
             self.setCommand(command)
             
         if connection is not None:
-            if type(connection) in (str, bytes):
+            if type(connection) in (types.UnicodeType, types.StringType):
                 #
                 # connection is given in the 'host:port' form
                 #
@@ -131,7 +127,7 @@ class BaseSpecCommand(object):
             #convert args list to string args list
             #it is much more convenient using .call('psvo', 12) than .call('psvo', '12')
             #a possible problem will be seen in Spec
-            args = list(map(repr, args))
+            args = map(repr, args)
 
             if func:
                 # macro function
@@ -164,7 +160,7 @@ class SpecCommandA(BaseSpecCommand):
           'statusChanged': None,
         }
         callbacks = kwargs.get("callbacks", {})
-        for cb_name in self.__callbacks.keys():
+        for cb_name in self.__callbacks.iterkeys():
           if callable(callbacks.get(cb_name)):
             self.__callbacks[cb_name] = SpecEventsDispatcher.callableObjectRef(callbacks[cb_name])
 
@@ -246,7 +242,7 @@ class SpecCommandA(BaseSpecCommand):
             if self.connection.serverVersion < 3:
                 id = self.connection.send_msg_cmd_with_return(command)
             else:
-                if type(command) == bytes:
+                if type(command) == types.StringType:
                     id = self.connection.send_msg_cmd_with_return(command)
                 else:
                     id = self.connection.send_msg_func_with_return(command)

@@ -1,0 +1,10 @@
+Hi,
+
+Also, die max projection in pyFAI-average funktioniert tatsaechlich. Und das auch recht schnell.
+Geh aus lid13gpu1, setze den folgenden Pfad: export PATH=~/.muc_local/.MCB_DVP/PYTHON_LOCAL_INSTALL_20/bin:$PATH
+, dann muesste der folgende Command funktionieren
+pyFAI-average -o "test_max_75.edf ../../DATA/AUTO-TRANSFER/eiger1/s7_al10vol4h_75_master.h5 -m "max"
+Ein Unterschied zur r3 logik ist, dass pyFAI auf dem master file arbeitet.
+
+LG
+T

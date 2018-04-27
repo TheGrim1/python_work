@@ -1,4 +1,3 @@
-from builtins import str
 import sys, os
 import h5py
 import numpy as np

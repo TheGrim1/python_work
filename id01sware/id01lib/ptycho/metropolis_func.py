@@ -29,10 +29,7 @@
     Example:
     python metropolis_func.py
 '''
-from __future__ import print_function
-from __future__ import division
 
-from past.utils import old_div
 import numpy as np
 #from scipy import *
 from .scan_utils import *
@@ -128,7 +125,7 @@ def simulated_anneal(x,y,kTmult=0.99995,kT = 10):
             delta_E = E_proposed - E_current
             # Probability of acceptance is P_accept, computed according to
             # the Boltzmann distribution
-            P_accept = np.exp(old_div(-delta_E, kT))
+            P_accept = np.exp(-delta_E / kT)
             r = np.random.uniform() # draw a uniformly distributed random
                                  # number from 0 to 1
             if r < P_accept:
@@ -152,7 +149,7 @@ def simulated_anneal(x,y,kTmult=0.99995,kT = 10):
         if kT < 1e-3: # stop cooling once the system is very cold.
             break
 
-    print(("Starting distance: ", E_proposed, "Final distance: ",  E_current))
+    print("Starting distance: ", E_proposed, "Final distance: ",  E_current)
     return x,y,ordering,iteration_history, energy_history,kT_history
 
 
