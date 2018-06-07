@@ -1,0 +1,32 @@
+import sys, os
+import h5py
+import numpy as np
+import PIL.Image as Image
+
+# change these to suit you:
+NO_PROCESSES = 1
+if NO_PROCESSES >1:
+    from multiprocessing import Pool
+SAVE_PATH = '/data/id13/inhouse10/THEDATA_I10_1/d_2018-05-03_user_ch5315_mannsfeld/PROCESS/SESSION_sum/test/'
+
+##### helper functions
+def save_tif(data,savename,verbose=False):
+    """
+    gets a 2D numpy array of shape 
+    (width, height)
+    and saves it into imagefname 
+    """
+    img = Image.fromarray(data)
+    if verbose:
+        print("saving {}".format(os.path.realpath(savename)))
+    img.save(savename)
+
+def parse_master_fname(data_fname):
+    master_path = os.path.dirname(data_fname)
+    master_fname = os.path.basename(data_fname)[:os.path.basename(data_fname).find("data")]+'master.h5'
+    return master_path + os.path.sep + master_fname
+
+if __name__=='__main__':
+    if len(sys.argv) > 2:
+        print('usage: python data_to_tif.py <datafilename>')
+    main(sys.argv[1])

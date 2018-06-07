@@ -277,8 +277,6 @@ def open_full_dataset(fname,
     
     return data
 
-
-
         
 def get_eigerrunno(master_fname):
     '''

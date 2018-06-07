@@ -26,8 +26,6 @@ sys.path.append(importpath)
 
 sys.path.insert(0, "/mntdirect/_data_opid13_inhouse/Manfred/PLATFORM/d_mnext3/mnext3/SW/muenchhausen/EIGER-DVP/.DVP_1000")
 
-
-
 from fileIO.images.image_tools import optimize_greyscale
 import fileIO.images.image_tools as it
 from simplecalc.slicing import troi_to_slice
@@ -264,7 +262,7 @@ class stage(object):
         '''
         plt.ion()
         image0    = self._get_view(view,troi=troi)
-        if type(cutcontrast)!=None:
+        if type(cutcontrast)!=type(None):
             image0 = self._optimize_imagestack_contrast(image0,cutcontrast)
             
         fig0, ax0 = plt.subplots(1)
@@ -853,7 +851,7 @@ class stage(object):
                     saveimages_prefix='lookup1',
                     sleep=0):
         ''' 
-        NOT WORKING with new LUT_Anyber class lookuptabers yet TODO
+        NOT WORKING with new LUT_Anyberg class lookuptabers yet TODO
         creates a lookup table for the COR_motor <motor> which must be a key in self.stagegeometry['COR_motors']
         the lookuptable will contain positions of <motor> between 0 and 360 seperated by <resolution> 
         OR values for the defined list of angles <positions>
@@ -935,8 +933,6 @@ class stage(object):
         shift_lookup[motor] = positions
         shift_lookup[mot0] = shift_0/self.calibration[view][mot0]
         shift_lookup[mot1] = shift_1/self.calibration[view][mot1]
-
-
 
         if move_using_lookup:
             # we have to add or update the values to the old lookup

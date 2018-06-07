@@ -15,12 +15,14 @@ import fileIO.images.image_tools as it
 
 def main(args):
 
-    zoom = 10.0
+#    zoom = 10.0
     interp_order = 0
     
     for fname in args:
+        print(fname)
         data = it.imagefile_to_array(fname)
-        outdata = interp.zoom(data, [1,zoom,zoom], order=interp_order)
+        # outdata = interp.zoom(data, [1,zoom,zoom], order=interp_order)
+        outdata = interp.zoom(data, [1,18.75,18.75], order=interp_order)
 
         print(outdata.dtype)
         print(outdata.shape)

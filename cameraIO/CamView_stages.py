@@ -595,6 +595,8 @@ class motexplore_jul17(stage):
         self._calibrate('z',-914.02,'side')
         # lookuptables:
         self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
+
+
         
 class EH3_cameras_apr18(stage):
     '''
@@ -612,8 +614,8 @@ class EH3_cameras_apr18(stage):
             
             # General point of reference
             self.cross_pxl = {}
-            self.cross_pxl['top'] = [600,1000]
-            self.cross_pxl['side'] = [600,1000]
+            self.cross_pxl['vlm1'] = [200,300]
+            self.cross_pxl['vlm2'] = [200,300]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
         
         # dictionary connecting function of the motor and its specname:
@@ -665,7 +667,7 @@ class EH3_cameras_apr18(stage):
 
 
         
-class EH3_smr_mar18(stage):
+class EH3_smrhex_mai18(stage):
     '''
     updated mar18
     '''
@@ -681,8 +683,8 @@ class EH3_smr_mar18(stage):
             
             # General point of reference
             self.cross_pxl = {}
-            self.cross_pxl['top'] = [600,1000]
-            self.cross_pxl['side'] = [600,1000]
+            self.cross_pxl['vlm1'] = [576/2,748/2]
+            self.cross_pxl['vlm2'] = [576/2,748/2]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
         
         # dictionary connecting function of the motor and its specname:

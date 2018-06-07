@@ -1,0 +1,87 @@
+import numpy as np
+from scipy.ndimage import correlate1d
+from scipy.ndimage import shift as ndshift
+import warnings
+
+import matplotlib.pyplot as plt
+
+def shift_lines(p, image):
+    p = list(p)
+    for i in range(len(p)):
+        ndshift(image[i], p[i], output=image[i])
+    return image
+    
+def image_error_func(p, image, reference):
+    return np.ravel(shift_lines(p, image) - reference)
+
+def homogenize_imagestack_lines_contrast(imagestack, reference_percentile=80):
+    '''
+    imagestack.shape = (n, height, width,...)
+    loops over n and height
+    scales values of the remaining dimensions to that their max an min correspond to that of the reference percentile
+    '''
+    reference = np.percentile(imagestack,reference_percentile,axis=0)
+
+    for i,image in enumerate(imagestack):
+        for j,line in enumerate(reference):
+            min_ref = line.min()
+            scale_ref = line.max()-min_ref
+            min_img = image[j].min()
+            scale_img = image[j].max()-min_img
+
+            if scale_img*scale_ref != 0:
+                imagestack[i][j]=((image[j] - min_img)/(scale_img))*scale_ref+min_ref
+            else:
+                imagestack[i][j] *= 0
+                
+    return imagestack
+    
+
+def image_correct_lines(imagestack, reference_percentile=80, homogenize_contrast=True, verbose = False):
+    '''
+    corrects the lines (planes...) in images in imagestack(no_images, height, width ...)
+    along axis 2++ so that they best fit with the reference_percentile of imagestack
+    i.e data keeps its coordinate in the axes 0 and 1 and is shifted to best agree with reference percentile in the remaining axes.
+    '''
+
+    # if type(mask) == bool:
+    #     if mask:
+    #         for i in range(XRF.shape(0)):
+    #             mask=np.where(XRF[i]==0,0,1)
+    #             mask=np.where(XRF_80==0,0,mask)
+    #     else:
+    #         mask = np.ones(imagestack[0].shape)
+    
+    
+    data = np.copy(imagestack)
+    if homogenize_contrast==True:
+        data = homogenize_imagestack_lines_contrast(imagestack, reference_percentile)
+
+    reference = np.percentile(imagestack,reference_percentile,axis=0)
+    
+    shift_list=[]
+
+    for i, image in enumerate(data):
+
+        if verbose:
+            print('shifting image {}'.format(i))
+
+        shift = []
+        for j, ref_line in enumerate(reference):
+            img_line = image[j]
+            correlation = correlate1d(img_line, ref_line, axis=0, mode='constant')
+            maxcorrelation = np.argmax(correlation)
+            plt.plot(correlation)
+            
+            j_shift = maxcorrelation - reference.shape[1]
+            shift.append(j_shift)
+            ndshift(data[i][j],j_shift,output=data[i][j])
+        plt.show()
+            
+        shift_list.append(shift)
+
+        if verbose:
+            print('found shift:')
+            print(p)
+
+    return (data, shift_list)

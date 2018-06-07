@@ -35,7 +35,7 @@ class ETHCameras(object):
 
     def grab_qimage(self, cam_no):
         devname = self.cameras[cam_no]
-        cp = baslertools.CameraProxy(devname=devname)
+        cp = baslertools2.CameraProxy(devname=devname)
         errflg, qimage, last_img_num = self.cp.acquire_qimage()
     
 if __name__ == '__main__':

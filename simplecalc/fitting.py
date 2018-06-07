@@ -178,10 +178,11 @@ def do_logistic_fit(data, verbose = False):
     min_guess = np.min(data[:,1])
     inflection_guess = np.mean(data[:,0])
     sigma_guess = 1
-    print('max_guess = ', np.max(data[:,1]))
-    print('min_guess = ', np.min(data[:,1]))
-    print('inflection_guess = ', np.mean(data[:,0]))
-    print('steepness_guess = ', 1)
+    if verbose:
+        print('max_guess = ', np.max(data[:,1]))
+        print('min_guess = ', np.min(data[:,1]))
+        print('inflection_guess = ', np.mean(data[:,0]))
+        print('steepness_guess = ', 1)
     Odr = scipy.odr.ODR(Data, Model, [max_guess, min_guess, inflection_guess, sigma_guess ], maxit = 10000000)
     Odr.set_job(fit_type=2)    
     output = Odr.run()
@@ -239,12 +240,12 @@ def gauss_func(p, t):
     '''
     return p[0]*1/(math.sqrt(2*math.pi*(p[2]**2)))*math.e**((-(t-p[1])**2/(2*p[2]**2)))
 
-def do_gauss_fit(data, verbose = False):
+def do_gauss_fit(data, verbose = False,sigma_in_pxl=50):
     
     Model = scipy.odr.Model(gauss_func)
     Data = scipy.odr.RealData(data[:,0], data[:,1])
     a_guess = np.max(data[:,1])
-    sigma_guess = 50*np.absolute(data[0,0]-data[1,0])
+    sigma_guess = sigma_in_pxl*np.absolute(data[0,0]-data[1,0])
     mu_guess    = data[:,0][np.argmax(data[:,1])]
 
     Odr = scipy.odr.ODR(Data, Model, [a_guess,mu_guess, sigma_guess], maxit = 10000000)
@@ -268,6 +269,7 @@ def do_gauss_fit(data, verbose = False):
         plt.tight_layout()
 
         plt.show()
+        # raw_input('next')
         
     return beta
 

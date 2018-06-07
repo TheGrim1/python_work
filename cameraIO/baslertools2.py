@@ -13,13 +13,15 @@ from PyTango import DeviceProxy   # better to use PyTango.gevent ?
 
 # from bliss.data.routines.pixmaptools import qt4 as pixmaptools
 # import pixmaptools.qt4 as pixmaptools
-from Qub.CTools import pixmaptools
+from pythonmisc import qt4 as pixmaptools
+#from Qub.CTools import pixmaptools
+#from bliss.data.routines.pixmaptools import qt4 as pixmaptools
 import qimage2ndarray
 #print "set video_live TRUE"
 #device.video_live=True
 
-#lutMode = pixmaptools.LUT.Scaling.YUV422PACKED
-lutMode = pixmaptools.LUT.Scaling.YUV422
+lutMode = pixmaptools.LUT.Scaling.YUV422PACKED
+#lutMode = pixmaptools.LUT.Scaling.YUV422
 
 
 class error(Exception): pass
@@ -39,6 +41,7 @@ class CameraProxy(object):
 
     def show_devinfo(self):
         device = self.device
+        # print('hello form {}'.format(__file__))
         print("tango device=",     device.name())
         print("Exposure Time=",    device.acq_expo_time)
         print("camera_model=",     device.camera_model)

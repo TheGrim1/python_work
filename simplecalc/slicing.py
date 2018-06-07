@@ -42,8 +42,6 @@ def troi_to_slice(troi):
 
 def xy_to_corners(xy):
     return troi_to_corners(xy_to_troi(xy))
-    
-                    
 
 def troi_to_corners(troi):
     corners_list=[]
@@ -105,3 +103,35 @@ def goodmesh_example(xlen, ylen):
     # test = x**2 + np.matrix(y**2).T + 2*xx - yy**2
     
     return np.array(xx,yy)
+
+
+def mask_troi(data, troi,verbose=False):
+    '''
+    troi = ((min_val1, min_val2, ... ntimes),((max_val1-minval1), .. ntimes))
+    data.shape = (arb, n) 
+    troi.shape = (2,n)
+    checks n values of data whether they are > troi[0][ni]
+    and > troi[1][ni]
+    returns a mask where this is true
+    i.e the mask shows points whose n values are in the nD cube defined by troi
+    return.ndim = data.ndim -1
+    '''
+    troi=np.asarray(troi)
+    n = troi.shape[1]
+    data = np.rollaxis(data,-1)
+    mask = np.zeros(shape=data.shape)
+    for i in range(n):
+        minval = troi[0][i]
+        maxval = minval + troi[1][i]
+        if verbose:
+            print('minval, maxval {}'.format(i))
+            print(minval, maxval)
+        mask[i] = np.where(data[i]>minval,1,0)
+        mask[i] = np.where(data[i]>maxval,0,mask[i])
+
+    result=np.where(mask.sum(axis=0)==n,1,0)
+    if verbose:
+        print('found {} points in troi'.format(result.sum()))
+    return result
+        
+              

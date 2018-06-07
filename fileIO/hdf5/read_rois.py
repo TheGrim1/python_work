@@ -30,7 +30,7 @@ from pythonmisc.parallel_timer import parallel_timer
 import fileIO.hdf5.workers.copy_troi_worker as cptw
 import fileIO.hdf5.workers.integrate_data_worker as idw
 import fileIO.edf.write_edf_from_h5_single_file as h5toedf
-import fileIO.edf.open_edf as open_edf
+import fileIO.edf.edfIO as open_edf
 
 
 # from simplecalc.gauss_fitting import do_variable_gaussbkg_fit, do_variable_gauss_fit, do_multi_gauss_fit

@@ -1,0 +1,100 @@
+import sys, os
+import h5py
+import numpy as np
+import PIL.Image as Image
+from multiprocessing import Pool
+NUMBER_OF_PROCESSES = 4
+SAVE_PATH = '/data/id13/inhouse10/THEDATA_I10_1/d_2018-05-03_user_ch5315_mannsfeld/PROCESS/SESSION_sum/test/'
+
+def save_tif(data,savename):
+    """
+    gets a 2D numpy array of shape 
+    (width, height)
+    and saves it into imagefname 
+    """
+    img = Image.fromarray(data)
+    if verbose:
+        print("saving ", os.path.realpath(imagefname))
+    img.save(imagefname)
+
+
+def sum_and_max_scan(args):
+
+    master_fname = args[0]
+    save_fname =args[1]
+    verbose = args[2]
+    
+    if not os.path.exists(master_fname):
+        raise ValueError('file not found '.format(master_fname))
+        
+    # open the h5 file:
+    with h5py.File(master_fname) as master_h5:
+        data_group = master_h5['entry/data']
+        data_sum = np.zeros(shape = data_group['data_000001'].shape[1:3], dtype=np.uint32)
+        data_max = np.zeros(shape = data_group['data_000001'].shape[1:3], dtype=np.int16)
+
+        no_frames = 0
+        #loop over the datasets in the h5 file:
+        for key in data_group.keys():
+            if verbose:
+                print('reading {}'.format(key))
+            # loop over the frames in each dataset:
+            for i,frame in enumerate(data_group[key]):
+                if verbose:
+                    print('reading frame {}'.format(i))
+                # sum:
+                data_sum += frame
+                no_frames += 1
+                # max-proj:
+                data_max = np.where(frame>data,frame,data)
+
+    # thresholding away hot pixels:
+    data_sum = np.where(data_sum>1e8,0,data_sum)
+    data_max = np.where(data_max>1e8,0,data_max)
+
+    data_avg = np.asarray(data_sum,dtype=np.float32)/no_frames
+    
+    save_tif(data_avg, save_fname.format('avg'),verbose)
+    save_tif(data_max, save_fname.format('max'),verbose)
+
+
+def main(args):
+
+    master_fnames = [x for x in args if x.find('master.h5')]
+    verbose = True
+    todo_list = []
+    for master_fname in master_fnames:
+
+        save_fname = save_path + os.path.basename(master_fname)[0:os.path.basename(master_fname).find('_master')] +  '_{}.tif'
+        todo=[]
+        todo.append(master_fname)
+        todo.append(save_fname)
+        todo.append(verbose)
+        todo_list.append(todo)
+
+    # sum_scan(todo_list[0])
+        
+    pool = Pool(processes=min(len(todo_list),20))
+    pool.map_async(sum_and_max_scan,todo_list)
+    pool.close()
+    pool.join()
+
+if __name__=='__main__':
+    usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc.  \n2)
+python <thisfile.py> -f <file containing args as lines> \n3) find
+<*yoursearch* -> arg1 etc.> | xargs python <thisfile.py> """
+
+    args = []
+    if len(sys.argv) > 1:
+        if sys.argv[1].find("-f")!= -1:
+            f = open(sys.argv[2])
+            for line in f:
+                args.append(line.rstrip())
+        else:
+            args=sys.argv[1:]
+    else:
+        f = sys.stdin
+        for line in f:
+            args.append(line.rstrip())
+    
+    main(args)

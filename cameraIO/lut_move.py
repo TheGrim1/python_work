@@ -7,6 +7,7 @@ import sys
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 from fileIO.datafiles import open_data, save_data
 from cameraIO.CamView_lookup import LookupDict, LookupDict_Phi_XZKappa
+import os
 
 class LUT_Anyberg(object):
     '''
@@ -56,7 +57,21 @@ class LUT_Anyberg(object):
         tems = list(mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
+        self.show()
 
+
+    def show(self):
+        print('\nLookuptable function available from:\n{}\nclass{}'.format(os.path.realpath(__file__),self.__class__.__name__))
+
+        print('Motor table:')
+        
+        def p_nice_line(str1,str2):
+            print(str1 + ' '*(20-len(str1)) + str2)
+            
+        p_nice_line('external name','lut name')
+        print('-'*25)
+        for external, internal in self.mto_lookup.items():
+            p_nice_line(external,internal)
 
 
     def mto_eig_dict(self, lookup_dc):
@@ -509,7 +524,7 @@ class LUT_Navitar(LUT_Anyberg):
         tems = list(mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
-
+        self.show()
 
         
     def link_dynamic(self, load=False):
@@ -532,7 +547,7 @@ class LUT_Navitar(LUT_Anyberg):
 
 class LUT_Generic(LUT_Anyberg):
     '''
-    if there are not dynamic dependecies of lookuptables, this class can handle your stage application
+    if there are no dynamic dependecies of lookuptables, this class can handle your stage application
     '''
     def __init__(self, mot_dict, stagegeometry_dict):
         self.lookup_fnames ={}
@@ -570,6 +585,8 @@ class LUT_Generic(LUT_Anyberg):
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
 
+        self.show()
+
 class LUT_EH3_hex(LUT_Anyberg):
     '''
     adapted from LUT_Generic
@@ -603,8 +620,10 @@ class LUT_EH3_hex(LUT_Anyberg):
         tems = list(mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
+        self.show()
 
-class LUT_EH3_piezo(LUT_Anyberg):
+
+class LUT_EH3_hex(LUT_Anyberg):
     '''
     adapted from LUT_Generic
     '''
@@ -628,16 +647,16 @@ class LUT_EH3_piezo(LUT_Anyberg):
         
         # external to internal motername translation
         mto_lookup={'smrot':'rotz',
-                    'fine_x':'x',
-                    'fine_y':'y',
-                    'fine_z':'z'}
+                    'coarse_x':'x',
+                    'coarse_y':'y',
+                    'coarse_z':'z'}
 
         self.mto_lookup = mto_lookup
         
         tems = list(mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
-
+        self.show()
     
 class LUT_Feldberg(LUT_Anyberg):
     '''specific lookuptable interface for the phi-kappa gonio based on
@@ -702,8 +721,7 @@ class LUT_Feldberg(LUT_Anyberg):
         tems = list(mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
-
-
+        self.show()
 
     def link_dynamic(self, load = False):
         '''

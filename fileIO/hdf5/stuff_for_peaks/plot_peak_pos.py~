@@ -1,0 +1,24 @@
+import sys,os
+import numpy as np
+import h5py
+from multiprocessing import Pool
+import matplotlib.pyplot as plt
+
+
+sys.path.append('/data/id13/inhouse2/AJ/skript/')
+import fileIO.images.image_tools as it
+
+
+def main():
+    
+    merged_fname = '/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
+
+    ml_g_path = 'entry/merged_data/diffraction/troi_ml/single_maps'
+
+
+
+if __name__ == '__main__':
+
+    
+    
+    main()
