@@ -1,0 +1,62 @@
+import sys
+sys.path.append('/data/id13/inhouse2/AJ/skript/')
+import cameraIO.CamView_stages as cvs
+import numpy as np
+import time
+from pythonmisc.string_format import ListToFormattedString as list2string
+
+def _calc_stuff(image):
+    return np.sum(image), np.var(image),np.max(image),np.min(image)
+
+class move_permutation():
+    def __init__(self, stage, motors= ['out_x','out_y','out_z']):
+        self.move_no = 0
+        self.stage = stage
+        self.motors = motors
+        
+        self.print_pos()
+
+
+
+    def print_pos(self):
+        pos_dc = self.stage.get_motor_dict()
+        motors = self.motors
+        print('move no {:6}'.format(self.move_no))
+        print(list2string(motors,10))
+        print(list2string([str(pos_dc[x]) for x in motors],10))
+
+    def move(self):
+        move_no = self.move_no
+        motors = self.motors
+
+        permutation = move_no % (len(motors)*2)
+        motor = self.motors[int(permutation/2)]
+        sign = (-1)**(permutation%2)
+        move = sign*0.002
+        
+        print('should mvr {} by {}'.format(motor,move))
+        self.move_no += 1
+        time.sleep(0.01)
+        
+def do_plot_EH3_camera():
+    stage = cvs.EH3_smrhexpiezo_mai18()
+
+    for i in range(1):
+        
+        test_image = stage._get_view('vlm1')
+        img_result = _calc_stuff(test_image)
+        print(list2string(['sum','var','max','min'],15))
+        print(list2string(img_result,15))
+        time.sleep(0.01)
+
+def do_test_hexapod():
+    stage = cvs.EH3_smrhexpiezo_mai18()
+
+    mover = move_permutation(stage)
+
+    for i in range(10):
+        mover.move()
+    
+if __name__=='__main__':
+    
+    do_test_hexapod()

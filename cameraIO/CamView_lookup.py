@@ -1,3 +1,10 @@
+# collect all LookupDict classes here. These act like dictionaries but can have 'dynamic' interdependencies between motors.
+# eg. LookupDict_Phi_XZKappa where the lookup for phi (x-y-z) is rotated by kappa (x-z) components are mixed accordingly.
+# To make your custom class: overwrite getitem with the desired function
+# requires passing a motors dict with {mot_name:{invert:[bool],is_rotation:[bool]}
+
+
+
 from __future__ import print_function
 import collections
 import numpy as np
@@ -56,8 +63,6 @@ class LookupDict(collections.MutableMapping):
 class LookupDict_Phi_XZKappa(LookupDict):
     '''
     child of LookupDict that corrects the rotation around <phi> when the axis of phi is tilted by kappa in the x,z-plane
-    To make your custom class: overwrite getitem with the desired function
-    requires passing a motors dict with {mot_name:{invert:[bool],is_rotation:[bool]}
     '''
     def __init__(self, motors, lookup):
         self.currpos = dict()
@@ -84,4 +89,35 @@ class LookupDict_Phi_XZKappa(LookupDict):
 
 
 
+class LookupDict_Phi_hexXZKappa(LookupDict):
+    '''
+    child of LookupDict that corrects the rotation around <phi> when the axis of phi is tilted by kappa in the x,z-plane
+    '''
+    def __init__(self, motors, lookup):
+        self.currpos = dict()
+        self.motors = motors
+        self.store = dict()
+        self.update(lookup['phi'])
+        if 'hex_z' not in list(self.store.keys()):
+            self.update({'hex_z':np.zeros(shape = self.store['hex_x'].shape)})
+
+    def __getitem__(self, key):
+        if self.motors['kappa']['invert']:
+            kappa_rad = self.wm('kappa')/180.0*np.pi
+        else:
+            kappa_rad = - self.wm('kappa')/180.0*np.pi
+            
+        if key == 'hex_x':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['hex_x']*np.cos(kappa_rad) - self.store['hex_z']*np.sin(kappa_rad)
+        elif key == 'hex_z':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['hex_x']*np.sin(kappa_rad) + self.store['hex_z']*np.cos(kappa_rad)
+        else:
+            print("key {}; no kappa correction".format(key))
+            return self.store[key]
+
+
+
         
+    

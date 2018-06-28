@@ -6,13 +6,14 @@ import numpy as np
 import sys
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 from fileIO.datafiles import open_data, save_data
-from cameraIO.CamView_lookup import LookupDict, LookupDict_Phi_XZKappa
+from cameraIO.CamView_lookup import LookupDict, LookupDict_Phi_XZKappa, LookupDict_Phi_hexXZKappa
 import os
 
 class LUT_Anyberg(object):
     '''
     collects all methods that are a priory independent of the respective setup geometry
-    see LUT_Feldberg for the phi-kappa gonio geometry example
+    The store for all positions is in a LookupDict class
+    see LUT_Navitar for the phi-kappa gonio geometry example
     use LUT_Generic for stages without dynamic lookups
     '''
     MDC = dict(
@@ -43,8 +44,7 @@ class LUT_Anyberg(object):
         pos_list = [(k,0) for k in list(self.motors.keys())]
         self.pos = dict(pos_list)
 
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
+        [self.init_current_pos(mot) for mot in []]
         
         # external to internal motorname translation
         self.mto_lookup = mto_lookup = dict(
@@ -59,9 +59,13 @@ class LUT_Anyberg(object):
         self.mto_eig = dict(semt)
         self.show()
 
-
+    def init_current_pos(self, motor):
+        self.lookup[motor]=LookupDict(self.pos)
+        self.dynamic_lookup[motor]=LookupDict(self.pos)
+        
+        
     def show(self):
-        print('\nLookuptable function available from:\n{}\nclass{}'.format(os.path.realpath(__file__),self.__class__.__name__))
+        print('\nLookuptable function available from:\n{}\nclass: {}'.format(os.path.realpath(__file__),self.__class__.__name__))
 
         print('Motor table:')
         
@@ -105,7 +109,6 @@ class LUT_Anyberg(object):
         print(res)
         return res
 
-
     def get_lookup_correction(self, function, startpos_dc, end_pos, dynamic=True):
         '''
         returns a dict with {mot1_name:mot1_correction .. etc} to correct the movement of <function> from <start_pos> to <end_pos>
@@ -125,7 +128,6 @@ class LUT_Anyberg(object):
             start_pos = start_pos % 360.0
             end_pos   = end_pos   % 360.0
 
-            
         if function in list(lookup.keys()):
             for mot in list(lookup[function].keys()):
                 if mot != function:
@@ -157,13 +159,11 @@ class LUT_Anyberg(object):
             motor_dict = self.motors
             dynamic_dict = self.dynamic_lookup[key] = LookupDict(motor_dict)
             dynamic_dict.update(lookup)  
-
-                
         
 ### methods migrated here from the CamView stage class:
         
     def load_lookup(self, fname):
-        data, header           =  open_data.open_data(fname)
+        data, header = open_data.open_data(fname)
         lookupmotor = header[0]
         print("found lookuptable for motor: ", lookupmotor)
         print('using (unsorted) motors ', header[1:])
@@ -187,18 +187,25 @@ class LUT_Anyberg(object):
             data[:,i] = self.lookup[function][mot]
         
         save_data.save_data(savename, data, header = header)
+        print('saved lookup as: {}'.format(os.path.realpath(savename)))
                 
-    def plot_lookup(self, motor='phi', plot_motors=None):
-        lookup = self.lookup[motor]
+    def plot_lookup(self, motor='phi',plot_temp=False):
+        if plot_temp:
+            lookup = self.tmp_lookup[motor]
+        else:
+            lookup = self.lookup[motor]
         for mot in list(lookup.keys()):
             if not mot==motor:
                 dummy, ax1 = plt.subplots(1) 
                 ax1.set_title('%s vs %s'%(mot,motor))                              
                 ax1.plot(lookup[motor],lookup[mot])
+
                 
-    def update_lookup(self, motor, shift_lookup, overwrite=False, lookupmotors=None):
+    def update_lookup(self, motor, shift_lookup, overwrite=False, lookupmotors=None, shift_relative=False):
         '''
-        if overwrite == False, shift_lookup is added to the old lookup as a relative change as if shift lookup was measured using the coorections of self.lookup as a base correction.
+        if overwrite == False, shift_lookup is added to the old lookup 
+        if <shift_relative>, as a relative change i.e. lookup_new = merge(lookup_old and (shift_lookup + np.interp(lookup_old)))
+        if not <shift_relative>, as absolute positions i.e. lookup_new = merge(lookup_old and <shift_lookup>) 
         if lookupmotors == None: # assume the same motors as for COR
             lookupmotors = self.stagegeometry['COR_motors'][motor]['motors']
         '''
@@ -257,11 +264,11 @@ class LUT_Anyberg(object):
         # print(positions)
         # print('shift')
         # print(shift)
-            
-        if not overwrite:
-            print('updating old lookuptable')
-            old_positions = list(self.lookup[motor][motor])
-            old_mots = []
+
+        ## The following commented code adds shift = (shift with previous lookup) + (new shift_lookup)
+        old_positions = list(self.lookup[motor][motor])
+        old_mots = []
+        if shift_relative:
             for i,mot in enumerate(lookupmotors):
                 if mot in self.lookup[motor].keys():
                     old_mots.append(list(self.lookup[motor][mot]))
@@ -269,10 +276,19 @@ class LUT_Anyberg(object):
                 else:
                     d_i = np.asarray([0.0]*len(positions))
                     old_mots.append([0.0]*len(old_positions))
-                    
+
                 s_i = np.asarray(shift[i])
                 shift[i] = list(d_i + s_i)
+        else:
+            for i,mot in enumerate(lookupmotors):
+                if mot in self.lookup[motor].keys():
+                    old_mots.append(list(self.lookup[motor][mot]))
+                else:
+                    old_mots.append([0.0]*len(old_positions))                    
 
+        if not overwrite:
+            print('updating old lookuptable')
+            
             for i, new_theta in enumerate(positions):
                 j = 0
                 old_theta = old_positions[j]
@@ -341,24 +357,43 @@ class LUT_Anyberg(object):
         #self.lookup[motor].update({mot1: np.asarray(new_mot1)})
 
         
-    def tmp_to_lookup(self, lookupmotor, overwrite=True):
+    def tmp_to_lookup(self, lookupmotor, overwrite=True, shift_relative=False):
         '''
         updates the old lookup for <lookupmotor> with the values from tmp_lookup
         if you don't <overwrite> be sure that this tmp lookup was made at the exact same position as the orignal (eg. same microscope magnification)!
+        essentially a wrapper for self.update_lookup)
         '''
-        print('overwriting lookup for %s with:' % lookupmotor)
+        if overwrite:
+            print('overwriting lookup for %s with:' % lookupmotor)
+        else:
+            print('adding positions to lookup for %s with:' % lookupmotor)
         lookupmotors = []
         for mot,values in list(self.tmp_lookup[lookupmotor].items()):
             lookupmotors.append(mot)
             print(mot)
             print(values)
-        self.update_lookup(motor=lookupmotor, shift_lookup=self.tmp_lookup[lookupmotor], overwrite=overwrite, lookupmotors=lookupmotors)
+            
+        self.update_lookup(motor=lookupmotor, shift_lookup=self.tmp_lookup[lookupmotor], overwrite=overwrite, lookupmotors=lookupmotors, shift_relative=shift_relative)
 
+    def lookup_to_tmp(self, lookupmotor):
+        '''
+        the tmp lookup can be modified using other methods
+        '''
+        
+        print('Original lookup copied into temp position:')
+
+        save_motor_list = [mot for mot in self.lookup[lookupmotor].keys() if mot!= lookupmotor]
+        self.initialize_tmp_lookup(lookupmotor, save_motor_list=save_motor_list)
+        
+        for key, value in self.lookup[lookupmotor].items():
+            print(key,value)
+            self.tmp_lookup[lookupmotor].update({key:value})
           
     def initialize_tmp_lookup(self, lookupmotor = 'phi', save_motor_list=['x','y','z']):
         '''
         initialize the creation of a new lookuptable with add_pos_to_tmp_lookup.
         only the positions of motors in save_motor_list will be stored in the new lookuptable
+        If you have interdependencies between motors, make sure you are in the respective default position!
         '''
 
         self.tmp_lookup = {}
@@ -369,18 +404,21 @@ class LUT_Anyberg(object):
         self.tmp_lookup[lookupmotor].update({lookupmotor:[]})
 
         print('ready to save lookup positions for {} and '.format(lookupmotor), save_motor_list)
+        print('If you have interdependencies between lookupmotors, make sure you are in the respective default position!')
+        print('eg, kappa = 0')
+
 
     def add_pos_to_tmp_lookup(self, lookupmotor, motor_dc):
         '''
         collect positions that will form a new lookuptable in the tmp_lookup
         does not need to be sorted
         can use old lookuptable to get to the new positions
-        can be used outside of the default positions (untested)
+        can be used outside of the default positions, but then the old lookuptable HAS to be overwritten
         '''
         tmp_lookup = self.tmp_lookup[lookupmotor]
 
         # this adds a correction for motors not in the default position:
-        for mk in self.lookup.keys():
+        for mk in self.tmp_lookup.keys():
             if not mk == lookupmotor:
                 target_pos = self.motors[mk]['default_pos']
                 start_pos = motor_dc[mk]
@@ -392,9 +430,9 @@ class LUT_Anyberg(object):
         for mot in self.tmp_lookup[lookupmotor].keys():
             tmp_lookup[mot].append(motor_dc[mot]) 
 
-    def shift_COR_of_lookup(self,
-                     rotmotor='rot',
-                     COR_shift = [0.1,0.1]):
+    def shift_COR_of_tmp_lookup(self,
+                               rotmotor='rot',
+                               COR_shift = [0.1,0.1]):
         '''
         shift the COR of <rotmotor> by adding the corresponding shifts to the COR_motors
         COR_motors=self.motors[rotmotor]['COR_motors']
@@ -406,7 +444,7 @@ class LUT_Anyberg(object):
             
         COR_shift = [float(x) for x in COR_shift]
         print(('shifting lookuptable for ',rotmotor,' with ',COR_motors,' COR by ',COR_shift))
-        lookup = self.lookup[rotmotor]
+        lookup = self.tmp_lookup[rotmotor]
 
         if self.motors[rotmotor]['invert']:
             rot_rad = -lookup[rotmotor]/180.0*np.pi
@@ -415,13 +453,19 @@ class LUT_Anyberg(object):
         lookup[COR_motors[0]] += COR_shift[0]*np.cos(rot_rad) - COR_shift[1]*np.sin(rot_rad)
         lookup[COR_motors[1]] += COR_shift[0]*np.sin(rot_rad) + COR_shift[1]*np.cos(rot_rad)
 
-        self.link_dynamic()
-
 
 ### debugging/fake functions
             
     def show_lookup(self):
         lc = self.lookup
+        for (k,lookup) in lc.items():
+            print(k, lookup)
+
+    def show_single_lookup(self, lookupmotor, temp=False):
+        if temp:
+            lc = self.temp_lookup[lookupmotor]
+        else:
+            lc = self.lookup[lookupmotor]
         for (k,lookup) in lc.items():
             print(k, lookup)
 
@@ -471,7 +515,7 @@ class LUT_Navitar(LUT_Anyberg):
     MDC = dict(
         kappa = dict(
             is_rotation = True,
-            invert      = False,
+            invert      = True,
             COR_motors  = ['x','z'],
             default_pos = 0, # at this position lookups do not interfere, i.e. this is the default position to make lookuptables for any other motors
         ),
@@ -501,17 +545,15 @@ class LUT_Navitar(LUT_Anyberg):
 
     def __init__(self):
         self.lookup_fnames ={}
-        self.lookup_fnames.update({'phi':''})
-        self.lookup_fnames.update({'kappa': ''})
         self.lookup = {}
-
+        self.dynamic_lookup = {}
+        
         self.motors = self.MDC
         # initial positions
         pos_list = [(k,0) for k in list(self.motors.keys())]
         self.pos = dict(pos_list)
 
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
+        [self.init_current_pos(mot) for mot in ['phi','kappa']]
         
         # external to internal motorname translation
         self.mto_lookup = mto_lookup = dict(
@@ -529,14 +571,9 @@ class LUT_Navitar(LUT_Anyberg):
         
     def link_dynamic(self, load=False):
         '''
-        load all lookuptables and link the dynamic lookups
+        relink the dynamic lookups
         '''
-        if load:
-            for function in list(self.lookup_fnames.keys()):
-                self.load_lookup(self.lookup_fnames[function])
-
-            print("lookups loaded")
-
+        
         self.phi_dynamic_lookup = dyl = LookupDict_Phi_XZKappa(self.motors, self.lookup)
         dyl.mockup_currpos(self.pos)
 
@@ -553,6 +590,7 @@ class LUT_Generic(LUT_Anyberg):
         self.lookup_fnames ={}
         [self.lookup_fnames.update({lookupmotor:''}) for lookupmotor in stagegeometry_dict['COR_motors'].keys()]
         self.lookup = {}
+        self.dynamic_lookup = {}
 
         LUT_mot_dict={}
         for motor in mot_dict:
@@ -573,8 +611,7 @@ class LUT_Generic(LUT_Anyberg):
         self.pos = dict(pos_list)
         print(pos_list)
 
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
+        [self.init_current_pos(mot) for mot in []]
         
         # external to internal motername translation
         mto_lookup={}
@@ -587,166 +624,275 @@ class LUT_Generic(LUT_Anyberg):
 
         self.show()
 
-class LUT_EH3_hex(LUT_Anyberg):
+class LUT_EH3_smrhex(LUT_Anyberg):
     '''
     adapted from LUT_Generic
     '''
-
-    def __init__(self, mot_dict, stagegeometry_dict):
-        self.lookup_fnames ={}
-        [self.lookup_fnames.update({lookupmotor:''}) for lookupmotor in stagegeometry_dict['COR_motors'].keys()]
-        self.lookup = {}
-
-               
-        print('LUT_mot_dict =')
-        print(mot_dict)
-        self.motors = mot_dict
-        # initial positions
-        pos_list = [(k,mot_dict[k]['default_pos']) for k in list(mot_dict.keys())]
-        self.pos = dict(pos_list)
-        print(pos_list)
-
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
-        
-        # external to internal motername translation
-        mto_lookup={'smrot':'rotz',
-                    'coarse_x':'x',
-                    'coarse_y':'y',
-                    'coarse_z':'z'}
-
-        self.mto_lookup = mto_lookup
-        
-        tems = list(mto_lookup.items())
-        semt = [(v,k) for (k,v) in tems]
-        self.mto_eig = dict(semt)
-        self.show()
-
-
-class LUT_EH3_hex(LUT_Anyberg):
-    '''
-    adapted from LUT_Generic
-    '''
-
-    def __init__(self, mot_dict, stagegeometry_dict):
-        self.lookup_fnames ={}
-        [self.lookup_fnames.update({lookupmotor:''}) for lookupmotor in stagegeometry_dict['COR_motors'].keys()]
-        self.lookup = {}
-
-               
-        print('LUT_mot_dict =')
-        print(mot_dict)
-        self.motors = mot_dict
-        # initial positions
-        pos_list = [(k,mot_dict[k]['default_pos']) for k in list(mot_dict.keys())]
-        self.pos = dict(pos_list)
-        print(pos_list)
-
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
-        
-        # external to internal motername translation
-        mto_lookup={'smrot':'rotz',
-                    'coarse_x':'x',
-                    'coarse_y':'y',
-                    'coarse_z':'z'}
-
-        self.mto_lookup = mto_lookup
-        
-        tems = list(mto_lookup.items())
-        semt = [(v,k) for (k,v) in tems]
-        self.mto_eig = dict(semt)
-        self.show()
-    
-class LUT_Feldberg(LUT_Anyberg):
-    '''specific lookuptable interface for the phi-kappa gonio based on
-    the smaract motors on strx,y,z in EH2 example for using dynamic
-    lookup like cameraIO.CamView_lookup.LookupDict_Phi_XZKappa
-
-    '''
-    
-    MDC = dict(
-        kappa = dict(
+    # definitions for the lookuptable functions
+    MDC = dict(rotz = dict(
             is_rotation = True,
             invert      = False,
-            COR_motors  = ['x','z'],
-            default_pos = 0, # at this position lookups do not intefere, i.e. this is the default position to make lookuptables for any other motors
-        ),
-        phi = dict(
-            is_rotation = True,
-            invert      = True,
             COR_motors  = ['x','y'],
             default_pos = 0,
-        ),
-        x = dict(
+            ),
+                          x = dict(
             is_rotation = False,
             invert      = False,
             default_pos = 0,
-        ),
-        y = dict(
+            ),
+                          y = dict(
             is_rotation = False,
             invert      = False,
             default_pos = 0,
-        ),
-        z = dict(
+            ),
+                          z = dict(
             is_rotation = False,
             invert      = False,
-            default_pos = 0,
-        ),
+            default_pos = 0,      
+            ),
+               )
 
-    )
+    # external to internal motorname translation
+    MOTORNAMES_DICT={'smrot':'rotz',
+                    'coarse_x':'x',
+                    'coarse_y':'y',
+                    'coarse_z':'z'}
 
-    def __init__(self, lookup1_fname, lookup2_fname):
+    def __init__(self, mot_dict=MOTORNAMES_DICT, stagegeometry_dict=MDC):
         self.lookup_fnames ={}
-        self.lookup_fnames.update({'phi': lookup1_fname})
-        self.lookup_fnames.update({'kappa': lookup2_fname})
         self.lookup = {}
-        
-        self.motors = self.MDC
+        self.dynamic_lookup = {}
+
+        self.motors = stagegeometry_dict
         # initial positions
-        pos_list = [(k,0) for k in list(self.motors.keys())]
+        pos_list = [(k,self.motors[k]['default_pos']) for k in list(self.motors.keys())]
         self.pos = dict(pos_list)
 
-        # initial undynamic lookup
-        self.dynamic_lookup = LookupDict(self.motors)
+        [self.init_current_pos(mot) for mot in ['rotz']]
         
-        # external to internal motername translation
-        self.mto_lookup = mto_lookup = dict(
-            phi = "phi",
-            kappa = "kappa",
-            fine_x = "x",
-            fine_y = "y",
-            fine_z = "z")
+        self.mto_lookup = mot_dict
         
-        tems = list(mto_lookup.items())
+        tems = list(self.mto_lookup.items())
         semt = [(v,k) for (k,v) in tems]
         self.mto_eig = dict(semt)
         self.show()
 
-    def link_dynamic(self, load = False):
-        '''
-        load all lookuptables and link the dynamic lookups
-        '''
-        if load:
-            for function in list(self.lookup_fnames.keys()):
-                self.load_lookup(self.lookup_fnames[function])
 
-            print("lookups loaded")
+class LUT_EH3_smrpiezo(LUT_Anyberg):
+    '''
+    adapted from LUT_Generic
+    '''
+    MDC = dict(rotz = dict(
+            is_rotation = True,
+            invert      = False,
+            COR_motors  = ['x','y'],
+            default_pos = 0,
+            ),
+                          x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+                          y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+                          z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               )
 
-        for key, lookup in self.lookup.items():
-            self.dynamic_lookup[key] = lookup
-            
-        self.phi_dynamic_lookup = dyl = LookupDict_Phi_XZKappa(self.motors, self.lookup)
+    # external to internal motorname translation
+    MOTORNAMES_DICT={'smrot':'rotz',
+                     'fine_x':'x',
+                     'fine_y':'y',
+                     'fine_z':'z'}
+
+
+    def __init__(self, mot_dict=MOTORNAMES_DICT, stagegeometry_dict=MDC):
+        self.lookup_fnames ={}
+        self.lookup = {}
+        self.dynamic_lookup = {}
+
+        self.motors = stagegeometry_dict
+        # initial positions
+        pos_list = [(k,self.motors[k]['default_pos']) for k in list(self.motors.keys())]
+        self.pos = dict(pos_list)
+
+        [self.init_current_pos(mot) for mot in ['rotz']]
+        
+        self.mto_lookup = mot_dict
+        
+        tems = list(self.mto_lookup.items())
+        semt = [(v,k) for (k,v) in tems]
+        self.mto_eig = dict(semt)
+        self.show()
+    
+
+class LUT_EH3_smrhexpiezo(LUT_Anyberg):
+    '''
+    adapted from LUT_Generic
+    '''
+    MDC = dict(rotz = dict(
+            is_rotation = True,
+            invert      = False,
+            COR_motors  = ['x','y'],
+            default_pos = 0,
+            ),
+               x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+               y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+               z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               )
+
+    # external to internal motorname translation
+    MOTORNAMES_DICT={'smrot':'rotz',
+                     'fine_x':'x',
+                     'fine_y':'y',
+                     'fine_z':'z',
+                     'coarse_x':'hex_x',
+                     'coarse_y':'hex_y', 
+                     'coarse_z':'hex_z'}
+
+    def __init__(self, mot_dict=MOTORNAMES_DICT, stagegeometry_dict=MDC):
+        
+        self.lookup_fnames ={}
+        self.lookup = {}
+        self.dynamic_lookup = {}
+
+        self.motors = stagegeometry_dict
+        # initial positions
+        pos_list = [(k,self.motors[k]['default_pos']) for k in list(self.motors.keys())]
+        self.pos = dict(pos_list)
+
+        [self.init_current_pos(mot) for mot in ['rotz']]
+
+        self.mto_lookup = mot_dict
+        
+        tems = list(self.mto_lookup.items())
+        semt = [(v,k) for (k,v) in tems]
+        self.mto_eig = dict(semt)
+        self.show()
+
+class LUT_EH3_phikappamars(LUT_Anyberg):
+    '''
+    adapted from LUT_Generic
+    '''
+    MDC = dict(phi = dict(
+            is_rotation = True,
+            invert      = False,
+            COR_motors  = ['hex_x','hex_y'],
+            default_pos = 0,
+            ),
+               kappa = dict(
+            is_rotation = True,
+            invert      = True,
+            COR_motors  = ['hex_x','hex_z'],
+            default_pos = 0,
+            ),  
+            x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+               y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+            ),
+               z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               hex_z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,      
+            ),
+               )
+
+    # external to internal motorname translation
+    MOTORNAMES_DICT={'smphi'  :'phi',
+                     'smkappa':'kappa',
+                     'fine_x2':'x',
+                     'fine_y2':'y',
+                     'fine_z2':'z',
+                     'coarse_x':'hex_x',
+                     'coarse_y':'hex_y', 
+                     'coarse_z':'hex_z'}
+
+    def __init__(self, mot_dict=MOTORNAMES_DICT, stagegeometry_dict=MDC):
+        
+        self.lookup_fnames ={}
+        self.lookup = {}
+        self.dynamic_lookup = {}
+
+        self.motors = stagegeometry_dict
+        # initial positions
+        pos_list = [(k,self.motors[k]['default_pos']) for k in list(self.motors.keys())]
+        self.pos = dict(pos_list)
+
+        [self.init_current_pos(mot) for mot in ['phi','kappa']]
+
+        self.mto_lookup = mot_dict
+        
+        tems = list(self.mto_lookup.items())
+        semt = [(v,k) for (k,v) in tems]
+        self.mto_eig = dict(semt)
+        self.show()
+          
+    def link_dynamic(self, load=False):
+        '''
+        relink the dynamic lookups
+        '''
+        
+        self.phi_dynamic_lookup = dyl = LookupDict_Phi_hexXZKappa(self.motors, self.lookup)
         dyl.mockup_currpos(self.pos)
 
-
-        
         self.dynamic_lookup['phi'] = dyl
         self.dynamic_lookup['kappa'] = self.lookup['kappa']
 
-        print("linking dynamic lookup done.")
-
-# develop fix point tracking
+        print("dynam lookup done.")
 
 class PosPlot(object):
 

@@ -186,6 +186,57 @@ def conservative_peak_guess(data,
     return guess
 
 
+def gauss_plus_bkg_func(p, t): 
+    '''
+    p0 = a
+    p1 = mu
+    p2 = sigma
+    p3 = c
+    '''
+    return p[0]*(1.0/math.sqrt(2*math.pi*(p[2]**2)))*math.e**((-(t-p[1])**2/(2*p[2]**2))) + p[3]
+
+
+def gauss_plus_bkg_residual(p, x, y):
+    return (gauss_plus_bkg_func(p,x) - y)
+
+def do_gauss_plus_bkg_fit(data, verbose = False):
+    '''
+    p0 = a
+    p1 = mu
+    p2 = sigma
+    p3 = c
+    '''
+    constant_guess = np.min(data[1,:])
+    sigma_guess = np.absolute(data[0,0]-data[0,1])
+    a_guess = (np.max(data[1,:]) - constant_guess )/ sigma_guess
+    mu_guess    = data[0,:][np.argmax(data[1,:])]
+    
+    v0 = [a_guess, sigma_guess, mu_guess, constant_guess]
+
+    def optfunction(p,x,y):
+        return gauss_plus_bkg_residual(p = p, x = x, y = y)
+    out = leastsq(optfunction, v0, args=(data[0], data[1]), maxfev=100000, full_output=1) #Gauss Fit
+    v = out[0] #fit parameters out
+    covar = out[1] #covariance matrix output
+    xxx = np.arange(min(data[0]),max(data[0]),data[0][1]-data[0][0])
+    ccc = gauss_plus_bkg_func(v,xxx) # this will only work if the units are pixel and not wavelength
+
+    if verbose == True:
+        fig = plt.figure(figsize=(9, 9)) #make a plot
+        ax1 = fig.add_subplot(111)
+        ax1.plot(data[0],data[1],'gs') #spectrum
+        ax1.plot(xxx,ccc,'b') #fitted spectrum
+        print('found peaks at')
+        l = 1
+        print('found peak with')
+        print(("p[0], a1: ", v[0]))
+        print(("p[1], mu1: ", v[1]))
+        print(("p[2], sigma1: ", v[2]))
+        print(("p[3], c: ", v[3]))
+        plt.show()
+        
+    return v
+
 
 def gauss_func(p, t):
     '''

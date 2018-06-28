@@ -26,7 +26,7 @@ class ETHCameras(object):
         devname = self.cameras[cam_no]
         cp = baslertools2.CameraProxy(devname=devname)
         cp.set_live()
-        cp.show_devinfo()
+        # cp.show_devinfo()
         arr, num = cp.acquire_greyscale_int18() # returns int16 numpy array
         if type(troi)==type(None):
             return arr

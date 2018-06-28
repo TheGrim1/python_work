@@ -1,0 +1,18 @@
+
+## from https://stackoverflow.com/questions/7568627/using-python-string-formatting-with-lists
+
+list_1 = [1,2,3,4,5,6]
+list_2 = [1,2,3,4,5,6,7,8]
+
+# Create a function to easily repeat on many lists:
+def ListToFormattedString(alist):
+    # Each item is right-adjusted, width=3
+    formatted_list = ['{:>3}' for item in alist] 
+    s = ','.join(formatted_list)
+    return s.format(*alist)
+
+# Example output:
+>>>ListToFormattedString(list_1)
+'  1,  2,  3,  4,  5,  6'
+>>>ListToFormattedString(list_2)
+'  1,  2,  3,  4,  5,  6,  7,  8'

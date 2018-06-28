@@ -2,17 +2,14 @@ import subprocess
 
 
 def main():
-    for i, eig_no in enumerate(range(24,38)):
-        last_r3_run = 21
+    for i, eig_no in enumerate(range(41,159,2)):
+        last_r3_run = 7
         
-        cmd1 = 'r3p -xxe {} hit'.format(eig_no)
-        cmd2 = 'r3p -xrun'
-        cmd3 = 'r3p -xf {}'.format(1 + i + last_r3_run)
-        print('**'*10+ '\n'*3+' calling \n' + cmd1 +'\n'+ cmd2 +'\n' + cmd3 + ' \n'*3+'**'*10)
+        cmd1 = 'x {} mxs'.format(eig_no)
+        cmd2 = 'f {}'.format(1 + i + last_r3_run)
+        print('**'*10+ '\n'*3+' calling \n' + cmd1 +'\n'+ cmd2 +'\n'*3+'**'*10)
         subprocess.call(cmd1,shell=True)
         subprocess.call(cmd2,shell=True)
-        subprocess.call(cmd3,shell=True)
-              
 
 if __name__=='__main__':
     main()

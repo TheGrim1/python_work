@@ -418,7 +418,7 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
     align_endtime = time.time()
     align_time = (align_endtime - align_starttime)
     print('='*25)
-    print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, fit_time))
+    print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, align_time))
     print(' = {} Hz\n'.format(total_datalength/fit_time))
     print('='*25) 
 

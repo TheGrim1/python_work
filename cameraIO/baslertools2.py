@@ -14,9 +14,13 @@ from PyTango import DeviceProxy   # better to use PyTango.gevent ?
 # from bliss.data.routines.pixmaptools import qt4 as pixmaptools
 # import pixmaptools.qt4 as pixmaptools
 from pythonmisc import qt4 as pixmaptools
+try:
+    from pythonmisc import qimage2ndarray
+except:
+    import qimage2ndarray
 #from Qub.CTools import pixmaptools
 #from bliss.data.routines.pixmaptools import qt4 as pixmaptools
-import qimage2ndarray
+
 #print "set video_live TRUE"
 #device.video_live=True
 

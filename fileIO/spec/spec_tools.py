@@ -4,18 +4,21 @@ from __future__ import division
 import datetime
 
 import numpy as np
+from silx.io.spech5 import SpecH5 as spech5
+
 
 import sys
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 
-from silx.io.spech5 import SpecH5 as spech5
+
 from fileIO.images import image_tools as it
 
 def get_scan_starttime(spec_f, scanno):
     if type(spec_f) == str:
-        spec_f = spech5(spec_f)
-        
-    return str(spec_f['{}.1/start_time'.format(scanno)].value)
+        with spech5(spec_f) as spec_f:
+            return str(spec_f['{}.1/start_time'.format(scanno)].value)
+    else:
+        return str(spec_f['{}.1/start_time'.format(scanno)].value)
 
 
 def get_scan_runtime(spec_f, scanno):
@@ -27,6 +30,7 @@ def get_scan_runtime(spec_f, scanno):
     try:
         start_epoch = spec_f[epoch_group][0]
         end_epoch = spec_f[epoch_group][-1]
+      
         return end_epoch - start_epoch
     except IndexError:
         return 0
@@ -58,7 +62,7 @@ def print_all_scan_start_times_and_runtime(spec_f, save_fname):
 
     f = open(save_fname,'w')
     f.writelines(datalines_list)
-    
+    spec_f.close()
 
         
 def color_images_by_refil():
@@ -100,6 +104,19 @@ def color_images_by_refil():
 
 
         it.array_to_imagefile(img, save_fname_tpl.format(img_no))
-        
 
-            
+
+        
+def get_scan_motorpos(spec_f, scanno, motorname):
+    ''' from {}.1/instrument/positioners'''
+    
+    if type(spec_f) == str:
+        spec_f = spech5(spec_f)
+
+    positioners_group = '{}.1/instrument/positioners'.format(scanno)
+
+    try:
+        return spec_f[positioners_group][motorname][()]
+    except IndexError:
+        return 0
+        

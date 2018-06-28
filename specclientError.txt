@@ -1,0 +1,33 @@
+mvr out_x -0.0266666666667
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+INFO:SpecClient:Connected to lid13eh31:eh3
+ERROR:SpecClient:Error from Spec: No error
+INFO:SpecClient:Disconnected from lid13eh31:eh3
+Exception in thread Thread-88:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+    self.run()
+  File "/mntdirect/_data_opid13_inhouse/Manfred/PLATFORM/d_mnext3/mnext3/SW/muenchhausen/EIGER-DVP/.DVP_1000/SpecClient/SpecConnectionsManager.py", line 102, in run
+    asyncore.loop(0.01, False, None, 1)
+  File "/usr/lib/python2.7/asyncore.py", line 220, in loop
+    poll_fun(timeout, map)
+  File "/usr/lib/python2.7/asyncore.py", line 145, in poll
+    r, w, e = select.select(r, w, e, timeout)
+error: (9, 'Bad file descriptor')
+

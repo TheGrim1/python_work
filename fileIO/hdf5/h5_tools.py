@@ -2,12 +2,15 @@ from __future__ import print_function
 import h5py
 import numpy as np
 import sys, os
+from subprocess import check_output
 
 # local imports
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 from simplecalc.calc import add_peaks
 from pythonmisc.parallel.parallelgzip import get_files
 from fileIO.hdf5.open_h5 import open_h5
+
+
 
 def get_shape(fnamelist,framelist=None,group="entry/data/data", troi = None):
     'This function opens the specified hdf5 file at default group = entry/data/data and returns the shape of the data. Includes all related files \n. Default framelist is None (gives all frames), default threshold is none'
@@ -287,3 +290,17 @@ def get_eigerrunno(master_fname):
     return eiger_runno
 
 
+def get_r3_i_list(r3_compatible_path=None):
+    '''
+    on 23.06.28
+    this returns the [[eigerprefix, eiger runno, spec_scanno, and meshshape] ...]
+    '''
+    tmp_fname  = 'delete_me_{}.tmp'.format(os.getpid())
+    r3_lines = check_output('i',shell=True).split('\n')
+    i_list=[]
+    for line in r3_lines[1:]:
+        line_split = line.split()
+        if len(line_split)==11:
+            i_list.append([line_split[0],int(line_split[1]), int(line_split[-1]), [int(line_split[-4][:-1]),int(line_split[-3][:-1])]])
+    
+    return i_list

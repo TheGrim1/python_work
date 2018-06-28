@@ -31,8 +31,12 @@ class USBCameras(object):
             else:
                 return bg.grab_image(self.cameras[cam_no], bw=True)[troi_to_slice(troi)]
                 
-        except AttributeError:
-            print('cameras not properly initialized') 
+        except AttributeError as atre:
+            print('cameras not properly initialized')
+            print(atre)
+        except RuntimeError as rtme:
+            print('maybe cameras are allready opened by a different program?')
+            print(rtme)
 
     def grab_qimage(self, cam_no, troi=None):
         array = self.grab_image(cam_no,troi)
