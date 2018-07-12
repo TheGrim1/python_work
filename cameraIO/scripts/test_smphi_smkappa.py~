@@ -1,0 +1,86 @@
+import sys
+sys.path.append('Y:\inhouse2\AJ\skript')
+import cameraIO.CamView_stages as cvs
+import numpy as np
+import time
+from pythonmisc.string_format import ListToFormattedString as list2string
+import os
+
+class move_permutation():
+    def __init__(self, stage, motors= ['phi','kappa']):
+        time.sleep(30)
+        self.move_no = 0
+        self.stage = stage
+        self.motors = motors
+        self.motor_permutation = [[x,1] for x in self.motors]
+        self.motor_permutation += [[x,-1] for x in self.motors]
+        self.fname = 'sms_test_dmesh_0p01.dat'
+        print('writing positions to {}'.format(os.path.realpath(self.fname)))
+        with file(self.fname,'a') as f:
+            f.write(list2string(motors,10)+'\n')
+        self.print_pos()
+
+    def print_pos(self):
+        pos_dc = self.stage.get_motor_dict()
+        motors = self.motors
+        print('move no {:6}'.format(self.move_no))
+        print(list2string(motors,10))
+        print(list2string([str(pos_dc[x]) for x in motors],10))
+        with file(self.fname,'a') as f:
+            f.write(list2string([str(pos_dc[x]) for x in motors],10)+'\n')
+
+    def move(self):
+        move_no = self.move_no
+        motors = self.motors
+
+        permutation = move_no % (len(motors)*2)
+        motor = self.motor_permutation[permutation][0]
+        sign = self.motor_permutation[permutation][1]
+        if motor == 'phi':
+            move = -75.5
+        elif motor == 'kappa':
+            move = 0.02
+            
+        move += sign*0.005
+        
+        print('mv {} by {}'.format(motor,move))
+        self.stage.mv(motor,move)
+        self.move_no += 1
+        self.print_pos()
+        time.sleep(1)
+
+    def dmesh(self, mot1, mot1_start, mot1_stop, mot1_points, mot2, mot2_start, mot2_stop, mot2_points, ct):
+
+        mot2_pos = self.stage.wm(mot2)
+        mot2_start = mot2_start + mot2_pos
+        mot2_stop = mot2_stop + mot2_pos
+
+        mot1_pos = self.stage.wm(mot1)
+        mot1_start = mot1_start + mot1_pos
+        mot1_stop = mot1_stop + mot1_pos
+
+        mot2_positions = np.linspace(mot2_start,mot2_stop,mot2_points)
+        for mot2_pos in mot2_positions:
+            self.stage.mv(mot2, mot2_pos)
+            self.ascan(mot1, mot1_start, mot1_stop, mot1_points, ct)  
+        
+    def ascan(self, mot, start, stop, points, ct):
+        mot_positions = np.linspace(start,stop,points)
+        for pos in mot_positions:
+            self.stage.mv(mot, pos)
+            self.print_pos()
+            time.sleep(ct)       
+            
+
+def do_test_sms():
+    stage = cvs.phi_kappa_gonio()
+
+    mover = move_permutation(stage)
+
+    # for i in range(300):
+    #     mover.move()
+
+    mover.dmesh('phi',0,0.1,10,'kappa',0,0.1,10,1)  
+if __name__=='__main__':
+    
+    do_test_sms()

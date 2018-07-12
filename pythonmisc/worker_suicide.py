@@ -4,6 +4,12 @@ import signal
 
 # parent_id = os.getpid()
 def worker_init(parent_id):
+    '''
+    facilitates ctrl - c for multiprocess.Pool processes
+    usage:
+    from pythonmisc.worker_suicide import worker_init
+    pool= Pool(12, worker_init)
+    '''
     def sig_int(signal_num, frame):
         print('signal: %s' % signal_num)
         parent = psutil.Process(parent_id)

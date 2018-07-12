@@ -304,3 +304,5 @@ def get_r3_i_list(r3_compatible_path=None):
             i_list.append([line_split[0],int(line_split[1]), int(line_split[-1]), [int(line_split[-4][:-1]),int(line_split[-3][:-1])]])
     
     return i_list
+
+    

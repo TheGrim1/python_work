@@ -54,7 +54,6 @@ def timestamp(nx_f = None):
     timestamps the passed nexus file, returns 1 if succesfull, -1 else
     '''
     if type(nx_f) == h5py._hl.files.File or type(nx_f) == NXroot:
-
         timestamp = "T".join(str(datetime.datetime.now()).split())
         if 'file_time' in list(nx_f.attrs.keys()):
             nx_f.attrs['file_update_time'] = timestamp

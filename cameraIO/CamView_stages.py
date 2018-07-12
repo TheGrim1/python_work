@@ -722,6 +722,85 @@ class EH3_smrhex_mai18(stage):
         # lookuptables:
         self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
         
+class EH3_XYTHetahex_mai18(stage):
+    '''
+    updated mai 18
+    '''
+    def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':
+                               {'camera_index':0, 'horz_func':'Y', 'vert_func':'hex_z','focus':'hex_x'},
+                               'vlm2':
+                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+            
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['vlm1'] = [576/2,748/2]
+            self.cross_pxl['vlm2'] = [576/2,748/2]
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
+        
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'hex_x'      : {'specname':'nnx', 'is_rotation':False},
+                      'hex_y'      : {'specname':'nny', 'is_rotation':False},
+                      'hex_z'      : {'specname':'nnz', 'is_rotation':False},
+                      'X'   : {'specname':'X', 'is_rotation':False},
+                      'Y'   : {'specname':'Y', 'is_rotation':False},
+                      'turret'   : {'specname':'trurret', 'is_rotation':False}, # todo
+                      'Theta'   : {'specname':'Theta', 'is_rotation':True}}
+
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+
+        # lists of motors that will the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
+        self.stagegeometry['COR_motors'] = {'Theta':{'motors':['Y','hex_z','hex_y'],'view':None,'invert':False}} 
+    
+
+        # connect to spec
+        self.connect(spechost=spechost, specsession=specsession)
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+        
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1)
+            
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['vlm1'].update({'set2':{'hex_x':1,'hex_y':-1,'hex_z':1,'Y':1,'X':1}})
+
+        self.calibration = {}
+        self.calibration.update({'vlm1':{}})
+        
+        print('setting default calibration for 5X microscope')
+        self._calibrate('hex_z',394.830502052507,'vlm1')
+
+        # lookuptables:
+        self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
+
+    def get_zoom(self):
+        if self.wm('turret') == 999:
+            self.zoom = 5
+        elif self.wm('turret') == 111:
+            self.zoom = 50
+        else:
+            self.zoom = 0
+        return self.zoom
+            
+        
+
+        
 class EH3_smrhexpiezo_mai18(stage):
     '''
     updated mai 18

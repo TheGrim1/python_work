@@ -2,96 +2,97 @@ from __future__ import print_function
 import sys, os
 import numpy as np
 import fabio
+from multiprocessing import Pool
 
 sys.path.append('/data/id13/inhouse2/AJ/skript') 
+from pythonmisc.worker_suicide import worker_init
 from silx.io.spech5 import SpecH5 as spech5
 from fileIO.hdf5.frame_getter import data_getter
 from fileIO.edf.save_edf import save_edf
 
 import fileIO.hdf5.h5_tools as h5t
 import fileIO.spec.spec_tools as st
-from multiprocessing import Pool
 
 
+# def do_all_angles_worker(args):
+#     '''
+#     worker for do_all_angles_split
+#     '''
 
-def do_all_angles_worker(args):
-    '''
-    worker for do_all_angles_split
-    '''
+#     master_fname = args[0]
+#     Theta_list = args[1]
+#     phi = float(args[2])%360.0
 
-    master_fname = args[0]
-    Theta_list = args[1]
-    phi = float(args[2])%360.0
-
-    dest_path = args[3]
-    mask_fname= args[4]
-    mask = np.where(fabio.open(mask_fname).data,0,1)
-    no_frames_per_output = 101
+#     dest_path = args[3]
+#     mask_fname= args[4]
+#     mask = np.where(fabio.open(mask_fname).data,0,1)
+#     no_frames_per_output = 101
     
-    save_tpl = dest_path+os.path.sep+'all_angles_phi_{:06d}_theta_{:06d}.edf'
-    ospid = os.getpid()
-    with data_getter(master_fname) as h5:
-        all_max = np.zeros_like(h5[0])
-        current = np.zeros(shape=[no_frames_per_output,h5[0].shape[0],h5[0].shape[1]])
-        out_index=0
-        i = 0
-        for frame in h5:
-            current[i%no_frames_per_output] = frame
-            print('process {} is on frame {}'.format(ospid,i))
-            if (i+1)%no_frames_per_output==0:
-                save_fname=save_tpl.format(int(phi*1000),int(Theta_list[out_index]*1000))
-                out_index += 1
-                print('process {} saving {}'.format(ospid,save_fname))
-                curr_max = np.max(current,axis=0)
-                curr_max *= mask
-                save_edf(curr_max, save_fname)
-                all_max = np.max([curr_max,all_max],axis=0)
-                current*=0
-            i+=1
+#     save_tpl = dest_path+os.path.sep+'all_angles_{}_phi_{:06d}_theta_{:06d}.edf'
+#     ospid = os.getpid()
+#     with data_getter(master_fname) as h5:
+#         all_max = np.zeros_like(h5[0])
+#         current = np.zeros(shape=[no_frames_per_output,h5[0].shape[0],h5[0].shape[1]])
+#         out_index=0
+#         i = 0
+#         for frame in h5:
+#             current[i%no_frames_per_output] = frame
+#             print('process {} is on frame {}'.format(ospid,i))
+#             if (i+1)%no_frames_per_output==0:
+#                 save_fname=save_tpl.format(int(phi*1000),int(Theta_list[out_index]*1000))
+#                 out_index += 1
+#                 print('process {} saving {}'.format(ospid,save_fname))
+#                 curr_max = np.max(current,axis=0)
+#                 curr_max *= mask
+#                 save_edf(curr_max, save_fname)
+#                 all_max = np.max([curr_max,all_max],axis=0)
+#                 current*=0
+#             i+=1
 
-    save_fname=save_tpl.format(int(phi*1000),99999)
-    save_edf(all_max, save_fname)
+#     save_fname=save_tpl.format(int(phi*1000),99999)
+#     save_edf(all_max, save_fname)
     
     
-def do_all_angles_split(data_fname_list):
-    master_fname_list = [h5t.parse_master_fname(x) for x in data_fname_list if x.find('_data_')>0]
-    master_fname_list = [x for x in master_fname_list if x.find('al2o3')<0]
-    eigerrunno_list = [h5t.get_eigerrunno(x) for x in master_fname_list]
+# def do_all_angles_split(data_fname_list):
+#     master_fname_list = [h5t.parse_master_fname(x) for x in data_fname_list if x.find('_data_')>0]
+#     master_fname_list = [x for x in master_fname_list if x.find('al2o3')<0]
+#     eigerrunno_list = [h5t.get_eigerrunno(x) for x in master_fname_list]
 
-    r3_i_list = h5t.get_r3_i_list()
+#     r3_i_list = h5t.get_r3_i_list()
 
-    eig_to_spec = {}
-    [eig_to_spec.update({r3_i[1]:r3_i[2]}) for r3_i in r3_i_list]
+#     eig_to_spec = {}
+#     [eig_to_spec.update({r3_i[1]:r3_i[2]}) for r3_i in r3_i_list]
     
-    spec_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/DATA/phi_kappa/phi_kappa.dat'
-    dest_path = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/split_cumu'
-    mask_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/mask.edf'
+#     spec_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/DATA/phi_kappa/phi_kappa.dat'
+#     dest_path = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/split_cumu'
+#     mask_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/mask.edf'
     
-    if not os.path.exists(dest_path):
-        os.mkdir(dest_path)
+#     if not os.path.exists(dest_path):
+#         os.mkdir(dest_path)
     
-    cumu_pars = []
+#     cumu_pars = []
     
-    with spech5(spec_fname) as spec_f:
-        for master_fname in master_fname_list:
-            eigerrunno = h5t.get_eigerrunno(master_fname)
-            if eigerrunno < 210:
-                print(master_fname)
+#     with spech5(spec_fname) as spec_f:
+#         for master_fname in master_fname_list:
+#             eigerrunno = h5t.get_eigerrunno(master_fname)
+#             if eigerrunno in 
+#                 print(master_fname)
 
-                scanno = eig_to_spec[eigerrunno]
-                Theta_list = st.get_scan_motorpos(spec_f, scanno, 'Theta')[::101]
-                phi = st.get_scan_motorpos(spec_f, scanno, 'smphi')
-                cumu_pars.append([master_fname, Theta_list, phi, dest_path, mask_fname])
+#                 scanno = eig_to_spec[eigerrunno]
+#                 print('spec scanno: {}'.format(scanno))
+#                 Theta_list = st.get_scan_motorpos(spec_f, scanno, 'Theta')[::101]
+#                 phi = st.get_scan_motorpos(spec_f, scanno, 'smphi')
+#                 cumu_pars.append([master_fname, Theta_list, phi, dest_path, mask_fname])
             
-    # do_all_angles_worker(cumu_pars[0])
+#     # do_all_angles_worker(cumu_p ars[0])
     
-    pool = Pool(12)
-    pool.map(do_all_angles_worker,cumu_pars)
-    pool.close()
-    pool.join()
+#     pool = Pool(12, worker_init(os.getpid()))
+#     pool.map(do_all_angles_worker,cumu_pars)
+#     pool.close()
+#     pool.join()
 
 
-def _y_inner_outer_worker(args):
+def _y_inner_outer_worker(args): 
     '''
     worker for do_all_angles_split
     '''
@@ -153,11 +154,11 @@ def do_y_inner_outer_split(data_fname_list):
     inner_motorname = 'Theta'
     outer_motorname = 'smphi'
     
-    spec_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/DATA/phi_kappa2/phi_kappa2.dat'
-    dest_path = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/split_cumu/all_angles'
+    spec_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/DATA/phi_kappa/phi_kappa.dat'
+    dest_path = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/split_cumu/to_cbf'
     mask_fname = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-06-23_inh_ihhc3435_aj/PROCESS/aj_log/mask.edf'  
 
-    save_tpl = dest_path+os.path.sep+'split_{}_{}_{}_{}_{}.edf'.format('{}',outer_motorname,'{:06d}',inner_motorname,'{:06d}')
+    save_tpl = dest_path+os.path.sep+'all_angles_{}_{}_{}_{}_{}.edf'.format('{}',outer_motorname,'{:06d}',inner_motorname,'{:06d}')
     if not os.path.exists(dest_path):
         os.mkdir(dest_path)
     
@@ -177,7 +178,7 @@ def do_y_inner_outer_split(data_fname_list):
     with spech5(spec_fname) as spec_f:
         for master_fname in master_fname_list:
             eigerrunno = h5t.get_eigerrunno(master_fname)
-            if eigerrunno >210:
+            if eigerrunno in range(161,207)+range(40,63):
                 print('spec info: ')
                 print(master_fname)
                 scanno = eig_to_spec[eigerrunno]
@@ -191,9 +192,9 @@ def do_y_inner_outer_split(data_fname_list):
                 
                 cumu_pars.append([master_fname, inner_list, no_ypoints, outer, dest_path, save_tpl, mask_fname])
             
-    # _yphi_kappa_worker(cumu_pars[0])
+    #_y_inner_outer_worker(cumu_pars[0])
     
-    pool = Pool(12)
+    pool = Pool(12, worker_init(os.getpid()))
     pool.map(_y_inner_outer_worker,cumu_pars)
     pool.close()
     pool.join()
@@ -250,7 +251,9 @@ python <thisfile.py> -f <file containing args as lines> \n3) find
         f = sys.stdin
         for line in f:
             args.append(line.rstrip())
-    
+
+    # do_all_angles_split(args)
+            
     do_y_inner_outer_split(args)
 
 

@@ -49,7 +49,7 @@ def main(args):
         # print(outdata.shape)
         
         fname_list = [os.path.dirname(fname)]+[os.path.sep]+list(os.path.splitext(os.path.basename(fname)))      
-        savename = ''.join(fname_list[0:2]+['_filtered',fname_list[-1]])
+        savename = ''.join(fname_list[0:3]+['_filtered',fname_list[-1]])
         
         todo_list.append([fname, sigma1, sigma2, savename])
 

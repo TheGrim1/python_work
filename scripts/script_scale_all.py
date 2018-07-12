@@ -10,6 +10,7 @@ import scipy.ndimage.interpolation as interp
 
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 
+from pythonmisc.worker_suicide import worker_init
 import fileIO.images.image_tools as it
 
 def _worker(args):
@@ -43,7 +44,7 @@ def main(args):
 
         todo_list.append([fname, zoom1, zoom2, savename])
 
-    pool= Pool(12)
+    pool= Pool(12, worker_init)
     pool.map_async(_worker, todo_list)
     pool.close()
     pool.join()

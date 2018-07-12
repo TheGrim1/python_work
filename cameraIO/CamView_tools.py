@@ -755,6 +755,7 @@ class stage(object):
         tries to align all positions wiht first position
         if correct_vertical = False, ignores the vertical correction (sometimes good for needles)
         overwrites current lookup.tmp_lookup
+        backlashcorrection = bool or value of correction
         '''
 
         if type(positions) == type(None):
@@ -792,10 +793,15 @@ class stage(object):
         else:
             plot_stack=False
                 
-
+        if backlashcorrection:
+            print('doing backlashcorrection')
+            self.mv(motor,positions[0]-float(backlashcorrection), move_using_lookup=move_using_lookup)
+                
+            
         self.lookup.initialize_tmp_lookup(lookupmotor=motor,save_motor_list=[mot0,mot1,mot2])
         for i, pos in enumerate(positions):
             print('\n\ngoing to lookup position {} of {}'.format(i+1,len(positions)))
+            
             self.mv(motor,pos,move_using_lookup=move_using_lookup)
             print('focussing')
             self.auto_focus(view=view,

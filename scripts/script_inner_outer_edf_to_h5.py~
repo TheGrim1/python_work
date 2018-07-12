@@ -1,0 +1,204 @@
+
+import sys, os
+import numpy as np
+import fabio
+import h5py
+
+sys.path.append('/data/id13/inhouse2/AJ/skript') 
+
+import fileIO.hdf5.h5_tools as h5t
+import pythonmisc.string_format as str_format
+from simplecalc.slicing import troi_to_slice
+
+def _parse_motors_values_inner_outer(fname):
+    basename = os.path.splitext(os.path.basename(fname))[0]
+    bsplit = basename.split('_')
+    prefix = '_'.join(bsplit[:-4])
+    # return [prefix, bsplit[-4], float(bsplit[-3])/1000, bsplit[-2], float(bsplit[-1])/1000]
+    return  [prefix, bsplit[-4], ((float(bsplit[-3])/1000-180)%360.0), bsplit[-2], float(bsplit[-1])/1000]
+
+def frame_worker(args):
+    super_group = args[0]
+    index = args[1]
+    edf_fname = args[2]
+    todo_dict = args[3]
+    data = fabio.open(edf_fname).data
+
+    print('reading {}'.format(edf_fname))
+    
+    for job, info in todo_dict.items():
+        [x,y]=index
+        group = super_group[job]
+        if job == 'max':
+            group['data'][x,y] = data.max()
+        elif job == 'sum':
+            group['data'][x,y] = data.sum(dtype=np.int64)
+        elif job.find('roi')>0:
+            roi = data[troi_to_slice(info)]
+            group['data'][x,y] = roi
+            group['sum'][x,y] = roi.sum(dtype=np.int64)
+            group['max'][x,y] = roi.max()
+
+
+def setup_inner_outer_h5(dest_fname,
+                         mapshape,
+                         todo_dict,
+                         inner_motor,
+                         outer_motor,
+                         inner_pos_1D,
+                         outer_pos_1D,
+                         inner_po_array,
+                         outer_pos_array):
+    
+    with h5py.File(dest_fname,'w') as dest_h5:
+
+        # give the HDF5 root some more attributes
+        dest_h5.attrs['file_name']        = dest_fname
+        dest_h5.attrs['file_time']        = timestamp
+        dest_h5.attrs['creator']          = __file__
+        dest_h5.attrs['HDF5_Version']     = h5py.version.hdf5_version
+        dest_h5.attrs['h5py_version']     = h5py.version.version
+
+        entry = dest_h5.create_group('entry')
+        entry.attrs['NX_class'] = 'NXentry'
+        entry.attrs['default'] = u'max'
+        
+        axes_group = entry.create_group('axes')
+        axes_group.attrs['NX_class'] = 'NXcollection'
+        ax0 = axes_group.create_dataset(name=innermotor+'_1D', data=inner_pos_1D)
+        ax0.attrs['long_name'] = u'regularized {} axis'.format(innermotor)
+        
+        ax1 = axes_group.create_dataset(name=outermotor+'_1D', data=outer_pos_1D)
+        ax0.attrs['long_name'] = u'regularized {} axis'.format(outermotor)
+        
+        ax2 = axes_group.create_dataset(name=innermotor, data=inner_pos_array)
+        ax0.attrs['long_name'] = u'actual {} position'.format(innermotor)
+        
+        ax3 = axes_group.create_dataset(name=outermotor, data=outer_pos_array)
+        ax0.attrs['long_name'] = u'actual {} position'.format(outermotor)
+        
+        
+        if sys.version_info < (3,):
+            string_dtype = h5py.special_dtype(vlen=unicode)
+        else:
+            string_dtype = h5py.special_dtype(vlen=str)
+
+        
+        # setup groups and datasets:
+        for job, info in todo_dict.items():
+            nxdata = entry.create_group(job)
+            nxdata.attrs['NX_class'] = 'NXdata'
+            nxdata[innermotor]=ax0
+            nxdata[outermotor]=ax1
+            if type(info) == type(None):
+                nxdata.create_dataset(name='data', shape=mapshape, dtype=np.int64)
+                nxdata.attrs['signal'] = u'data'
+                
+            else:
+                nxdata.create_dataset(name='data', shape=list(mapshape)+info[1], dtype=np.int32)
+                nxdata.create_dataset(name='sum', shape=mapshape, dtype=np.int64)
+                nxdata.create_dataset(name='max', shape=mapshape, dtype=np.int64)
+                nxdata.attrs['signal'] = u'max'
+                
+            nxdata.attrs['axes'] = numpy.array([innermotor, outermotor], dtype=string_dtype) # X axis of default plot
+
+            
+        for i,fname in enumerate(edf_fname_list):
+            frame_worker([entry,indexes[i],fname,todo_dict]) 
+
+    
+            
+def do_y_inner_outer_merge(args):
+
+    todo_dict = {'sum':None,
+                 'max':None,
+                 'troi_ul':[[630,50],[100,100]], # green
+                 'troi_ur':[[740,640],[100,100]], # red
+                 'troi_lr':[[1520,950],[100,100]], # blue
+                 'troi_cut':[[170,990],[100,100]] # cyan
+    }
+    
+    mapshape = (33,41)
+    
+    edf_fname_list = [os.path.realpath(x) for x in args if x.find('.edf')>0]
+
+    parsed_list = [_parse_motors_values_inner_outer(x) for x in edf_fname_list]
+    prefix = parsed_list[0][0]
+    dest_fname = os.path.dirname(edf_fname_list[0]) + prefix + '_merged.h5'
+    print('Will save in {}'.format(dest_fname))
+
+    innermotor = parsed_list[0][3]
+    outermotor = parsed_list[0][1]
+    print('inner motor = {}'.format(innermotor))
+    print('outer motor = {}'.format(outermotor))
+
+    inner_pos_list = [x[4] for x in parsed_list]
+    outer_pos_list = [x[2] for x in parsed_list]
+
+    no_frames = len(inner_pos_list)
+
+    print('mapshape')
+    print(mapshape)
+    print('frames found = {}'.format(no_frames))
+    
+    
+    if no_frames != mapshape[0]*mapshape[1]:
+        print('invalid mapshape!')
+        raise(ValueError)
+
+    ind_i,ind_j = np.meshgrid(range(mapshape[1]),range(mapshape[0]))
+    indexes = {}
+    [indexes.update({x:[y[1],y[0]]}) for x,y in enumerate(zip(ind_i.flatten(),ind_j.flatten()))]
+    
+    # sort everything sensibly
+    # in case of rounding errors sort by outer_pos_list
+    sorting_list = [int(x*100)+y/1000.0 for x,y in zip(inner_pos_list,outer_pos_list)]
+    b = zip(sorting_list, inner_pos_list, outer_pos_list, edf_fname_list)
+    b.sort()
+    [sorting_list, inner_pos_list, outer_pos_list, edf_fname_list] = zip(*b)
+
+    for i,vals in enumerate(zip(sorting_list, inner_pos_list, outer_pos_list)):
+        print(str_format.ListToFormattedString(['sort criteria','inner','outer', 'index'],14))
+        print(str_format.ListToFormattedString(vals + ('{}'.format(indexes[i]),),14))
+        
+    inner_pos_array = np.asarray(inner_pos_list).reshape(mapshape)
+    outer_pos_array = np.asarray(outer_pos_list).reshape(mapshape)
+    
+    inner_pos_1D = np.linspace(inner_pos_array.min(),inner_pos_array.max(),mapshape[0])
+    outer_pos_1D = np.linspace(outer_pos_array.min(),outer_pos_array.max(),mapshape[1])
+
+    setup_inner_outer_h5(dest_fname,
+                         mapshape,
+                         todo_dict,
+                         inner_motor,
+                         outer_motor,
+                         inner_pos_1D,
+                         outer_pos_1D,
+                         inner_po_array,
+                         outer_pos_array)
+    
+   
+if __name__ == '__main__':
+    
+    usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc.  \n2)
+python <thisfile.py> -f <file containing args as lines> \n3) find
+<*yoursearch* -> arg1 etc.> | python <thisfile.py> """
+
+    args = []
+    if len(sys.argv) > 1:
+        if sys.argv[1].find("-f")!= -1:
+            f = open(sys.argv[2])
+            for line in f:
+                args.append(line.rstrip())
+        else:
+            args=sys.argv[1:]
+    else:
+        f = sys.stdin
+        for line in f:
+            args.append(line.rstrip())
+
+    # do_all_angles_split(args)
+            
+    do_y_inner_outer_merge(args)
+
+
