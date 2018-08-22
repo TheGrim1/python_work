@@ -1,0 +1,122 @@
+from __future__ import print_function
+
+import numpy as np
+import h5py
+import os, sys
+import pyFAI
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import pythonmisc.pickle_utils as pu
+from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy
+
+def integrate_data_employer(pickledargs_fname):
+    '''
+    gutwrenching way to (almost) completely uncouple the h5 access from the motherprocess
+    Can be used to multiprocess.pool control the workers.
+    '''
+    fname =  __file__
+    cmd = 'python {} {}'.format(fname, pickledargs_fname)
+
+    # import inspect
+    # linno = inspect.currentframe().f_lineno
+    # print('DEBUG:\nin ' + __file__ + '\nline '+str(linno))
+    # print(cmd)
+
+    
+    os_response = os.system(cmd)
+    if os_response >1:
+        raise ValueError('in {}\nos.system() has responded with errorcode {} in process {}'.format(fname, os_response, os.getpid))
+    
+
+def integrate_data_worker(pickledargs_fname):
+    '''
+    interates troi into target_fname[target_group][XXX/data][target_index] from source_name[source_datasetpath][source_index][troi]
+    with XXX = 'q_integration_1D','q_integration_2D' and 'tth_integration_2D'. all 3!
+    these dataset have to allready exist with the right shape and dtype and no compression!
+    '''
+    
+    unpickled_args = pu.unpickle_from_file(pickledargs_fname, verbose = False)
+    # import inspect
+
+    # linno = inspect.currentframe().f_lineno
+    # print('DEBUG:\nin ' + __file__ + '\nline '+str(linno))
+    # print(unpickled_args)
+
+    target_fname = unpickled_args[0]
+    target_grouppath = unpickled_args[1]
+    target_index_list = unpickled_args[2]
+    source_fname = unpickled_args[3]
+    source_datasetpath = unpickled_args[4]
+    source_index_list = unpickled_args[5]
+    poni_fname = unpickled_args[6]
+    npt_azim, npt_rad =  unpickled_args[7]
+    roi_min, roi_max =  unpickled_args[8]
+    
+    verbose = unpickled_args[9]
+        
+    if verbose:
+        print('='*25)
+        print('process {} is doing'.format(os.getpid()))
+        for arg in unpickled_args:
+            print(arg)
+    
+
+    with h5py.File(target_fname) as target_file:
+        with h5py.File(source_fname,'r') as source_file:
+
+            target_group = target_file[target_grouppath]
+            frameshape = source_file[source_datasetpath][source_index_list[0]].shape
+
+            if 'mask' in target_group.keys():
+                mask = target_group['mask'].value
+            else:
+                mask = np.zeros(shape = (frameshape[0],frameshape[1]))
+                
+            ai = pyFAI.AzimuthalIntegrator()
+            ai.reset()
+            ai.load(poni_fname)
+            for target_index, source_index in zip(target_index_list,source_index_list):
+
+                raw_data = source_file[source_datasetpath][source_index]
+                raw_data = np.where(raw_data>1e7, 0, raw_data)
+
+                q2d_data, dummy1, dummy2 = ai.integrate2d(data = raw_data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='q_nm^-1')
+
+                target_group['q_2D/data'][target_index] = q2d_data
+                I_azim  = q2d_data.sum(1)
+                target_group['chi_azimuthal/I'][target_index,:] = I_azim
+
+                I_azim_roi = q2d_data[:,roi_min:roi_max].sum(1)
+                target_group['chi_azimuthal_roi/I'][target_index,:] = I_azim_roi
+
+                I_radial = q2d_data.sum(0)
+                target_group['q_radial/I'][target_index,:] = I_radial
+
+                tth2d_data, dummy1, dummy2 = ai.integrate2d(data = raw_data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='2th_deg')
+
+                target_group['tth_2D/data'][target_index] = tth2d_data
+                I_tth = tth2d_data.sum(0)
+                target_group['tth_radial/I'][target_index,:] = I_tth
+
+
+
+                if verbose:
+                    print('process {} is integrating frame {}'.format(os.getpid(),target_index))
+
+
+            # target_file.flush()
+            
+    if verbose:
+        print('process {} is done'.format(os.getpid()))
+        print('='*25)
+
+if __name__=='__main__':
+    ''' 
+    This is used by the local function integrate_troi_employer(pickledargs_fname),
+    DO NOT CHANGE
+    '''
+    if len(sys.argv)!=2:
+        print('usage : python integrate_troi_worker <pickled_instruction_list_fname>')
+    pickledargs_fname = sys.argv[1]
+    integrate_data_worker(pickledargs_fname)
+                        

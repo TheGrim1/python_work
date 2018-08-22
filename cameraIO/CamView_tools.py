@@ -22,9 +22,10 @@ if 'skript' in path_list:
         if folder == 'skript':
             break
 importpath = os.path.sep.join(importpath_list)
+sys.path.insert(0, "/mntdirect/_data_opid13_inhouse/Manfred/PLATFORM/d_mnext3/mnext3/SW/muenchhausen/EIGER-DVP/.DVP_1000")
 sys.path.insert(0, importpath)        
 
-sys.path.insert(0, "/mntdirect/_data_opid13_inhouse/Manfred/PLATFORM/d_mnext3/mnext3/SW/muenchhausen/EIGER-DVP/.DVP_1000")
+
 
 from fileIO.images.image_tools import optimize_greyscale
 import fileIO.images.image_tools as it
@@ -384,29 +385,9 @@ class stage(object):
         
               
     def _optimize_imagestack_contrast(self, imagestack, cutcontrast):
-    
-        print('optimizing image contrast with {}'.format(cutcontrast))
 
-        imagestack_max = np.max(imagestack)
-
-        if cutcontrast > 0:
-            print('cutting low intensities')
-            imagestack=np.where(imagestack<abs(cutcontrast)*imagestack_max,0,imagestack)
-            perc_low = 1
-            perc_high = 100
-        else:
-            print('cutting high intensities, inverting')
-
-            imagestack=np.where(imagestack>abs(cutcontrast)*imagestack_max,imagestack_max,imagestack)
-            imagestack = np.max(imagestack) - imagestack
-            perc_low=0
-            perc_high =99
-
-        imagestack = optimize_greyscale(imagestack, perc_low=perc_low, perc_high=perc_high)
-
-
-        return imagestack
-
+        return it.optimize_imagestack_contrast(imagestack, cutcontrast)
+        
 
     def get_COR(self, 
                 motor     = 'rotz',
@@ -876,21 +857,21 @@ class stage(object):
 
             
     def make_tmp_lookup_top_view(self,
-                             motor = 'rotz',
-                             view = 'top',
-                             positions = [0,1,2,3,4,5],
-                             mode = 'com',
-                             resolution = None,
-                             lookup_motors = None,
-                             plot = True,
-                             troi = None,
-                             cutcontrast=0.5,
-                             backlashcorrection = True,
-                             savename = None,
-                             move_using_lookup=False,
-                             saveimages=False,
-                             saveimages_prefix='lookup1',
-                             sleep=0):
+                                 motor = 'rotz',
+                                 view = 'top',
+                                 positions = [0,1,2,3,4,5],
+                                 mode = 'com',
+                                 resolution = None,
+                                 lookup_motors = None,
+                                 plot = True,
+                                 troi = None,
+                                 cutcontrast=0.5,
+                                 backlashcorrection = True,
+                                 savename = None,
+                                 move_using_lookup=False,
+                                 saveimages=False,
+                                 saveimages_prefix='lookup1',
+                                 sleep=0):
         ''' 
         creates a lookup table for <motor>
         the lookuptable will contain positions of <motor> between 0 and 360 seperated by <resolution> 

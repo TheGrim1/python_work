@@ -1,0 +1,190 @@
+
+def do_integration()
+
+    integ_starttime = time.time()
+    total_datalength = 0
+    noprocesses = 1
+
+    print('\nINTEGRATING, verbose = %s\n' % verbose)
+    print('number of processes used: {}'.format(noprocesses))
+
+    with h5py.File(self.fname) as h5_file:
+        todolist = []
+        for troiname in h5_file['entry/integrated'].keys():
+
+            troi_grouppath = 'entry/integrated/{}'.format(troiname)
+            h5troi_group = h5_file[troi_grouppath]
+            troiponi_fname = h5troi_group['calibration'][troiname].attrs['ponifile_original_path']
+            raw_datasetpath = 'entry/integrated/{}/raw_data/data'.format(troiname)
+            troi = np.asarray(h5troi_group['troi'])
+
+            datashape = h5_file[raw_datasetpath].shape 
+            # dtype = h5_file[raw_datasetpath].dtype
+            dtype = np.float32
+            datalength = datashape[0]
+
+
+            npt_rad  = int(datashape[2]*1.5)
+
+            npt_azim = int(datashape[1]*1.5)
+
+            # setup groups and datasets
+            qrad_group = self.nx_f[troi_grouppath]['q_radial'] = nx.NXdata()
+            chi_group = self.nx_f[troi_grouppath]['chi_azimuthal'] = nx.NXdata()
+            tthrad_group = self.nx_f[troi_grouppath]['tth_radial'] = nx.NXdata()
+            q2D_group = self.nx_f[troi_grouppath]['q_2D'] = nx.NXdata()
+            tth2D_group = self.nx_f[troi_grouppath]['tth_2D'] = nx.NXdata()
+            axes_group = self.nx_f[troi_grouppath]['axes'] = nx.NXcollection()
+
+            self.nx_f.close()
+            h5_file.flush()
+
+            h5troi_group['q_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=True)
+            h5troi_group['chi_azimuthal'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_azim), compression='lzf', shuffle=True)
+            h5troi_group['tth_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=True)
+            h5troi_group['q_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=True)
+            h5troi_group['tth_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=True)
+
+
+            h5_file.flush()
+
+            if 'mask' in h5troi_group.keys():
+                mask = h5troi_group['mask']
+            else:
+                mask = np.zeros(shape = (datashape[1],datashape[2]))
+
+            # do one integration to get the attributes out of ai:
+            ai = pyFAI.AzimuthalIntegrator()              
+            ai.load(troiponi_fname)
+            ai.setChiDiscAtZero()
+
+            frame = 0
+            raw_data = h5troi_group['raw_data/data'][frame]
+
+            q_data, qrange, qazimrange  = ai.integrate2d(data = raw_data, mask=mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='q_nm^-1')
+            tth_data, tthrange, tthazimrange  = ai.integrate2d(data = raw_data, mask=mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='2th_deg')
+
+            # wavelength = h5_troigroup['calibration'][troiname]['Wavelength'].value
+            # energy =  lam2en(wavelength*1e-10)/1000
+            qtroi      = xy_to_troi(min(qazimrange),max(qazimrange),min(qrange),max(qrange))
+            tthtroi    = xy_to_troi(min(tthazimrange),max(tthazimrange),min(tthrange),max(tthrange))
+
+            if verbose:
+                print('q-unit = {}, qtroi = '.format('q_nm^-1'))
+                print(qtroi)
+                print('qrange    = from %s to %s'% (max(qrange),min(qrange)))
+                print('azimrange = from %s to %s'% (max(qazimrange),min(qazimrange)))
+                print('2Theta range = from %s to %s' %(max(tthrange),min(tthrange)))
+                print('2Thetaazim range = from %s to %s' %(max(tthazimrange),min(tthazimrange)))
+
+            h5troi_group['axes'].create_dataset(name = 'frame_no', data=np.arange(datashape[0]))
+            h5troi_group['axes'].create_dataset(name = 'q_radial', data=qrange)
+            h5troi_group['axes/q_radial'].attrs['units'] = 'q_nm^-1'
+            h5troi_group['axes'].create_dataset(name = 'tth', data=tthrange)
+            h5troi_group['axes/tth'].attrs['units'] = 'tth_deg'
+            h5troi_group['axes'].create_dataset(name = 'chi_azim', data=qazimrange)
+            h5troi_group['axes/chi_azim'].attrs['units'] = 'deg'
+            h5troi_group['axes'].create_dataset(name = 'troi', data=troi)
+            h5troi_group['axes'].create_dataset(name = 'qtroi', data=qtroi)
+            h5troi_group['axes'].create_dataset(name = 'tthtroi', data=tthtroi)
+
+            h5troi_group['q_radial/frame_no'] = h5troi_group['axes/frame_no']
+            h5troi_group['q_radial/q_radial'] = h5troi_group['axes/q_radial']
+            h5troi_group['q_radial'].attrs['signal'] = 'I'
+            h5troi_group['q_radial'].attrs['axes'] = ['frame_no','q_radial']
+            h5troi_group['q_radial/q_radial'].attrs['units'] = 'q_nm^-1'
+
+            h5troi_group['chi_azimuthal/frame_no'] = h5troi_group['axes/frame_no']
+            h5troi_group['chi_azimuthal/azim_range'] = h5troi_group['axes/chi_azim']
+            h5troi_group['chi_azimuthal'].attrs['signal'] = 'I'
+            h5troi_group['chi_azimuthal'].attrs['axes'] = ['frame_no','azim_range']
+
+            h5troi_group['tth_radial/frame_no'] = h5troi_group['axes/frame_no']
+            h5troi_group['tth_radial/tth'] = h5troi_group['axes/tth']
+            h5troi_group['tth_radial'].attrs['signal'] = 'I'
+            h5troi_group['tth_radial'].attrs['axes'] = ['frame_no','tth']
+
+            h5troi_group['q_2D/frame_no'] = h5troi_group['axes/frame_no']
+            h5troi_group['q_2D/q_radial'] = h5troi_group['axes/q_radial']
+            h5troi_group['q_2D/azim_range'] = h5troi_group['axes/chi_azim']
+            h5troi_group['q_2D'].attrs['signal'] = 'data'
+            h5troi_group['q_2D'].attrs['axes'] = ['frame_no', 'azim_range', 'q_radial']
+
+            h5troi_group['tth_2D/frame_no'] = h5troi_group['axes/frame_no']
+            h5troi_group['tth_2D/tth'] = h5troi_group['axes/tth']
+            h5troi_group['tth_2D/azim_range'] = h5troi_group['axes/chi_azim']
+            h5troi_group['tth_2D'].attrs['signal'] = 'data'
+            h5troi_group['tth_2D'].attrs['axes'] = ['frame_no', 'azim_range', 'tth']
+
+            # now setup for integration of all frames in parallel:
+
+            datalength = datashape[0]
+
+            total_datalength += datalength
+            target_fname = source_fname = self.fname
+
+            # split up the indexes to be processed per worker:
+            index_interval = int(datalength / noprocesses)
+            source_index_list = [range(i*index_interval,(i+1)*index_interval) for i in range(noprocesses)]
+            source_index_list[noprocesses-1] = range((noprocesses-1)*index_interval,datalength)
+            target_index_list = source_index_list            
+
+
+            # $PAR_TIME$ timer_fname_list  = [pt.newfile() for source_x in source_index_list]
+
+            [todolist.append([target_fname,
+                              troi_grouppath,
+                              target_index_list[i],
+                              source_fname,
+                              raw_datasetpath,
+                              source_index_list[i],
+                              None,
+                              troiponi_fname,
+                              [npt_azim, npt_rad],
+                              verbose]) for i in range(len(target_index_list))]
+
+        h5_file.flush()    
+    instruction_list = []
+
+    # print('\nDEBUG\n')
+    # for i,todo in enumerate(todolist):
+    #     print('\n' + '--'*25 + 'TODO{}:'.format(i))
+    #     for todo_tem in todo:
+    #         print(todo_item)
+
+
+    # Checkes the h5 file, this seems to fix some filesytem issues:
+    touch = os.path.exists(self.fname)
+    # print('touching h5 file: {}'.format(touch))
+    self.nx_f.close()
+
+    # h5_file is CLOSED... this seems to work:
+    for i,todo in enumerate(todolist):
+        instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose, counter=i)
+        instruction_list.append(instruction_fname)
+
+    if noprocesses==1:
+        # DEBUG (change to employer for max performance
+        for instruction in instruction_list:
+            idw.integrate_data_employer(instruction)
+        ## non parrallel version for one dataset and timing:
+        #idw.integrate_data_worker(instruction_list[0])
+    else:
+        pool = Pool(processes=noprocesses)
+        pool.map_async(idw.integrate_data_employer,instruction_list)
+        pool.close()
+        pool.join()
+
+
+    # Checkes the h5 file, this seems to fix some filesytem issues:
+    touch = os.path.exists(self.fname)
+    # print('touching h5 file: {}'.format(touch))
+    self.nx_f.close()
+
+    integ_endtime = time.time()
+    integ_time = (integ_endtime - integ_starttime)
+    print('='*25)
+    print('\ntime taken for integration of {} frames = {}'.format(total_datalength, integ_time))
+    print(' = {} Hz\n'.format(total_datalength/integ_time))
+    print('='*25) 
+

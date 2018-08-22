@@ -1,0 +1,20 @@
+
+import numpy as np
+
+import sys
+import open_data
+
+
+SOURCE_FNAME = '/tmp_14_days/johanne/edf_edna/hkl.txt'
+DEST_FNAME = '/tmp_14_days/johanne/edf_edna/hkl_mod.txt'
+
+def main():
+    f2 = file(SOURCE_FNAME,'w')
+    f = file(DEST_FNAME,'r')
+
+    all_lines = f.readlines()
+
+
+if  __name__ == '__main__':
+    main()
+

@@ -1,0 +1,9 @@
+import sys, os
+import numpy as np
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+
+import simplecalc.fitting as fit
+
+def subtract_parabolic_background(frame, bkg_points=None):
+    
+re

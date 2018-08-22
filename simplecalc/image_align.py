@@ -70,8 +70,6 @@ def userclick_align(imagestack, norm='linear', coordinates_fname=None):
     prompts user input for each frame aligning them to the first frame and selected pixel
     '''
 
-
-
     # if coordinates_fname==None:
     #     coordinates_fname = os.getcwd() + os.path.sep + "image_align_coordinates_{}.dat".format(int(time.time()))
     # else:
@@ -85,6 +83,8 @@ def userclick_align(imagestack, norm='linear', coordinates_fname=None):
 
     coords = run_GenericIndexTracker(arg_list[0])
 
+    bla=str(raw_input('...'))
+    
     shift = np.asarray([[[coords[0,1] - x[1],coords[0,0]-x[0]] for x in coords]][0])
 
     print(coords)

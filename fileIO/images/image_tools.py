@@ -62,7 +62,6 @@ def optimize_greyscale(data_in, perc_low=0.1, perc_high = 99.9,
                        out_max = 255, dtype = "uint8", mask = None):
     '''
     optimizes the scaling of data to facilitate alignment procedures
-    inverts scale if at percentile (<prec_low> + <perc_high>)/2 the luninosity is less* than 0.5
     * swithched with <foreground_is_majority>
     default is change dytpe to: "int8" else pass None
     '''
@@ -71,8 +70,11 @@ def optimize_greyscale(data_in, perc_low=0.1, perc_high = 99.9,
         high = np.percentile(data_in,perc_high)
     else:
         not_mask = np.where(mask,0,1)
-        low  = np.percentile(data_in[np.where(not_mask)],perc_low)
-        high = np.percentile(data_in[np.where(not_mask)],perc_high)
+        if not_mask.sum()>0:
+            low  = np.percentile(data_in[np.where(not_mask)],perc_low)
+            high = np.percentile(data_in[np.where(not_mask)],perc_high)
+        else:
+            return np.zeros_like(data_in)
         
     #print '0-',low,high
     data = np.copy(data_in)
@@ -81,7 +83,6 @@ def optimize_greyscale(data_in, perc_low=0.1, perc_high = 99.9,
 
     data = np.where(data<0.0,   0.0,data)
     data = np.where(data>1.0, 1.0,data)
-
     
     optimized = data * out_max
     
@@ -90,6 +91,54 @@ def optimize_greyscale(data_in, perc_low=0.1, perc_high = 99.9,
         
     return optimized
 
+def optimize_imagestack_contrast(imagestack, cutcontrast):
+    print('optimizing image contrast with {}'.format(cutcontrast))
+
+    imagestack_max = np.max(imagestack)
+
+    if cutcontrast > 0:
+        print('cutting low intensities')
+        imagestack=np.where(imagestack<abs(cutcontrast)*imagestack_max,0,imagestack)
+
+    else:
+        print('cutting high intensities, inverting')
+
+        imagestack = np.where(imagestack>abs(cutcontrast)*imagestack_max,imagestack_max,imagestack)
+        imagestack = np.max(imagestack) - imagestack
+
+    pixel_low = np.where(imagestack>0,0,1)
+    perc_low = 0
+    perc_high = 100
+    imagestack = optimize_greyscale(imagestack, perc_low=perc_low, perc_high=perc_high, mask=pixel_low)
+
+
+    return imagestack
+
+
+def crop_imagestack(imagestack,shape,centers=None):
+    '''
+    crops the imagestack down to len(imagestack) x shape
+    if centers is given len(centers) must = len(imagestack)
+    the data[i] is cropped around centers[i] 
+    else the image is cropped equally from all sides
+    '''
+    if type(centers)==type(None):
+        centers = imagestack.shape[0]*[imagestack.shape[1],imagestack.shape[2]]
+    else:
+        centers = [[int(x[0]),int(x[1])] for x in centers]
+        
+    corners = [[x[0]-int(shape[0]/2),x[1]-(shape[1]/2)] for x in centers]
+
+    cropped = np.zeros(shape=(len(imagestack),shape[0],shape[1]))
+
+    for i,image in enumerate(imagestack):
+        u = int(corners[i][0]+shape[0])
+        d = int(corners[i][0])
+        l = int(corners[i][1])
+        r = int(corners[i][1]+shape[1])
+        cropped[i] = image[d:u,l:r]
+    
+    return cropped 
 
 def open_series(find_path,find_arg, verbose = False):
     '''

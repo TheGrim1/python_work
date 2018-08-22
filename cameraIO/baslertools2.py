@@ -34,15 +34,13 @@ class CameraProxy(object):
 
     DEFAULT_DEVNAME = "id13/limaccds/eh2-vlm1"
 
-
-    def __init__(self, devname='<default>'):
+    def __init__(self, devname='<default>',img_no=0):
         if devname == '<default>':
             devname = self.DEFAULT_DEVNAME
-
         self.devname = devname
         self.device = DeviceProxy(self.devname)
-        self.j = 0
-
+        self.j = img_no
+        
     def show_devinfo(self):
         device = self.device
         # print('hello form {}'.format(__file__))
@@ -66,19 +64,22 @@ class CameraProxy(object):
         device = self.device
 
         image_data = device.video_last_image
-        if not self.j % 50:
-            print("cycle:", self.j, "last_image_acquired =", device.video_last_image_counter)
-        if image_data[0]=="VIDEO_IMAGE":
-            header_fmt = ">IHHqiiHHHH"
-            header_size= struct.calcsize(header_fmt)
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, image_data[1][:header_size])
-            #print "ver=%r, img_mode=%r, frame_number=%r, width=%d, height=%d" % (ver, img_mode, frame_number, width, height)
-            self.shape = (height, width)
-            raw_buffer = numpy.fromstring(image_data[1][header_size:], numpy.uint16)
-        else:
-            print("ERROR : No header found")
-            raise error("image acquisition failed")
 
+        image_counter = int(self.j)
+        # allways get a new image:
+        while image_counter == self.j:
+
+            if image_data[0]=="VIDEO_IMAGE":
+                header_fmt = ">IHHqiiHHHH"
+                header_size= struct.calcsize(header_fmt)
+                _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, image_data[1][:header_size])
+                #print "ver=%r, img_mode=%r, frame_number=%r, width=%d, height=%d" % (ver, img_mode, frame_number, width, height)
+                self.shape = (height, width)
+                raw_buffer = numpy.fromstring(image_data[1][header_size:], numpy.uint16)
+            else:
+                print("ERROR : No header found")
+                raise error("image acquisition failed")
+            image_counter = int(device.video_last_image_counter)
 
         scaling = pixmaptools.LUT.Scaling()
 
@@ -87,7 +88,7 @@ class CameraProxy(object):
     
         returnFlag,qimage =  pixmaptools.LUT.raw_video_2_image(raw_buffer, width, height, lutMode, scaling)
 
-        self.j += 1
+        self.j = int(image_counter)
         return (returnFlag,qimage, device.video_last_image_counter)
 
     def convert_to_greyscale_int18(self, qimage):

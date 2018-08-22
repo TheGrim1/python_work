@@ -1,0 +1,27 @@
+import glob
+from multiprocessing import Pool
+import os
+import fitter
+
+def main():
+    noprocesses = 50
+    find_tpl = '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-04-21_user_ma4110_dufour/PROCESS/SESSION_INTEGRATE/cyclec/run01/integrated_cell_cyclec1_13_639_data_test.h5'
+
+    data_fname_list = glob.glob(find_tpl)
+    
+    todo_list = []
+
+    print('starting {} processes to sum up rois'.format(noprocesses))
+    
+    for data_fname in data_fname_list:
+        todo_list.append([data_fname,  True])
+
+    print(todo_list)
+    pool = Pool(processes=noprocesses)
+    pool.map_async(fitter.do_fit,todo_list)
+    pool.close()
+    pool.join()
+
+
+if __name__=='__main__':
+    main()

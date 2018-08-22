@@ -16,13 +16,13 @@ header can be str or list type
     f = open(fname, 'w')
 
     if type(header) is list:
-        f.write('#' + delimiter.join(header) + '\n')
+        f.write('#' + delimiter.join(header) + '\r\n')
     elif type(header) is str:
-        f.write('#' + header + '\n')
+        f.write('#' + header + '\r\n')
         
         
     for dataline in data:
-        f.write(delimiter.join([str(x) for x in dataline]) + '\n')
+        f.write(delimiter.join([str(x) for x in dataline]) + '\r\n')
     
     f.flush()
     f.close()

@@ -1,0 +1,115 @@
+
+import numpy as np
+import h5py
+import os, sys
+import pyFAI
+import scipy.ndimage.measurements as meas
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import pythonmisc.pickle_utils as pu
+from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy
+import simplecalc.lorentz_fitting as lf
+import subtract_backgroud as sb
+
+def fit_data_employer(pickledargs_fname):
+    '''
+    gutwrenching way to (almost) completely uncouple the h5 access from the motherprocess
+    Can be used to multiprocess.pool control the workers.
+    '''
+    fname =  __file__
+    cmd = 'python {} {}'.format(fname, pickledargs_fname)
+    
+    os_response = os.system(cmd)
+    if os_response >1:
+        raise ValueError('in {}\nos.system() has responded with errorcode {} in process {}'.format(fname, os_response, os.getpid()))
+    
+
+def fit_data_worker(pickledargs_fname):
+    '''
+    interates fit routine over source_name[source_grouppath][dataset_path] and stores results in target_fname[target_group][results_path]
+    these datasets have to already exist with the right shape and dtype and no compression!
+    '''
+
+    print('pid: {}'.format(os.getpid()))
+    
+    unpickled_args = pu.unpickle_from_file(pickledargs_fname, verbose = False)
+
+
+    print(unpickled_args)
+            
+    h5_fname = unpickled_args[0]
+    source_grouppath = unpickled_args[1]
+    target_grouppath = unpickled_args[2]
+    roinames  = unpickled_args[3]
+    rois =  unpickled_args[4]
+    bkg_points =  unpickled_args[5]
+    verbose = unpickled_args[6]
+        
+    if verbose:
+        print('='*25)
+        print('process {} is doing'.format(os.getpid()))
+        for arg in unpickled_args:
+            print(arg)
+    
+    print roinames
+    print rois
+    no_rois = len(roinames)
+
+            
+    with h5py.File(h5_fname) as h5_f:
+        try:
+            target_group = h5_f.create_group(target_grouppath)
+        except ValueError:
+            target_group = h5_f[target_grouppath]
+
+        print(h5_f[source_grouppath])
+        
+        data = h5_f[source_grouppath]
+        datashape = data.shape
+        no_frames = datashape[0]
+        try:
+            axes = target_group.create_group('axes' )
+        except ValueError:
+            axes = target_group['axes']
+            
+        target_group.attrs['NXclass'] = 'NXcollection'
+        print(rois)
+
+        axes.create_dataset(name='roi_number', data = np.arange(no_rois))
+        axes.create_dataset(name='rois', data = np.asarray(rois))
+        axes.create_dataset(name='frame_no', data = np.arange(no_frames))
+
+        roi_result = np.empty(shape = (no_frames, no_rois))
+        
+        for i in range(no_frames):
+            frame = data[i]
+            print(i)
+            real_data = sb.subtract_parabolic_background(frame, bkg_points, verbose = True)
+                              
+            roi_result[i] = np.asarray([real_data[roi_min:roi_max].sum() for roi_min, roi_max in rois])
+
+        target_group.create_dataset('I', roi_result)
+
+        target_group.attrs['NXclass'] = 'NXdata'
+        target_group['frame_no'] = axes['frame_no']
+        target_group['roi_name'] = axes['roi_name']
+        target_group.attrs['signal'] = 'I'
+        target_group.attrs['axes'] = ['frame_no','roi_name']
+            
+        h5_f.flush()
+            
+    if verbose:
+        print('process {} is done'.format(os.getpid()))
+        print('='*25)
+
+
+if __name__=='__main__':
+    ''' 
+    This is used by the local function integrate_troi_employer(pickledargs_fname),
+    DO NOT CHANGE
+    '''
+    if len(sys.argv)!=2:
+        print('usage : python integrate_troi_worker <pickled_instruction_list_fname>')
+    pickledargs_fname = sys.argv[1]
+    fit_data_worker(pickledargs_fname)
+                        

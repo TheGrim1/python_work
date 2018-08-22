@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import sys
+import copy
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 from fileIO.datafiles import open_data, save_data
 from cameraIO.CamView_lookup import LookupDict, LookupDict_Phi_XZKappa, LookupDict_Phi_hexXZKappa
@@ -373,7 +374,7 @@ class LUT_Anyberg(object):
             print(mot)
             print(values)
             
-        self.update_lookup(motor=lookupmotor, shift_lookup=self.tmp_lookup[lookupmotor], overwrite=overwrite, lookupmotors=lookupmotors, shift_relative=shift_relative)
+        self.update_lookup(motor=lookupmotor, shift_lookup=copy.deepcopy(self.tmp_lookup[lookupmotor]), overwrite=overwrite, lookupmotors=lookupmotors, shift_relative=shift_relative)
 
     def lookup_to_tmp(self, lookupmotor):
         '''
@@ -425,6 +426,8 @@ class LUT_Anyberg(object):
                 corr = self.get_lookup_correction(mk, start_pos, target_pos, dynamic=True)
                 for (k,v) in list(corr.items()):
                     motor_dc[k] += v
+
+                
 
         # actual lookup dict:
         for mot in self.tmp_lookup[lookupmotor].keys():

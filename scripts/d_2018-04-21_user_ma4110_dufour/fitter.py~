@@ -1,0 +1,135 @@
+import time
+import sys,os
+import h5py
+import numpy as np
+import pyFAI
+import fabio
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import fit_data_worker as fdw
+import pythonmisc.pickle_utils as pu
+from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy
+
+
+def do_fit(args):
+    dest_fname = args[0]
+    verbose = args[1]
+    fit_starttime = time.time()
+
+    total_datalength = 0
+
+    print('fitting diffraction data from {}'.format(dest_fname))
+    
+    roinames = ['first','second']
+    rois = [(850,900),(950,1000)]
+    
+    bkg_points =range(845,850) + range(950,955)+ range(1100,1105) + range(1255,1260) + range(1550,1555) + range(1930,1935)
+
+    source_grouppath = 'entry/integrated/tth_radial/I' 
+    dest_grouppath = 'entry/rois/'
+
+    no_rois = len(rois)
+
+    print('rois')
+    print(rois)
+
+    todo = [dest_fname,
+            source_grouppath,
+            dest_grouppath,
+            roinames,
+            rois,
+            bkg_points,
+            verbose]
+
+    instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose)
+
+    print(instruction_fname)
+    
+    fdw.fit_data_employer(instruction_fname)
+    
+    fit_endtime = time.time()
+    fit_time = (fit_endtime - fit_starttime)
+    
+    print('='*25)
+    print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, fit_time))
+    print(' = {} Hz\n'.format(total_datalength/fit_time))
+    print('='*25) 
+
+    
+def do_merge_diffraction_data(dest_file, verbose=False):
+    
+    with h5py.File(dest_fname) as dest_h5:
+
+        troi_list = dest_h5['entry/merged_data/diffraction'].keys()
+        shift = list(np.asarray(dest_h5['entry/merged_data/shift/shift']))
+        diff_merged = dest_h5['entry/merged_data/diffraction'] 
+
+        axes  = dest_h5['entry/merged_data/axes']
+        Theta_pts = axes['Theta'].shape[0]
+        y_pts = axes['y'].shape[0]
+        x_pts = axes['x'].shape[0]
+        no_peaks = axes['peak_number'].shape[0]
+        no_pp = axes['peak_parameters'].shape[0]
+        dtype = axes['x'].dtype
+        mapshape = (y_pts,x_pts)
+        datashape = (Theta_pts, y_pts, x_pts)
+       
+        for troiname in troi_list:    
+
+            troi_group = diff_merged[troiname]
+            first_map = troi_group['single_maps'].values()[0]
+            no_peaks = first_map['chi_fit'].shape[2]
+            
+            diff_ori = troi_group.create_group('diff_original')
+            diff_ori.attrs['NXclass'] = 'NXdata'
+            diff_ori.attrs['signal'] = 'sum'
+            diff_ori.attrs['axes'] = ['Theta','y','x']
+            diff_ori['Theta'] = axes['Theta']
+            diff_ori['x'] = axes['x']
+            diff_ori['y'] = axes['y']
+
+            diff_ali = troi_group.create_group('diff_aligned')
+            diff_ali.attrs['NXclass'] = 'NXdata'
+            diff_ali.attrs['signal'] = 'sum'
+            diff_ali.attrs['axes'] = ['Theta','y','x']
+            diff_ali['Theta'] = axes['Theta']
+            diff_ali['x'] = axes['x']
+            diff_ali['y'] = axes['y']
+
+            
+            diff_ori.create_dataset('sum', dtype=dtype, shape = datashape)
+            diff_ori.create_dataset('max', dtype=dtype, shape = datashape)
+            diff_ori.create_dataset('chi_com', dtype=dtype, shape = datashape)
+            diff_ori.create_dataset('tth_com', dtype=dtype, shape = datashape)
+            diff_ori.create_dataset('chi_fit', dtype=dtype, shape = (datashape[0], datashape[1], datashape[2], no_peaks,3))            
+            diff_ori.create_dataset('tth_fit', dtype=dtype, shape = (datashape[0], datashape[1], datashape[2], no_peaks,3))
+
+            diff_ali.create_dataset('sum', dtype=dtype, shape = datashape)
+            diff_ali.create_dataset('max', dtype=dtype, shape = datashape)
+            diff_ali.create_dataset('chi_com', dtype=dtype, shape = datashape)
+            diff_ali.create_dataset('tth_com', dtype=dtype, shape = datashape)
+            diff_ali.create_dataset('chi_fit', dtype=dtype, shape = (datashape[0], datashape[1], datashape[2], no_peaks,3))            
+            diff_ali.create_dataset('tth_fit', dtype=dtype, shape = (datashape[0], datashape[1], datashape[2], no_peaks,3))
+            
+
+            Theta_list = list(axes[Theta])
+            
+            for i, Theta in enumerate(Theta_list):
+                Theta_group = troi_group['single_maps/{}'.format(Theta)]
+                diff_ori['sum'][i] = np.asarray(Theta_group['sum'])
+                diff_ori['max'][i] = np.asarray(Theta_group['max'])
+                diff_ori['chi_com'][i] = np.asarray(Theta_group['chi_com'])
+                diff_ori['tth_com'][i] = np.asarray(Theta_group['tth_com'])
+                diff_ori['chi_fit'][i] = np.asarray(Theta_group['chi_fit'])
+                diff_ori['tth_fit'][i] = np.asarray(Theta_group['tth_fit'])
+                
+                diff_ali['sum'][i] = ndshift(np.asarray(Theta_group['sum']),shift[i])
+                diff_ali['max'][i] = ndshift(np.asarray(Theta_group['max']),shift[i])
+                diff_ali['chi_com'][i] = ndshift(np.asarray(Theta_group['chi_com']),shift[i])
+                diff_ali['tth_com'][i] = ndshift(np.asarray(Theta_group['tth_com']),shift[i])
+
+                for pn in range(no_peaks):
+                    for pp in range(no_parameters):
+                        diff_ali['chi_fit'][i,:,:,pn,pp] = ndshift(np.asarray(Theta_group['chi_fit'][:,:,pn,pp]),shift[i])
+                        diff_ali['tth_fit'][i,:,:,pn,pp] = ndshift(np.asarray(Theta_group['tth_fit'][:,:,pn,pp]),shift[i])
+                        
+        dest_h5.flush()

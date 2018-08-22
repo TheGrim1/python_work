@@ -1,0 +1,71 @@
+
+from multiprocessing import Pool
+import os, sys
+import integrator_1d as integrator
+import subprocess
+
+def main(args):
+    noprocesses = 30
+
+    data_fname_list = [os.path.realpath(x) for x in args if x.find('_data_')>0]
+    
+    dest_path ='/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-10_user_me1496_morin/PROCESS/SESSION_INTEGRATE/'
+    poni_fname = '/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-10_user_me1496_morin/PROCESS/SESSION27/calib_detx_795/calib_detx_795.poni'
+
+    ## masked values =1
+    mask_fname = '/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-10_user_me1496_morin/PROCESS/SESSION27/mask.edf'
+
+    print('integrating datafiles:')
+    for x in data_fname_list:
+        print(x)
+
+    print('poni_fname {}:\n'.format(poni_fname))
+    print('mask_fname {}:\n'.format(mask_fname))
+    
+    # data_fname_list = ['/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-04-21_user_ma4110_dufour//DATA/AUTO-TRANSFER/eiger1/cell_cycleb3_65_1070_data_000001.h5', '/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-04-21_user_ma4110_dufour/DATA/AUTO-TRANSFER/eiger1/cell_cycled0_31_1156_data_000001.h5','/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-04-21_user_ma4110_dufour/DATA/AUTO-TRANSFER/eiger1/cell_cycled0_117_1242_data_000001.
+    
+    dest_fname_list = [dest_path + 'integrated_' + os.path.basename(fname) for fname in data_fname_list]
+     
+    todo_list = []
+    if not os.path.exists(dest_path):
+        os.mkdir(dest_path)
+    print('starting {} processes to integrate'.format(noprocesses))
+    
+    for data_fname, dest_fname in zip(data_fname_list,dest_fname_list):
+        todo_list.append([data_fname,
+                          dest_fname,
+                          poni_fname,
+                          mask_fname,
+                          True])
+        print(data_fname)
+
+    #DEBUG:
+    # integrator.do_integration(todo_list[0])
+        
+    pool = Pool(processes=max(noprocesses,len(todo_list)))
+    pool.map_async(integrator.do_integration,todo_list)
+    pool.close()
+    pool.join()
+
+if __name__ == '__main__':
+    
+    usage =""" \n1) python <thisfile.py> <arg1> <arg2> etc.  \n2)
+python <thisfile.py> -f <file containing args as lines> \n3) find
+<*yoursearch* -> arg1 etc.> | python <thisfile.py> """
+
+
+    
+    args = []
+    if len(sys.argv) > 1:
+        if sys.argv[1].find("-f")!= -1:
+            f = open(sys.argv[2])
+            for line in f:
+                args.append(line.rstrip())
+        else:
+            args=sys.argv[1:]
+    else:
+        f = sys.stdin
+        for line in f:
+            args.append(line.rstrip())
+    
+    main(args)
