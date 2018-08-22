@@ -15,6 +15,7 @@ import pythonmisc.pickle_utils as pu
 import fileIO.hdf5.workers.fit_data_worker as fdw
 import fileIO.hdf5.workers.align_data_worker as adw
 from fileIO.datafiles.open_data import open_data
+from pythonmisc.worker_suicide import worker_init
 
 def find_my_h5_files(masterfolder):
     
@@ -168,7 +169,7 @@ def do_fluo_lines_shift(dest_fname, lines_shift_fname=None, verbose=False):
             lines_shift = list(np.asarray(align_g['lines_shift']))
             lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],lines_shift))
         else:
-            print('no lines_shift data fount in {}'.format(dest_fname))
+            print('no lines_shift data found in {}'.format(dest_fname))
             return
 
         fluo_merged = dest_h5['entry/merged_data/fluorescence']
@@ -266,7 +267,7 @@ def do_fit_raw_diffraction_data(dest_fname, no_processes=10, verbose=False):
         ## non parrallel version for one dataset and timing:
         #fdw.fit_data_worker(instruction_list[0])
     else:
-        pool = Pool(processes=no_processes)
+        pool = Pool(processes=no_processes,worker_init(os.getpid()))
         pool.map_async(fdw.fit_data_employer,instruction_list)
         pool.close()
         pool.join()
@@ -405,11 +406,11 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
 
     if no_processes==1:
         for instruction in instruction_list:
-            fdw.align_data_worker(instruction)
+            adw.align_data_worker(instruction)
         ## non parrallel version for one dataset and timing:
         #fdw.fit_data_worker(instruction_list[0])
     else:
-        pool = Pool(processes=no_processes)
+        pool = Pool(processes=no_processes, worker_init(os.getpid()))
         pool.map_async(adw.align_data_employer,instruction_list)
         pool.close()
         pool.join()
@@ -534,6 +535,8 @@ def init_h5_file(masterfolder, verbose =False):
 def main():
 
     no_processes = 22
+
+    ## this is created by read_rois.py:
     masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
