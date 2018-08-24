@@ -31,7 +31,7 @@ import fileIO.hdf5.workers.copy_troi_worker as cptw
 import fileIO.hdf5.workers.integrate_data_worker as idw
 import fileIO.edf.write_edf_from_h5_single_file as h5toedf
 import fileIO.edf.edfIO as open_edf
-
+from pythonmisc.worker_suicide import worker_init
 
 # from simplecalc.gauss_fitting import do_variable_gaussbkg_fit, do_variable_gauss_fit, do_multi_gauss_fit
 # replaced with:
@@ -181,11 +181,11 @@ class h5_scan_nexus(object):
                 self.nx_f.close()
                 h5_file.flush()
                 
-                h5troi_group['q_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=True)
-                h5troi_group['chi_azimuthal'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_azim), compression='lzf', shuffle=True)
-                h5troi_group['tth_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=True)
-                h5troi_group['q_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=True)
-                h5troi_group['tth_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=True)
+                h5troi_group['q_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=False)
+                h5troi_group['chi_azimuthal'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_azim), compression='lzf', shuffle=False)
+                h5troi_group['tth_radial'].create_dataset(name = 'I', dtype = dtype, shape=(datashape[0],npt_rad), compression='lzf', shuffle=False)
+                h5troi_group['q_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=False)
+                h5troi_group['tth_2D'].create_dataset(name = 'data', dtype = dtype, shape=(datashape[0],npt_azim,npt_rad), compression='lzf', shuffle=False)
 
 
                 h5_file.flush()
@@ -312,7 +312,7 @@ class h5_scan_nexus(object):
             ## non parrallel version for one dataset and timing:
             #idw.integrate_data_worker(instruction_list[0])
         else:
-            pool = Pool(processes=noprocesses)
+            pool = Pool(noprocesses,worker_init(os.getpid()))
             pool.map_async(idw.integrate_data_employer,instruction_list)
             pool.close()
             pool.join()
@@ -512,7 +512,7 @@ class h5_scan_nexus(object):
             # cptw.copy_troi_worker(instruction_list[0])
 
         else:
-            pool = Pool(processes=noprocesses)
+            pool = Pool(noprocesses, worker_init(os.getpid()))
             pool.map_async(cptw.copy_troi_employer,instruction_list)
             pool.close()
             pool.join()          
@@ -650,7 +650,7 @@ def do_read_rois(args):
         
         todo_list.append(todo)
     
-    pool = Pool(processes=no_processes)
+    pool = Pool(no_processes,worker_init(os.getpid()))
     pool.map_async(do_read_one_h5, todo_list)
     pool.close()
     pool.join()
@@ -692,13 +692,16 @@ def do_read_one_h5(args):
 def do_r1_w3_gpu2():
     find_tpl = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/AUTO-TRANSFER/eiger1/r1_w3_xzth__**_data_**4**'
     all_datafiles = glob.glob(find_tpl)
+    ## DEBUG: limited dataset
+    all_datafiles.sort()
+    all_datafiles = all_datafiles[9:12]
 
     spec_fname= '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/r1_w3/r1_w3.dat'
     spec_to_eiger_scanno_offset = 53-5
     eigerscanno_list = [get_eigerrunno(parse_master_fname(x)) for x in all_datafiles]
     specscanno_list = [x + spec_to_eiger_scanno_offset for x in eigerscanno_list]
 
-    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/'
 
     troi_tr = ((72, 1609), (260, 294))
     troi_ml = ((1196, 80), (415, 526))
@@ -733,7 +736,7 @@ def do_r1_w3_gpu2():
         todo_list.append(todo)
 
     # do_read_one_h5(todo_list[2])
-    pool = Pool(processes=super_processes)
+    pool = Pool(super_processes,worker_init(os.getpid()))
     pool.map_async(do_read_one_h5, todo_list)
     pool.close()
     pool.join()
@@ -786,7 +789,7 @@ def do_r1_w3():
 
     
     #do_read_one_h5(todo_list[0])
-    pool = Pool(processes=super_processes)
+    pool = Pool(super_processes,worker_init(os.getpid()))
     pool.map_async(do_read_one_h5, todo_list)
     pool.close()
     pool.join()

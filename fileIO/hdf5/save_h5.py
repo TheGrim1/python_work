@@ -1,8 +1,6 @@
 from __future__ import print_function
 # home: /data/id13/inhouse2/AJ/skript/fileIO/hdf5/save_h5.py
 
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import h5py
 import numpy as np
@@ -119,19 +117,19 @@ def save_h5(dataset, fullfname, group = 'entry/data', dataname= 'data'):
     if not os.path.exists(savedir):
         os.mkdir(savedir)
         print("making directory %s" % savedir)
-    else:
-        if not os.path.exists(fullfname):
-            savefile         = h5py.File(fullfname,"w")
-            savegroup        = savefile.create_group(group)
-            print('creating group %s' % group)
+        
+    if not os.path.exists(fullfname):
+        savefile         = h5py.File(fullfname,"w")
+        savegroup        = savefile.create_group(group)
+        print('creating group %s' % group)
 #    print h5dataset.shape
-        else: # file allready exists
-            savefile         = h5py.File(fullfname,"a")
-            try:
-                savegroup = savefile.create_group(group)            
-            except ValueError:
-                savegroup = savefile[group]
-                print('group allready exists')
+    else: # file allready exists
+        savefile         = h5py.File(fullfname,"a")
+        try:
+            savegroup = savefile.create_group(group)            
+        except ValueError:
+            savegroup = savefile[group]
+            print('group allready exists')
                 
     if type(dataname) == list:
 #       print 'listsaving'

@@ -81,7 +81,7 @@ def do_fluo_merge(dest_fname, fluo_counter = 'ball01', verbose=False):
             fluo_ori['Theta'] = axes['Theta']
             fluo_ori['x'] = axes['x']
             fluo_ori['y'] = axes['y']
-            fluo_ori.create_dataset(name='XRF_norm', dtype=y.dtype, shape=(Theta_pts, y_pts, x_pts), compression='lzf', shuffle=True)
+            fluo_ori.create_dataset(name='XRF_norm', dtype=y.dtype, shape=(Theta_pts, y_pts, x_pts), compression='lzf', shuffle=False)
 
             fluo_aligned = fluo_merged.create_group('fluo_aligned')
             fluo_aligned.attrs['NX_class'] = 'NXdata'
@@ -180,9 +180,9 @@ def do_fluo_lines_shift(dest_fname, lines_shift_fname=None, verbose=False):
         
         for i,[Theta, fname] in enumerate(Theta_list):
             for j, line in enumerate(fluo_ori_data[i]):
-                ndshift(line,lines_shift_dict[Theta][j],output = fluo_shift_aligned[i][j])
+                ndshift(line,lines_shift_dict[Theta][j],output = fluo_shift_aligned[i][j],order=1)
 
-            ndshift(fluo_shift_aligned[i],-shift[i],output=fluo_shift_aligned[i])
+            ndshift(fluo_shift_aligned[i],-shift[i],output=fluo_shift_aligned[i],order=1)
             
         fluo_sa = fluo_merged.create_group('fluo_shift_aligned')
         fluo_sa.create_dataset('XRF_norm',data=fluo_shift_aligned, compression='lzf')
@@ -267,7 +267,7 @@ def do_fit_raw_diffraction_data(dest_fname, no_processes=10, verbose=False):
         ## non parrallel version for one dataset and timing:
         #fdw.fit_data_worker(instruction_list[0])
     else:
-        pool = Pool(processes=no_processes,worker_init(os.getpid()))
+        pool = Pool(no_processes,worker_init(os.getpid()))
         pool.map_async(fdw.fit_data_employer,instruction_list)
         pool.close()
         pool.join()
@@ -319,7 +319,6 @@ def do_fit_raw_diffraction_data(dest_fname, no_processes=10, verbose=False):
     fit_time = (fit_endtime - fit_starttime)
     print('='*25)
     print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, fit_time))
-    print(' = {} Hz\n'.format(total_datalength/fit_time))
     print('='*25) 
     
 def do_align_diffraction_data(dest_fname, no_processes=4, verbose=False):
@@ -359,7 +358,8 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
             lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],lines_shift))
         else:
             lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],[None]*len(Theta_list)))
-        
+             
+            
         axes = dest_h5['entry/merged_data/axes']
         
         with h5py.File(Theta_list[0][1]) as first_h5:
@@ -410,7 +410,7 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
         ## non parrallel version for one dataset and timing:
         #fdw.fit_data_worker(instruction_list[0])
     else:
-        pool = Pool(processes=no_processes, worker_init(os.getpid()))
+        pool = Pool(no_processes, worker_init(os.getpid()))
         pool.map_async(adw.align_data_employer,instruction_list)
         pool.close()
         pool.join()
@@ -419,8 +419,8 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
     align_endtime = time.time()
     align_time = (align_endtime - align_starttime)
     print('='*25)
-    print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, align_time))
-    print(' = {} Hz\n'.format(total_datalength/fit_time))
+    print('\ntime taken for aligning of {} frames = {}'.format(total_datalength, align_time))
+    print(' = {} Hz\n'.format(total_datalength/align_time))
     print('='*25) 
 
 def collect_align_diffraction_data(dest_fname,verbose):
@@ -451,9 +451,10 @@ def collect_align_diffraction_data(dest_fname,verbose):
             source_dir = alignmap_dir+os.path.sep+troiname
             fname_list = [source_dir+os.path.sep+x for x in os.listdir(source_dir) if x.find('.h5')]
             fname_list.sort()
-            
+
             for i, subsource_fname in enumerate(fname_list):
                 with h5py.File(subsource_fname,'r') as source_h5:
+
                     Theta = source_h5['data/Theta'].value
                     Theta_group = single_maps.create_group(name=str(Theta))
                     Theta_group.attrs['NX_class'] = 'NXdata'
@@ -475,7 +476,6 @@ def collect_align_diffraction_data(dest_fname,verbose):
     collect_time = (collect_endtime - collect_starttime)
     print('='*25)
     print('\ntime taken for collecting all frames = {}'.format(collect_time))
-    print(' = {} Hz\n'.format(total_datalength/fit_time))
     print('='*25) 
         
 def init_h5_file(masterfolder, verbose =False):
@@ -534,24 +534,25 @@ def init_h5_file(masterfolder, verbose =False):
                 
 def main():
 
-    no_processes = 22
+    # no_processes = 22
 
-    ## this is created by read_rois.py:
-    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+    # ## this is created by read_rois.py:
+    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
-    # dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
-    ## somehow interactively create data to deglitch:    
-    ## 'entry/merged_data/alignment/lines_shift
+    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/merged.h5'
+    # ## somehow interactively create data to deglitch:    
+    # ## 'entry/merged_data/alignment/lines_shift
     
+
     do_fluo_lines_shift(dest_fname, lines_shift_fname='/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/line_shift.dat')
                                     
-    ## first fit then align
-    # do_fit_raw_diffraction_data(dest_fname, no_processes=no_processes, verbose = False)
-    ## first align them fit
-    # do_align_diffraction_data(dest_fname, no_processes=4, verbose=False)
-    parallel_align_diffraction(dest_fname, no_processes=4, verbose=False)
-    # collect_align_diffraction_data(dest_fname, verbose = True)
+    # ## first fit then align
+    # # do_fit_raw_diffraction_data(dest_fname, no_processes=no_processes, verbose = False)
+    # ## first align them fit
+    # # do_align_diffraction_data(dest_fname, no_processes=4, verbose=False)
+    parallel_align_diffraction(dest_fname, no_processes=12, verbose=False)
+    collect_align_diffraction_data(dest_fname, verbose = True)
         
 if __name__ == "__main__":
     main()

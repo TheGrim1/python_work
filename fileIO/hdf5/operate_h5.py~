@@ -23,7 +23,20 @@ def avg_h5(data,
     newshape        = [data.shape[x] for x in range(len(data.shape)) if x != index]
     newdata         = np.zeros(shape = newshape)
     np.sum(data, axis = index, out = newdata)
-    newdata *= (1.0 / n)
+    newdata *= (1.0/ n)
+    newdata         = newdata.reshape(newshape)
+
+    return newdata
+
+
+def max_h5(data, 
+           index = 0):
+    ### maxprojects over index of an h5 dataset
+    ## preserves shape
+    n               = data.shape[index]
+    newshape        = [data.shape[x] for x in range(len(data.shape)) if x != index]
+    newdata         = np.zeros(shape = newshape)
+    np.amax(data, axis = index, out = newdata)
     newdata         = newdata.reshape(newshape)
 
     return newdata
@@ -34,17 +47,17 @@ def main(filelist):
     nfiles = len(filelist) 
     for fname in filelist:
         try:
-            print("averaging %s" %fname)
+            print("max proj of %s" %fname)
             print("%s of %s" % (i,nfiles))
             i += 1
             data     = open_h5(fname,threshold = 5000000)
 #        plot_h5(data, index = 1)
 
-            data     = avg_h5(data)
-            newfname = os.path.sep.join([os.path.dirname(fname),"averages","avg_"+os.path.basename(fname)]) 
+            data     = max_h5(data)
+            newfname = os.path.sep.join([os.path.dirname(fname),"maximum","max_"+os.path.basename(fname)]) 
             save_h5(data, fullfname = newfname)
 #            plot_h5(data, title = newfname)
-        except:
+        except KeyError:
             print("ERROR on %s" % fname)
             pass
 

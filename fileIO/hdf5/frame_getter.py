@@ -3,6 +3,7 @@ import sys
 sys.path.append('/data/id13/inhouse2/AJ/skript/')
 import fileIO.hdf5.h5_tools as h5t
 from simplecalc.slicing import troi_to_slice            
+import numpy as np
 
 class master_getter(object):
     '''
@@ -127,10 +128,55 @@ class data_getter(object):
             except IOError:
                 print('Did not find expected datafile {}\nreturning smaller dataset'.format(data_fname))
         self.frames_per_file = self.datasets[0].shape[0]
+        self.frames_in_last_file = (self.no_frames-1)%self.frames_per_file + 1
 
     def __getitem__(self, item):
         if type(item)==slice:
-            raise NotImplementedError('TODO')
+
+            if type(item.step)==type(None):
+                step = 1
+            else:
+                step = item.step
+            if type(item.stop)==type(None):
+                stop = self.no_frames
+            else:
+                stop  = item.stop
+            if type(item.start)==type(None):
+                start = 0
+            else:
+                start = item.start
+                
+            start_dataset_no = int(start/self.frames_per_file)
+            last_dataset_no  = int((stop-step)/self.frames_per_file)
+
+            ds_start = start%self.frames_per_file
+            ds_stop  = (stop -1)%self.frames_per_file + 1 
+
+
+            if start_dataset_no == last_dataset_no:
+                if self.verbose:
+                    print('getting frames [{}:{}:{}] from dataset number {}'.format(ds_start, ds_stop, step, start_dataset_no))
+                if self.read_troi:
+                    return self.datasets[start_dataset_no][ds_start:ds_stop:step][self.slice_to_read]
+                else:
+                    return self.datasets[start_dataset_no][ds_start:ds_stop:step]
+            elif (last_dataset_no-start_dataset_no)==1:
+                remainder = ds_start%step
+                if self.verbose:
+                    print('getting frames [{}:{}:{}] from datasets {} and {}'.format(ds_start, ds_stop, step,start_dataset_no,stop_dataset_no))
+                if self.read_troi:
+                    return np.vstack([self.datasets[start_dataset_no][ds_start::step][self.slice_to_read],
+                                      self.datasets[last_dataset_no][remainder:ds_stop:step][self.slice_to_read]])
+                else:
+                    return np.vstack([self.datasets[start_dataset_no][ds_start::step],
+                                      self.datasets[last_dataset_no][remainder:ds_stop:step]])
+              
+            else:
+                raise NotImplementedError('TODO')
+            
+                
+
+    
         if item>=self.no_frames:
             raise IndexError('index: {} out of range for no_frames: {}'.format(item, self.no_frames))
         else:

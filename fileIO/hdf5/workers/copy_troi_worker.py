@@ -30,7 +30,8 @@ def copy_troi_employer(pickledargs_fname):
 def copy_troi_worker(pickledargs_fname):
     '''
     copies troi into target_fname[target_datasetpath][target_index] from source_name[source_datasetpath][source_index][troi]
-    these dataset have to allready exist with the right shape and dtype and no compression!
+    these dataset have to allready exist with the right shape and dtype 
+    no compression, if more than on onf these workers is working on one file! 
     Changes to unpickling here must be updated in h5_scan_nexusversion
     '''
     
@@ -93,6 +94,7 @@ def copy_troi_worker(pickledargs_fname):
                 while type(mask) == type(None):
                     try:
                         mask = np.asarray(h5_file[source_maskpath][slices[0],slices[1]],dtype=np.bool)
+                        mask = np.where(mask,0,1)
                     except IOError:
                         time.wait(0.001)
                         print('IO conflict process {} is waiting to read maskarray'.format(os.getpid()))
@@ -101,7 +103,7 @@ def copy_troi_worker(pickledargs_fname):
             for target_index, source_index in zip(target_index_list,source_index_list):
 
                 if type(mask) != type(None):
-                    source_data = np.where(mask, 0, h5_file[source_datasetpath][source_index][slices[0],slices[1]])
+                    source_data = h5_file[source_datasetpath][source_index][slices[0],slices[1]]*mask
                 else:
                     source_data = h5_file[source_datasetpath][source_index][slices[0],slices[1]]
                                     

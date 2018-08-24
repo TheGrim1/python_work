@@ -61,22 +61,23 @@ def align_data_worker(pickledargs_fname):
             data =  np.asarray(source_group['tth_2D/data'])
             datashape = data.shape
             data = data.reshape(list(mapshape)+list(datashape[1:]))
+            target_group.create_dataset('max_before_shift', data=data.max(axis=2).max(axis=2), compression='lzf')
+            target_group.create_dataset('sum_before_shift', data=data.sum(axis=2).sum(axis=2), compression='lzf')
+            ndshift(data, shift=list(shift)+[0]*(data.ndim-2), output=data,order=1)
+
+            target_group.create_dataset('max_before_2ndshift', data=data.max(axis=2).max(axis=2), compression='lzf')
+            target_group.create_dataset('sum_before_2ndshift', data=data.sum(axis=2).sum(axis=2), compression='lzf')
 
             if type(lines_shift)!=type(None):
-                for i,map_lines in enumerate(data):
+                for i, map_lines in enumerate(data):
                     if lines_shift[i]!=0:
-                        ndshift(map_lines, lines_shift[i]+[0]*(data.ndim-1),output=data[i])
-            
-            data_sum = np.asarray(source_group['tth_radial/I']).sum(1).reshape(mapshape)
-            ndshift(data_sum, shift, output = data_sum)
-            data_max = np.asarray(source_group['tth_radial/I']).max(1).reshape(mapshape)
-            ndshift(data_max, shift, output = data_max)
-                        
-            target_group.create_dataset('sum', data=data_sum)
-            target_group.create_dataset('max', data=data_max)
+                        ndshift(map_lines, [lines_shift[i]]+[0]*(map_lines.ndim-1),output=data[i],order=1)
 
-            ndshift(data, shift=list(shift)+[0]*(data.ndim-2), output=data)
-            target_group.create_dataset('data', data=data)
+            target_group.create_dataset('data', data=data, compression='lzf')
+            target_group.create_dataset('max', data=data.max(axis=2).max(axis=2), compression='lzf')
+            target_group.create_dataset('sum', data=data.sum(axis=2).sum(axis=2), compression='lzf')
+            target_group.create_dataset('Theta', data=Theta)
+
         
         target_file.flush()
             
