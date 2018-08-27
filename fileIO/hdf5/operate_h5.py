@@ -7,9 +7,10 @@ USAGE = """ \n1) python <thisfile.py> <OPTIONS ><arg1> <arg2> etc.
 \n--------
 \n operates on each h5 (datafile), ouputs a file each
 \n<OPTIONS>:
-\n    max - max-proj
-\n    sum - sum
-\n    mxs - max and sum
+\n    max   - max-proj
+\n    sum   - sum 
+\n    mxs   - max and sum
+\n    merge - own data
 """
 
 ### average over an h5 datasets first index, saves each dataset that was averaged as avg_data.h5
@@ -23,6 +24,7 @@ import os
 import numpy as np
 from multiprocessing import Pool
 import time
+import glob
 
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 # local
@@ -164,9 +166,7 @@ def mxs_data(fname,
 
 
 def operation_worker(args):
-    option, fname,rel_dest_path, verbose = args
-
-    dest_path = os.path.realpath((os.path.dirname(fname)+rel_dest_path))
+    option, fname, dest_path, verbose = args
     
     if not os.path.exists(dest_path):
         print('path not found')
@@ -178,37 +178,118 @@ def operation_worker(args):
         
     if option=='max':
         data = max_data(fname,verbose=verbose)
-        new_fname = os.path.sep.join([dest_path,option,option+'_'+os.path.basename(fname)]) 
+        new_fname = os.path.sep.join([dest_path,option,option+'_'+os.path.basename(fname)])
+        if os.path.exists(max_fname):
+            os.remove(max_fname)
         save_h5(data, fullfname = new_fname)
     elif option=='sum':
         data = sum_data(fname,verbose=verbose)
-        new_fname = os.path.sep.join([dest_path,option,option+'_'+os.path.basename(fname)]) 
+        new_fname = os.path.sep.join([dest_path,option,option+'_'+os.path.basename(fname)])
+        if os.path.exists(sum_fname):
+            os.remove(sum_fname)   
         save_h5(data, fullfname = new_fname)
     elif option=='mxs':
         data_max, data_sum = mxs_data(fname,verbose=verbose)
         max_fname = os.path.sep.join([dest_path,'max','max_'+os.path.basename(fname)])
-        sum_fname = os.path.sep.join([dest_path,'sum','sum_'+os.path.basename(fname)]) 
+        sum_fname = os.path.sep.join([dest_path,'sum','sum_'+os.path.basename(fname)])
+
+        if os.path.exists(max_fname):
+            os.remove(max_fname)
+        if os.path.exists(sum_fname):
+            os.remove(sum_fname)   
+        
         save_h5(data_max, fullfname = max_fname)
         save_h5(data_sum, fullfname = sum_fname)
+       
     else:
+
         print('invalid option {}'.format(option))
         print(USAGE)
+
+
+def merge_sum(source_path,verbose=False):
+    fname_list = [os.path.realpath(x) for x in glob.glob(source_path+'/*.h5') if x.find('.h5')]
+    fname_list.sort()
+    dest_fname = os.path.sep.join([os.path.realpath(source_path+'/../'),'sumall_'+os.path.basename(fname_list[0])])
+    with h5py.File(fname_list[0],'r') as first:
+        data_sum = np.zeros_like(np.asarray(first['entry/data/data']))
+        data = np.zeros(shape=[len(fname_list)]+list(data_sum.shape),dtype=data_sum.dtype) 
+    for i,fname in enumerate(fname_list):
+        if verbose:
+            print('reading {}'.format(fname))
+        with h5py.File(fname,'r') as h5f:
+            data[i] = np.asarray(h5f['entry/data/data'])
+            data_sum += data[i]
+
+    if os.path.exists(dest_fname):
+        os.remove(dest_fname)        
+    with h5py.File(dest_fname,'w') as dest_h5:
+        entry = dest_h5.create_group('entry')
+        dg = entry.create_group('data')
+        dg.create_dataset(name='data',data=data,compression='lzf')
+        dg.create_dataset(name='data_sum',data=data_sum,compression='lzf')
+
+                                 
+def merge_max(source_path,verbose=False):
+    fname_list = [os.path.realpath(x) for x in glob.glob(source_path+'/*.h5') if x.find('.h5')]
+    fname_list.sort()
+    dest_fname = os.path.sep.join([os.path.realpath(source_path+'/../'),'maxall_'+os.path.basename(fname_list[0])])
+    with h5py.File(fname_list[0],'r') as first:
+        data_max = np.zeros_like(np.asarray(first['entry/data/data']))
+        data = np.zeros(shape=[len(fname_list)]+list(data_max.shape),dtype=data_max.dtype) 
+    for i,fname in enumerate(fname_list):
+        if verbose:
+            print('reading {}'.format(fname))
+        with h5py.File(fname,'r') as h5f:
+            data[i] = np.asarray(h5f['entry/data/data'])
+            data_max = np.max([data_max,data[i]],axis=0)
+
+
+    with h5py.File(dest_fname,'w') as dest_h5:
+        entry = dest_h5.create_group('entry')
+        dg = entry.create_group('data')
+        dg.create_dataset(name='data',data=data,compression='lzf')
+        dg.create_dataset(name='data_max',data=data_max,compression='lzf')
+                    
+
+def merge_data(todo_list):
+    '''
+    writes to dest_path
+    '''
+    super_path = todo_list[0][2]
+    operation =  todo_list[0][0]
+    verbose = todo_list[0][3]
+    if operation =='sum' :
+        source_path= super_path + '/sum'
+        merge_sum(source_path, verbose)
         
+    elif operation =='max' :
+        source_path= super_path + '/max'
+        merge_max(source_path, verbose)
+                
+    elif operation =='mxs':
+        source_path= super_path + '/sum'
+        merge_sum(source_path, verbose)
+        
+        source_path= super_path + '/max'
+        merge_max(source_path, verbose)
     
 
 
 def main(args):
-
-
+    
     verbose = True
     option = args.pop(0)
-    rel_dest_path = '/../../../PROCESS/aj_log/'
+    rel_dest_path = '/../../../PROCESS/aj_log/mxs/'
+
+    fname_list = [os.path.realpath(x) for x in args if x.find('.h5')]
+    dest_path = os.path.realpath((os.path.dirname(fname_list[0])+rel_dest_path))
     
-    if option not in ['max', 'sum', 'mxs']:
+    if option not in ['max', 'sum', 'mxs', 'merge']:
         print('invalid option {}'.format(option))
         print(USAGE)
         sys.exit(0)
-    todo_list = [[option,os.path.realpath(x),rel_dest_path,verbose] for x in args if x.find('.h5')>0]
+    todo_list = [[option,x,dest_path,verbose] for x in fname_list]
     NOPROCESSES = min(8,len(todo_list))
 
     # operation_worker(todo_list[0])
@@ -217,6 +298,7 @@ def main(args):
     pool.close()
     pool.join()
 
+    merge_data(todo_list)
 
 if __name__ == '__main__':
     

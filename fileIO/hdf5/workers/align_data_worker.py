@@ -56,23 +56,14 @@ def align_data_worker(pickledargs_fname):
         
         with h5py.File(source_fname,'r') as source_file:
             
-            source_group = source_file[source_grouppath]
-            dtype = source_group['tth_radial/I'].dtype
-            data =  np.asarray(source_group['tth_2D/data'])
+            source_ds = source_file[source_grouppath]
+            dtype = source_ds.dtype
+            data =  np.asarray(source_ds)
             datashape = data.shape
             data = data.reshape(list(mapshape)+list(datashape[1:]))
-            target_group.create_dataset('max_before_shift', data=data.max(axis=2).max(axis=2), compression='lzf')
-            target_group.create_dataset('sum_before_shift', data=data.sum(axis=2).sum(axis=2), compression='lzf')
-            ndshift(data, shift=list(shift)+[0]*(data.ndim-2), output=data,order=1)
-
-            target_group.create_dataset('max_before_2ndshift', data=data.max(axis=2).max(axis=2), compression='lzf')
-            target_group.create_dataset('sum_before_2ndshift', data=data.sum(axis=2).sum(axis=2), compression='lzf')
-
-            if type(lines_shift)!=type(None):
-                for i, map_lines in enumerate(data):
-                    if lines_shift[i]!=0:
-                        ndshift(map_lines, [lines_shift[i]]+[0]*(map_lines.ndim-1),output=data[i],order=1)
-
+            
+            data = shift_dataset(data, shift, lines_shift)
+            
             target_group.create_dataset('data', data=data, compression='lzf')
             target_group.create_dataset('max', data=data.max(axis=2).max(axis=2), compression='lzf')
             target_group.create_dataset('sum', data=data.sum(axis=2).sum(axis=2), compression='lzf')

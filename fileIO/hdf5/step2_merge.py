@@ -445,13 +445,22 @@ def collect_align_diffraction_data(dest_fname,verbose):
                 troi_axes.create_dataset(name=key, data=value)
         
         for troiname in troi_list:
+            
             troi_merged = diff_merged.create_group(troiname)
             single_maps = troi_merged.create_group('single_maps')
             single_maps.attrs['NX_class'] = 'NXprocess'
             source_dir = alignmap_dir+os.path.sep+troiname
             fname_list = [source_dir+os.path.sep+x for x in os.listdir(source_dir) if x.find('.h5')]
             fname_list.sort()
-
+            
+            with h5py.File(fname_list[0],'r') as first_h5:
+                full_dtype = source_h5['data/data'].dtype
+                full_shape = list(source_h5['data/data'].shape)
+                full_shape.insert(2,len(fname_list))
+                
+            full_group = troi_merged.create_group('full_dataset')
+            full_ds = full_group.create_dataset('data', shape=full_shape, dtype=full_dtype, compression='lzf')
+            
             for i, subsource_fname in enumerate(fname_list):
                 with h5py.File(subsource_fname,'r') as source_h5:
 
@@ -469,6 +478,8 @@ def collect_align_diffraction_data(dest_fname,verbose):
                     Theta_group.create_dataset('sum', data=np.asarray(source_h5['data/sum']))
                     Theta_group.create_dataset('max', data=np.asarray(source_h5['data/max']))
                     Theta_group['data'] = h5py.ExternalLink(subsource_fname, 'data/data')
+                    full_ds[:,:,i,:,:]=np.asarray(Theta_group['data'])
+                    
         dest_h5.flush()
 
             
@@ -537,10 +548,10 @@ def main():
     # no_processes = 22
 
     # ## this is created by read_rois.py:
-    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
-    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
+    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/merged.h5'
     # ## somehow interactively create data to deglitch:    
     # ## 'entry/merged_data/alignment/lines_shift
     

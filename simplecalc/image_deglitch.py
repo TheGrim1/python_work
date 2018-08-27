@@ -215,3 +215,27 @@ def imgagestack_shift_lines(imagestack, shift_list, in_place=False):
             ndshift(data[i][j],shift,output=data[i][j])
 
     return(data)
+
+def data_stack_shift(data, shift, lines_shift):
+    '''
+    arbitrary shape > 2
+    idea:
+    shift.shape <= data.shape
+    lines_shift.shape < shift.shape
+    always shifts first axes, first shift, then lines_shift
+    '''
+
+    # had weird results after ndshift if data in and data out were the same object!
+    shifted_data=np.zeros_like(data)
+    ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
+    data=np.copy(shifted_data)
+    shifted_data=np.zeros_like(data)
+    if type(lines_shift)!=type(None):
+        for i, map_lines in enumerate(data):
+            line_shift = lines_shift[i]
+            if line_shift!=0:
+                ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-len(line_shift)), output=shifted_data[i], order=1)
+            else:
+                shifted_data[i] = data[i]
+
+    return shifted_data

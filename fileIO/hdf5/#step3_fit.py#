@@ -1,0 +1,10 @@
+
+
+   
+def main():
+
+
+    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+
+if __name__ == "__main__":
+    main()
