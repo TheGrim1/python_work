@@ -202,7 +202,7 @@ def imagestack_correlate_lines(imagestack, reference_percentile=80, reference_fr
 
     return (data, shift_list)
 
-def imgagestack_shift_lines(imagestack, shift_list, in_place=False):
+def imagestack_shift_lines(imagestack, shift_list, in_place=False):
 
     if not in_place:
         data=np.copy(imagestack)
@@ -221,8 +221,9 @@ def data_stack_shift(data, shift, lines_shift):
     arbitrary shape > 2
     idea:
     shift.shape <= data.shape
-    lines_shift.shape < shift.shape
-    always shifts first axes, first shift, then lines_shift
+    lines_shift = list/array of floats
+    always shifts first axes
+    first shift, then lines_shift
     '''
 
     # had weird results after ndshift if data in and data out were the same object!
@@ -234,7 +235,7 @@ def data_stack_shift(data, shift, lines_shift):
         for i, map_lines in enumerate(data):
             line_shift = lines_shift[i]
             if line_shift!=0:
-                ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-len(line_shift)), output=shifted_data[i], order=1)
+                ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
             else:
                 shifted_data[i] = data[i]
 

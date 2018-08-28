@@ -16,7 +16,7 @@ import glob
 
 # local imports
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
-from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy
+from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy, troi_to_range
 from fileIO.spec.open_scan import spec_mesh
 from fileIO.hdf5.open_h5 import open_h5
 from fileIO.pyFAI.poni_for_troi import poni_for_troi
@@ -229,7 +229,10 @@ class h5_scan_nexus(object):
                 h5troi_group['axes'].create_dataset(name = 'troi', data=troi)
                 h5troi_group['axes'].create_dataset(name = 'qtroi', data=qtroi)
                 h5troi_group['axes'].create_dataset(name = 'tthtroi', data=tthtroi)
+                h5troi_group['axes'].create_dataset(name = 'px_horz', data=troi_to_range(troi)[1])
+                h5troi_group['axes'].create_dataset(name = 'px_vert', data=troi_to_range(troi)[0])
                     
+                
                 h5troi_group['q_radial/frame_no'] = h5troi_group['axes/frame_no']
                 h5troi_group['q_radial/q_radial'] = h5troi_group['axes/q_radial']
                 h5troi_group['q_radial'].attrs['signal'] = 'I'
@@ -304,19 +307,20 @@ class h5_scan_nexus(object):
         for i,todo in enumerate(todolist):
             instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose, counter=i)
             instruction_list.append(instruction_fname)
-
+       
         if noprocesses==1:
             # DEBUG (change to employer for max performance
             for instruction in instruction_list:
                 idw.integrate_data_employer(instruction)
             ## non parrallel version for one dataset and timing:
-            #idw.integrate_data_worker(instruction_list[0])
+            #        ## debug timing:
+            # cptw.copy_troi_worker(instruction_list[0])
+
         else:
-            pool = Pool(noprocesses,worker_init(os.getpid()))
+            pool = Pool(noprocesses, worker_init(os.getpid()))
             pool.map_async(idw.integrate_data_employer,instruction_list)
             pool.close()
-            pool.join()
-
+            pool.join()    
     
         # Checkes the h5 file, this seems to fix some filesytem issues:
         touch = os.path.exists(self.fname)
@@ -399,9 +403,10 @@ class h5_scan_nexus(object):
             datakey_list = source_group.keys()
             datakey_list.sort()
             
-
             h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].attrs['signal'] = 'data'
             h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].attrs['axes']  = ['frame_no','px_vert','px_horz']
+
+
             datashape, datatype = get_datagroup_shape(source_group, troi=troi, verbose=verbose)
 
             target_index = 0
@@ -483,11 +488,10 @@ class h5_scan_nexus(object):
                 except KeyError:
                     print('Non-existant dataset: %s' % datakey)
                     
-            h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].create_dataset(shape=datashape, dtype=datatype, name='data', compression='lzf', shuffle=True)
-            h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].create_dataset(data=np.arange(datashape[0]), name='frame_no')
-            h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].create_dataset(data=np.arange(datashape[1]), name='px_vert')
-            h5_dubious['entry/integrated/{}/raw_data'.format(troiname)].create_dataset(data=np.arange(datashape[2]), name='px_horz')
-
+            troi_grouppath = 'entry/integrated/{}'.format(troiname)
+            raw_data_group = h5_dubious[troi_grouppath]['raw_data']
+            raw_data_group.create_dataset(shape=datashape, dtype=datatype, name='data', compression='lzf')
+            raw_data_group.create_dataset(data=np.arange(datashape[0]), name='frame_no')
             h5_dubious.flush()
 
         # Checkes the h5 file, this seems to fix some filesytem issues:
@@ -694,17 +698,17 @@ def do_r1_w3_gpu2():
     all_datafiles = glob.glob(find_tpl)
     ## DEBUG: limited dataset
     all_datafiles.sort()
-    all_datafiles = all_datafiles[9:12]
+    all_datafiles = all_datafiles
 
     spec_fname= '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/DATA/r1_w3/r1_w3.dat'
     spec_to_eiger_scanno_offset = 53-5
     eigerscanno_list = [get_eigerrunno(parse_master_fname(x)) for x in all_datafiles]
     specscanno_list = [x + spec_to_eiger_scanno_offset for x in eigerscanno_list]
 
-    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/'
+    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
 
-    troi_tr = ((72, 1609), (260, 294))
-    troi_ml = ((1196, 80), (415, 526))
+    troi_tr = ((95, 1606), (372-95, 1840-1606))
+    troi_ml = ((1212, 80), (1605-1212, 497-80))
     troi_dict=dict([['troi_tr',troi_tr],['troi_ml',troi_ml]])
     
     mask_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/testmask.edf'
@@ -735,7 +739,7 @@ def do_r1_w3_gpu2():
         
         todo_list.append(todo)
 
-    # do_read_one_h5(todo_list[2])
+    # do_read_one_h5(todo_list[0])
     pool = Pool(super_processes,worker_init(os.getpid()))
     pool.map_async(do_read_one_h5, todo_list)
     pool.close()

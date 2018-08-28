@@ -8,11 +8,8 @@ from scipy.ndimage import shift as ndshift
 from shutil import rmtree
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 
-from simplecalc.slicing import troi_to_corners
-from simplecalc.image_align import do_shift
 import simplecalc.image_align_elastix as ia
 import pythonmisc.pickle_utils as pu
-import fileIO.hdf5.workers.fit_data_worker as fdw
 import fileIO.hdf5.workers.align_data_worker as adw
 from fileIO.datafiles.open_data import open_data
 from pythonmisc.worker_suicide import worker_init
@@ -180,7 +177,7 @@ def do_fluo_lines_shift(dest_fname, lines_shift_fname=None, verbose=False):
         
         for i,[Theta, fname] in enumerate(Theta_list):
             for j, line in enumerate(fluo_ori_data[i]):
-                ndshift(line,lines_shift_dict[Theta][j],output = fluo_shift_aligned[i][j],order=1)
+                ndshift(line,lines_shift_dict[Theta][j], output = fluo_shift_aligned[i][j],order=1)
 
             ndshift(fluo_shift_aligned[i],-shift[i],output=fluo_shift_aligned[i],order=1)
             
@@ -193,134 +190,7 @@ def do_fluo_lines_shift(dest_fname, lines_shift_fname=None, verbose=False):
         fluo_sa['x'] = axes['x']
         fluo_sa['y'] = axes['y']                      
                                     
-    
-def do_fit_raw_diffraction_data(dest_fname, no_processes=10, verbose=False):
 
-    fit_starttime = time.time()
-    total_datalength = 0
-    no_peaks = 4
-    print('fitting diffraction data from\n'.format(dest_fname))
-    todo_list = []
-    curr_dir = os.path.dirname(dest_fname)
-    tthtroi_dict={}
-    diffmap_dir = curr_dir+os.path.sep+'temp_diff_fits'
-
-    if os.path.exists(diffmap_dir):
-        rmtree(diffmap_dir)
-    
-    os.mkdir(diffmap_dir)
-        
-    subdest_fname_tpl = diffmap_dir+os.path.sep+'{}'+os.path.sep+'single_map_fit_{:08d}.h5'
-          
-    with h5py.File(dest_fname) as dest_h5:
-        
-        Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
-        axes = dest_h5['entry/merged_data/axes']
-        
-        with h5py.File(Theta_list[0][1]) as first_h5:
-            troi_list = first_h5['entry/integrated/'].keys()
-
-            for troiname in troi_list:
-                tth_troi_dict.update(troiname, first_h5['entry/integrated/{}/axes/tthtroi'.format(troiname)])
-                
-                troi_dir = diffmap_dir+os.path.sep+troiname
-                if not os.path.exists(troi_dir):
-                    os.mkdir(troi_dir)
-
-
-                for Theta, fname in Theta_list:
-                    # new dest_fname needs to be made to circumvent parrallelism issues
-                    subsource_fname = fname
-                    subdest_fname = subdest_fname_tpl.format(troiname,int(1000*Theta))
-                    subdest_grouppath = 'data'
-                    subsource_grouppath = 'entry/integrated/{}'.format(troiname)
-                    
-                    mapshape = (axes['y'].shape[0],axes['x'].shape[0])
-
-                    total_datalength+=mapshape[0]*mapshape[1]
-
-                    todo_list.append([subdest_fname,
-                                      subdest_grouppath,
-                                      subsource_fname,
-                                      subsource_grouppath,
-                                      Theta,
-                                      mapshape,
-                                      no_peaks,
-                                      verbose])
-
-        dest_h5.flush()        
-                    
-    print('setup parallel proccesses to write to {}'.format(diffmap_dir))
-    
-    instruction_list = []
-    for i,todo in enumerate(todo_list):
-        #DEBUG:
-        print('todo #{:2d}'.format(i))
-        print(todo)
-        instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose, counter=i)
-        instruction_list.append(instruction_fname)
-
-    if no_processes==1:
-        # DEBUG (change to employer for max performance
-        for instruction in instruction_list:
-            fdw.fit_data_employer(instruction)
-        ## non parrallel version for one dataset and timing:
-        #fdw.fit_data_worker(instruction_list[0])
-    else:
-        pool = Pool(no_processes,worker_init(os.getpid()))
-        pool.map_async(fdw.fit_data_employer,instruction_list)
-        pool.close()
-        pool.join()
-        
-    print('collecting all the parallely processed data in '.format(dest_fname))
-    with h5py.File(dest_fname) as dest_h5:
-        diff_merged = dest_h5['entry/merged_data'].create_group('fit_raw_diffraction')
-        diff_merged.attrs['NX_class'] = 'NXcollection'
-        axes = dest_h5['entry/merged_data/axes']
-        axes.create_dataset(name='peak_number', data=np.arange(no_peaks))
-        axes.create_dataset(name='peak_parameter', data=['a','mu','sig'])
-
-        
-        for troiname in troi_list:
-            axes.create_dataset(name='tthtroi_{}'.format(troiname), data=tth_troi_dict(troi))
-            troi_merged = diff_merged.create_group(troiname)
-            single_maps = troi_merged.create_group('single_maps')
-            single_maps.attrs['NX_class'] = 'NXprocess'
-            source_dir = diffmap_dir+os.path.sep+troiname
-            fname_list = [source_dir+os.path.sep+x for x in os.listdir(source_dir) if x.find('.h5')]
-            fname_list.sort()
-            
-            for i, subsource_fname in enumerate(fname_list):
-                with h5py.File(subsource_fname,'r') as source_h5:
-                    Theta = source_h5['data/Theta'].value
-                    Theta_group = single_maps.create_group(name=str(Theta))
-                    Theta_group.attrs['NX_class'] = 'NXdata'
-                    Theta_group.attrs['signal'] = 'sum'
-                    Theta_group.attrs['source_filename'] = subsource_fname
-
-                    Theta_group.attrs['axes'] = ['x','y']
-                    Theta_group['x'] = axes['x']
-                    Theta_group['y'] = axes['y']
-                    Theta_group['peak_number'] = axes['peak_number']
-                    Theta_group['peak_parameter'] = axes['peak_parameter']
-                    Theta_group['Theta'] = axes['Theta']
-                    
-                    Theta_group.create_dataset('sum', data=np.asarray(source_h5['data/sum']))
-                    Theta_group.create_dataset('max', data=np.asarray(source_h5['data/max']))
-                    Theta_group.create_dataset('chi_com', data=np.asarray(source_h5['data/chi_com']))
-                    Theta_group.create_dataset('tth_com', data=np.asarray(source_h5['data/tth_com']))
-                    Theta_group.create_dataset('chi_fit', data=np.asarray(source_h5['data/chi_fit']))
-                    Theta_group.create_dataset('tth_fit', data=np.asarray(source_h5['data/tth_fit']))
-                    Theta_group.create_dataset('2d_fit', data=np.asarray(source_h5['data/2d_fit']))
-                    
-        dest_h5.flush()
-    
-    fit_endtime = time.time()
-    fit_time = (fit_endtime - fit_starttime)
-    print('='*25)
-    print('\ntime taken for fitting of {} frames = {}'.format(total_datalength, fit_time))
-    print('='*25) 
-    
 def do_align_diffraction_data(dest_fname, no_processes=4, verbose=False):
     parallel_align_diffraction(dest_fname, no_processes, verbose)
     collect_align_diffraction(dest_fname, verbose)
@@ -337,7 +207,9 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
     todo_list = []
     curr_dir = os.path.dirname(dest_fname)
     alignmap_dir = curr_dir+os.path.sep+'diff_aligned'
-
+    
+    source_group_subpaths = ['tth_2D/data','raw_data/data']
+    
     if os.path.exists(alignmap_dir):
         rmtree(alignmap_dir)
     
@@ -360,16 +232,13 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
             lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],[None]*len(Theta_list)))
              
             
-        # axes = dest_h5['entry/merged_data/axes']
+        axes = dest_h5['entry/merged_data/axes']
         
         with h5py.File(Theta_list[0][1]) as first_h5:
             troi_list = first_h5['entry/integrated/'].keys()
             # troi_axes_dict = dict(zip((troi_list),[{}]*len(troi_list)))            
             for troiname in troi_list:
                 troi_dir = alignmap_dir+os.path.sep+troiname
-                # for key in ['tthtroi', 'tth', 'frame_no', 'chi_azim']:
-                #     # print('entry/integrated/{}/axes/{}'.format(troiname,key))
-                #     troi_axes_dict[troiname].update({key:np.asarray(first_h5['entry/integrated/{}/axes/{}'.format(troiname,key)])})
                     
                 if not os.path.exists(troi_dir):
                     os.mkdir(troi_dir)
@@ -378,16 +247,18 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
                     # new dest_fname needs to be made to circumvent parrallelism issues
                     subsource_fname = fname
                     subdest_fname = subdest_fname_tpl.format(troiname,int(1000*Theta))
-                    subdest_grouppath = 'data'
-                    subsource_grouppath = 'entry/integrated/{}/tth_2D/data'.format(troiname)
-                    
+
+                    subdest_grouppaths = source_group_subpaths
+                    troi_grouppath='entry/integrated/{}/'.format(troiname)
+                    subsource_grouppaths = [troi_grouppath+x for x in source_group_subpaths]
+
                     mapshape = (axes['y'].shape[0],axes['x'].shape[0])
                     total_datalength+=mapshape[0]*mapshape[1]
 
                     todo_list.append([subdest_fname,
-                                      subdest_grouppath,
+                                      subdest_grouppaths,
                                       subsource_fname,
-                                      subsource_grouppath,
+                                      subsource_grouppaths,
                                       Theta,
                                       mapshape,
                                       shift_dict[Theta],
@@ -426,60 +297,71 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
 def collect_align_diffraction_data(dest_fname,verbose):
     
     collect_starttime = time.time()
-    with h5py.File(dest_fname,'r') as dest_h5:
-        Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
-        with h5py.File(Theta_list[0][1]) as first_h5:
-            troi_list = first_h5['entry/integrated/'].keys()
-            troi_axes_dict = dict(zip((troi_list),[{}]*len(troi_list)))
+    print('collecting all the parallely processed data in '.format(dest_fname))
     curr_dir = os.path.dirname(dest_fname)
     alignmap_dir = curr_dir+os.path.sep+'diff_aligned'
-    
-    print('collecting all the parallely processed data in '.format(dest_fname))
+
     with h5py.File(dest_fname) as dest_h5:
-        diff_merged = dest_h5['entry/merged_data'].create_group('diff_aligned')
-        diff_merged.attrs['NX_class'] = 'NXcollection'
+        Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
         axes = dest_h5['entry/merged_data/axes']
-        for key, axes_dict in troi_axes_dict.items():
-            troi_axes = axes.create_group(key)
-            for key, value in axes_dict.items():
-                troi_axes.create_dataset(name=key, data=value)
         
+        with h5py.File(Theta_list[0][1]) as first_h5:
+            troi_list = first_h5['entry/integrated/'].keys()
+            for troi in troi_list:
+                troi_ax_dest = axes.create_group(troi)
+                troi_ax_source = first_h5['entry/integrated/{}/axes'.format(troi)]
+                for key, value in troi_ax_source.items():
+                    troi_ax_dest.create_dataset(name=key,data=np.asarray(value))
+
+
+                  
+                    
         for troiname in troi_list:
-            
-            troi_merged = diff_merged.create_group(troiname)
-            single_maps = troi_merged.create_group('single_maps')
-            single_maps.attrs['NX_class'] = 'NXprocess'
             source_dir = alignmap_dir+os.path.sep+troiname
             fname_list = [source_dir+os.path.sep+x for x in os.listdir(source_dir) if x.find('.h5')]
             fname_list.sort()
             
             with h5py.File(fname_list[0],'r') as first_h5:
-                full_dtype = source_h5['data/data'].dtype
-                full_shape = list(source_h5['data/data'].shape)
-                full_shape.insert(2,len(fname_list))
+                merge_datasets = first_h5.keys()
+                full_dtypes = [first_h5['{}/data'.format(x)].dtype for x in merge_datasets]
+                full_shapes = [list(first_h5['{}/data'.format(x)].shape) for x in merge_datasets]
+                full_shapes = [x.insert(2,len(fname_list)) for x in full_shapes]
                 
-            full_group = troi_merged.create_group('full_dataset')
-            full_ds = full_group.create_dataset('data', shape=full_shape, dtype=full_dtype, compression='lzf')
-            
-            for i, subsource_fname in enumerate(fname_list):
-                with h5py.File(subsource_fname,'r') as source_h5:
+            for dataset_name in merge_datasets:
+                dataset_path = '{}/data'.format(dataset_name)
+                int_merged = dest_h5['entry/merged_data'].create_group(dataset_name)
+                int_merged.attrs['NX_class'] = 'NXcollection'
+                troi_merged = int_merged.create_group(troiname)
+                single_maps = troi_merged.create_group('single_maps')
+                single_maps.attrs['NX_class'] = 'NXprocess'
 
-                    Theta = source_h5['data/Theta'].value
-                    Theta_group = single_maps.create_group(name=str(Theta))
-                    Theta_group.attrs['NX_class'] = 'NXdata'
-                    Theta_group.attrs['signal'] = 'sum'
-                    Theta_group.attrs['source_filename'] = subsource_fname
+                full_group = troi_merged.create_group('all')
+                full_ds = full_group.create_dataset('data', shape=full_shape, dtype=full_dtype, compression='lzf')
+                full_sum = full_group.create_dataset('data_sum', shape=full_shape[:-2], dtype=full_dtype, compression='lzf')
+                full_max = full_group.create_dataset('data_max', shape=full_shape[:-2], dtype=full_dtype, compression='lzf')
+          
+                for i, subsource_fname in enumerate(fname_list):
+                    with h5py.File(subsource_fname,'r') as source_h5:
 
-                    Theta_group.attrs['axes'] = ['x','y']
-                    Theta_group['x'] = axes['x']
-                    Theta_group['y'] = axes['y']
-                    Theta_group['Theta'] = Theta
-                                        
-                    Theta_group.create_dataset('sum', data=np.asarray(source_h5['data/sum']))
-                    Theta_group.create_dataset('max', data=np.asarray(source_h5['data/max']))
-                    Theta_group['data'] = h5py.ExternalLink(subsource_fname, 'data/data')
-                    full_ds[:,:,i,:,:]=np.asarray(Theta_group['data'])
-                    
+                        Theta = source_h5['data/Theta'].value
+                        Theta_group = single_maps.create_group(name=str(Theta))
+                        Theta_group.attrs['NX_class'] = 'NXdata'
+                        Theta_group.attrs['signal'] = 'sum'
+                        Theta_group.attrs['source_filename'] = subsource_fname
+
+                        Theta_group.attrs['axes'] = ['x','y']
+                        Theta_group['x'] = axes['x']
+                        Theta_group['y'] = axes['y']
+                        Theta_group['Theta'] = Theta
+                        
+                        Theta_group['sum'] =  h5py.ExternalLink(subsource_fname, dataset_name+'/sum')
+                        Theta_group['max'] =  h5py.ExternalLink(subsource_fname, dataset_name+'/max')
+                        Theta_group['data'] = h5py.ExternalLink(subsource_fname, dataset_path)
+
+                        full_ds[:,:,i,:,:] = np.asarray(source_h5[dataset_path])
+                        full_sum[:,:,i] = np.asarray(source_h5[dataset_name+'/sum'])
+                        full_max[:,: ,i] = np.asarray(source_h5[dataset_name+'/max'])
+
         dest_h5.flush()
 
             
@@ -548,10 +430,10 @@ def main():
     # no_processes = 22
 
     # ## this is created by read_rois.py:
-    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/'
+    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
-    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_test/merged.h5'
+    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
     # ## somehow interactively create data to deglitch:    
     # ## 'entry/merged_data/alignment/lines_shift
     
@@ -562,7 +444,8 @@ def main():
     # # do_fit_raw_diffraction_data(dest_fname, no_processes=no_processes, verbose = False)
     # ## first align them fit
     # # do_align_diffraction_data(dest_fname, no_processes=4, verbose=False)
-    parallel_align_diffraction(dest_fname, no_processes=12, verbose=False)
+    # one process takes ~6% of gpu2 memory
+    parallel_align_diffraction(dest_fname, no_processes=6, verbose=False)
     collect_align_diffraction_data(dest_fname, verbose = True)
         
 if __name__ == "__main__":

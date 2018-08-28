@@ -9,6 +9,7 @@ from scipy.ndimage import shift as ndshift
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import pythonmisc.pickle_utils as pu
 from simplecalc.slicing import troi_to_slice, xy_to_troi, troi_to_xy
+from simplecalc.image_deglitch import data_stack_shift
 
 
 def align_data_employer(pickledargs_fname):
@@ -36,38 +37,38 @@ def align_data_worker(pickledargs_fname):
     print(unpickled_args)
    
     target_fname = unpickled_args[0]
-    target_grouppath = unpickled_args[1]
+    target_grouppaths = unpickled_args[1]
     source_fname = unpickled_args[2]
-    source_grouppath = unpickled_args[3]
+    source_grouppaths = unpickled_args[3]
     Theta = unpickled_args[4]
     mapshape = unpickled_args[5]
     shift = unpickled_args[6]
     lines_shift = unpickled_args[7]
     verbose = unpickled_args[8]
-        
+
+    grouppaths = zip(source_grouppaths,target_grouppaths)
     if verbose:
         print('='*25)
         print('process {} is doing'.format(os.getpid()))
         for arg in unpickled_args:
             print(arg)
 
-    with h5py.File(target_fname) as target_file:
-        target_group = target_file.create_group(target_grouppath)
-        
+    with h5py.File(target_fname) as target_file:        
         with h5py.File(source_fname,'r') as source_file:
-            
-            source_ds = source_file[source_grouppath]
-            dtype = source_ds.dtype
-            data =  np.asarray(source_ds)
-            datashape = data.shape
-            data = data.reshape(list(mapshape)+list(datashape[1:]))
-            
-            data = shift_dataset(data, shift, lines_shift)
-            
-            target_group.create_dataset('data', data=data, compression='lzf')
-            target_group.create_dataset('max', data=data.max(axis=2).max(axis=2), compression='lzf')
-            target_group.create_dataset('sum', data=data.sum(axis=2).sum(axis=2), compression='lzf')
-            target_group.create_dataset('Theta', data=Theta)
+            for source_grouppath, target_grouppath in grouppaths:
+                target_group = target_file.create_group(target_grouppath)
+                source_ds = source_file[source_grouppath]
+                dtype = source_ds.dtype
+                data =  np.asarray(source_ds)
+                datashape = data.shape
+                data = data.reshape(list(mapshape)+list(datashape[1:]))
+                
+                data = data_stack_shift(data, shift, lines_shift)
+                
+                target_group.create_dataset('data', data=data, compression='lzf')
+                target_group.create_dataset('max', data=data.max(axis=2).max(axis=2), compression='lzf')
+                target_group.create_dataset('sum', data=data.sum(axis=2).sum(axis=2), compression='lzf')
+                target_group.create_dataset('Theta', data=Theta)
 
         
         target_file.flush()

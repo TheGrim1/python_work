@@ -98,8 +98,7 @@ def copy_troi_worker(pickledargs_fname):
                     except IOError:
                         time.wait(0.001)
                         print('IO conflict process {} is waiting to read maskarray'.format(os.getpid()))
-                    
-                    
+                        
             for target_index, source_index in zip(target_index_list,source_index_list):
 
                 if type(mask) != type(None):

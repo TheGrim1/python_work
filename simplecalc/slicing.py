@@ -2,6 +2,11 @@ from __future__ import print_function
 import numpy as np
 
 
+def troi_to_range(troi):
+    (ystart, yend, xstart, xend) = troi_to_xy(troi)
+
+    return (range(ystart, yend), range(xstart, xend))
+
 def troi_to_xy(troi):
     
     xstart = troi[0][1]
