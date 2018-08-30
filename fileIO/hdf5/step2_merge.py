@@ -264,7 +264,7 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
                                       shift_dict[Theta],
                                       lines_shift_dict[Theta],
                                       verbose])       
-                    
+
     print('setup parallel proccesses to write to {}'.format(alignmap_dir))
 
     instruction_list = []
@@ -299,13 +299,13 @@ def collect_align_diffraction_data(dest_fname,verbose):
     collect_starttime = time.time()
     print('collecting all the parallely processed data in '.format(dest_fname))
     curr_dir = os.path.dirname(dest_fname)
-    alignmap_dir = curr_dir+os.path.sep+'diff_aligned'
+    alignmap_dir = curr_dir+os.path.sep+'diff_aligned/'
 
     with h5py.File(dest_fname) as dest_h5:
         Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
         axes = dest_h5['entry/merged_data/axes']
         
-        with h5py.File(Theta_list[0][1]) as first_h5:
+        with h5py.File(Theta_list[0][1],'r') as first_h5:
             troi_list = first_h5['entry/integrated/'].keys()
             for troi in troi_list:
                 troi_ax_dest = axes.create_group(troi)
@@ -317,33 +317,38 @@ def collect_align_diffraction_data(dest_fname,verbose):
                   
                     
         for troiname in troi_list:
-            source_dir = alignmap_dir+os.path.sep+troiname
-            fname_list = [source_dir+os.path.sep+x for x in os.listdir(source_dir) if x.find('.h5')]
+            source_dir = alignmap_dir+troiname+os.path.sep
+            fname_list = [os.path.realpath(source_dir + x) for x in os.listdir(source_dir) if x.find('.h5')]
             fname_list.sort()
-            
+            troi_merged = dest_h5['entry/merged_data'].create_group(troi_name)
+            troi_merged.attrs['NX_class'] = 'NXcollection'
             with h5py.File(fname_list[0],'r') as first_h5:
                 merge_datasets = first_h5.keys()
-                full_dtypes = [first_h5['{}/data'.format(x)].dtype for x in merge_datasets]
-                full_shapes = [list(first_h5['{}/data'.format(x)].shape) for x in merge_datasets]
-                full_shapes = [x.insert(2,len(fname_list)) for x in full_shapes]
+                full_dtypes = [first_h5['{}/data/data'.format(x)].dtype for x in merge_datasets]
+                full_shapes = [list(first_h5['{}/data/data'.format(x)].shape) for x in merge_datasets]
+                [x.insert(2,len(fname_list)) for x in full_shapes]
+                print(full_dtypes)
+                print(full_shapes)
                 
-            for dataset_name in merge_datasets:
+            for i, dataset_name in enumerate(merge_datasets):
                 dataset_path = '{}/data'.format(dataset_name)
-                int_merged = dest_h5['entry/merged_data'].create_group(dataset_name)
-                int_merged.attrs['NX_class'] = 'NXcollection'
-                troi_merged = int_merged.create_group(troiname)
-                single_maps = troi_merged.create_group('single_maps')
-                single_maps.attrs['NX_class'] = 'NXprocess'
 
-                full_group = troi_merged.create_group('all')
-                full_ds = full_group.create_dataset('data', shape=full_shape, dtype=full_dtype, compression='lzf')
-                full_sum = full_group.create_dataset('data_sum', shape=full_shape[:-2], dtype=full_dtype, compression='lzf')
-                full_max = full_group.create_dataset('data_max', shape=full_shape[:-2], dtype=full_dtype, compression='lzf')
+                int_merged = troi_merged.create_group(dataset_name)
+                int_merged.attrs['NX_class'] = 'NXcollection'
+                
+                single_maps = int_merged.create_group('single_maps')
+                single_maps.attrs['NX_class'] = 'NXprocess'
+                
+                full_group = int_merged.create_group('all')
+                full_ds = full_group.create_dataset('data', shape=full_shapes[i], dtype=full_dtypes[i], compression='lzf')
+                full_sum = full_group.create_dataset('data_sum', shape=full_shapes[i][:-2], dtype=full_dtypes[i], compression='lzf')
+                full_max = full_group.create_dataset('data_max', shape=full_shapes[i][:-2], dtype=full_dtypes[i], compression='lzf')
+
           
                 for i, subsource_fname in enumerate(fname_list):
                     with h5py.File(subsource_fname,'r') as source_h5:
-
-                        Theta = source_h5['data/Theta'].value
+                        print('getting {} from {}'.format(dataset_name, subsource_fname))
+                        Theta = source_h5['raw_data/data/Theta'].value
                         Theta_group = single_maps.create_group(name=str(Theta))
                         Theta_group.attrs['NX_class'] = 'NXdata'
                         Theta_group.attrs['signal'] = 'sum'
@@ -354,13 +359,13 @@ def collect_align_diffraction_data(dest_fname,verbose):
                         Theta_group['y'] = axes['y']
                         Theta_group['Theta'] = Theta
                         
-                        Theta_group['sum'] =  h5py.ExternalLink(subsource_fname, dataset_name+'/sum')
-                        Theta_group['max'] =  h5py.ExternalLink(subsource_fname, dataset_name+'/max')
-                        Theta_group['data'] = h5py.ExternalLink(subsource_fname, dataset_path)
-
-                        full_ds[:,:,i,:,:] = np.asarray(source_h5[dataset_path])
-                        full_sum[:,:,i] = np.asarray(source_h5[dataset_name+'/sum'])
-                        full_max[:,: ,i] = np.asarray(source_h5[dataset_name+'/max'])
+                        full_ds[:,:,i,:,:] = np.asarray(source_h5[dataset_path+'/data'])
+                        full_sum[:,:,i] = np.asarray(source_h5[dataset_path+'/sum'])
+                        full_max[:,: ,i] = np.asarray(source_h5[dataset_path+'/max'])
+                    # ExternalLink cant find file if its open ?
+                    Theta_group['sum'] =  h5py.ExternalLink(subsource_fname, dataset_path+'/sum')
+                    Theta_group['max'] =  h5py.ExternalLink(subsource_fname, dataset_path+'/max')
+                    Theta_group['data'] = h5py.ExternalLink(subsource_fname, dataset_path+'/data')
 
         dest_h5.flush()
 
@@ -427,15 +432,15 @@ def init_h5_file(masterfolder, verbose =False):
                 
 def main():
 
-    # no_processes = 22
+    # # no_processes = 22
 
     # ## this is created by read_rois.py:
     masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
-    dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
-    # ## somehow interactively create data to deglitch:    
-    # ## 'entry/merged_data/alignment/lines_shift
+    # dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
+    # # ## somehow interactively create data to deglitch:    
+    # # ## 'entry/merged_data/alignment/lines_shift
     
 
     do_fluo_lines_shift(dest_fname, lines_shift_fname='/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/line_shift.dat')

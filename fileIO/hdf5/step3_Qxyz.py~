@@ -1,0 +1,80 @@
+import h5py
+import numpy as np
+import sys, os
+import datetime
+import time
+from multiprocessing import Pool
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+from pythonmisc.worker_suicide import worker_init
+import pythonmisc.my_xrayutilities as my_xu
+
+def do_parallel_regrouping(merged_fname, Q_dim):
+ 
+    ### get the need info:
+    with h5py.File(merged_fname,'r') as sd_h5:
+        troi_list = sd_h5['entry/integrated/'].keys()
+        Theta_list = asdf
+        kappa = 0
+        phi   = 0
+
+        for troiname in troi_list:
+            troi_path = 'asdf/{}'.format(troiname)
+            raw_ds = sd_h5[troi_path+'asdf']
+            map_shape = list(raw_ds.shape[0:2])
+            troi_poni = dict([[x,np.asarray(y)] for x,y in sd_h5['entry/integrated/{}/calibration/{}/'.format(troiname)].items()])
+            Qdata_shape = map_shape + Q_dim
+
+            # find which Thetas are good
+            if limit_Thetas:
+                good_indexes = []
+                sum_ds = sd_h5[troi_path+'asdf']
+                for i in range(sum_ds.shape[2]):
+                    if sum_ds.sum(axis=0).sum(axis=0) > 100 *map_shape[0]*map_shape[1]: # counts are *1000
+                        good_indexes.append(i)
+                first_index = max(0,min(good_indexes)-1)
+                last_index = min(len(Theta_list), max(good_indexes)+2)
+                indexes = range(first_index, last_index)
+
+            else:
+                indexes = range(0, len(Theta_list))
+
+            troi_Theta_list = Theta_list[index[0]:index[-1]]
+            print('found data in indexes ',indexes)
+            print('found data in Theta ',troi_Theta_list)
+
+
+                
+            # find which Q range will be coverd
+            xu_exp = my_xu.get_id13_experiment(troi, troi_poni)
+            [[qx_min, qx_max], [qy_min, qy_max], [qz_min, qz_max]] = get_maxmin_Q(troi_Theta_list, kappa, phi)
+
+            todo_list=[]
+            for i in map_shape[0]:
+                for j in map_shape[1]:
+                    todo=[]
+
+                    
+            
+        
+    result_fname_list = pool.map
+
+            
+    Q_group = sd_h5.create_group('asdf')            
+    Q_ds = Q_group.create_dataset(name='data',shape=Qdata_shape,dtype=raw_ds.dtype,compression='lzf')
+            
+        
+    
+
+def main():
+
+    merged_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged_copy.h5'
+
+    Q_dim = [nQx, nQy, nQz] = [10,10,10]
+    
+    do_parallel_regrouping(merged_fname, Q_dim)
+
+    
+if __name__ == "__main__":
+    main()
+
