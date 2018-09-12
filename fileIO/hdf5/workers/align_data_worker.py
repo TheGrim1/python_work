@@ -33,8 +33,7 @@ def align_data_worker(pickledargs_fname):
     
     unpickled_args = pu.unpickle_from_file(pickledargs_fname, verbose = False)
 
-    print(os.getpid()) 
-    print(unpickled_args)
+    print('pid: {} working on {}'.format(os.getpid(), unpickled_args[0]))
    
     target_fname = unpickled_args[0]
     target_grouppaths = unpickled_args[1]
@@ -63,7 +62,7 @@ def align_data_worker(pickledargs_fname):
                 datashape = data.shape
                 data = data.reshape(list(mapshape)+list(datashape[1:]))
                 
-                data = data_stack_shift(data, shift, lines_shift)
+                data = data_stack_shift(data, -1*shift, lines_shift)
                 
                 target_group.create_dataset('data', data=data, compression='lzf')
                 target_group.create_dataset('max', data=data.max(axis=2).max(axis=2), compression='lzf')

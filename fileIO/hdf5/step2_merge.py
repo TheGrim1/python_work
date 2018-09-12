@@ -13,10 +13,11 @@ import pythonmisc.pickle_utils as pu
 import fileIO.hdf5.workers.align_data_worker as adw
 from fileIO.datafiles.open_data import open_data
 from pythonmisc.worker_suicide import worker_init
+from simplecalc.image_deglitch import data_stack_shift
 
 def find_my_h5_files(masterfolder):
     
-    folder_list = [masterfolder+os.path.sep+x for x in os.listdir(masterfolder)]
+    folder_list = [masterfolder+ '/read_rois/ ' +x for x in os.listdir(masterfolder)]
     folder_list=  [x for x in folder_list if os.path.isdir(x)]
     
     my_h5_fname_list=[]
@@ -78,7 +79,7 @@ def do_fluo_merge(dest_fname, fluo_counter = 'ball01', verbose=False):
             fluo_ori['Theta'] = axes['Theta']
             fluo_ori['x'] = axes['x']
             fluo_ori['y'] = axes['y']
-            fluo_ori.create_dataset(name='XRF_norm', dtype=y.dtype, shape=(Theta_pts, y_pts, x_pts), compression='lzf', shuffle=False)
+            fluo_ori.create_dataset(name='XRF_norm', dtype=np.uint64, shape=(Theta_pts, y_pts, x_pts), compression='lzf', shuffle=False)
 
             fluo_aligned = fluo_merged.create_group('fluo_aligned')
             fluo_aligned.attrs['NX_class'] = 'NXdata'
@@ -96,9 +97,11 @@ def do_fluo_merge(dest_fname, fluo_counter = 'ball01', verbose=False):
 
                 print('reading no {} of {}'.format(i+1,Theta_pts))
                 print('Theta {}, file {}'.format(Theta,fname))
-                
-                fluo_data = np.asarray(source_h5['entry/instrument/measurement/{}'.format(fluo_counter)].value).reshape(mapshape)
+                # convert to uint32 and *1000 to avoid floats from here on
+                fluo_data = np.asarray(source_h5['entry/instrument/measurement/{}'.format(fluo_counter)].value.reshape(mapshape),dtype=np.uint64)*1000
                 mon_data = np.asarray(source_h5['entry/instrument/measurement/{}'.format('Monitor')].value).reshape(mapshape)
+                # to be ~1 so that XRF_norm ~= XRF_data and int order of magnitude is preserved
+                mon_data = (mon_data/mon_data.mean()) 
 
                 Theta_group = single_maps.create_group(name=str(Theta))
                 Theta_group.attrs['NX_class'] = 'NXdata'
@@ -114,7 +117,7 @@ def do_fluo_merge(dest_fname, fluo_counter = 'ball01', verbose=False):
                 Theta_group.create_dataset('XRF', data=fluo_data)
                 Theta_group.create_dataset('Monitor', data=mon_data)
 
-                fluo_ori['XRF_norm'][i]=fluo_data/mon_data
+                fluo_ori['XRF_norm'][i]=np.asarray((fluo_data/mon_data),dtype=np.uint64)
                 axes['Theta'][i] = Theta
                 
         dest_h5.flush()
@@ -176,11 +179,8 @@ def do_fluo_lines_shift(dest_fname, lines_shift_fname=None, verbose=False):
         fluo_shift_aligned = np.zeros_like(fluo_ori_data)
         
         for i,[Theta, fname] in enumerate(Theta_list):
-            for j, line in enumerate(fluo_ori_data[i]):
-                ndshift(line,lines_shift_dict[Theta][j], output = fluo_shift_aligned[i][j],order=1)
-
-            ndshift(fluo_shift_aligned[i],-shift[i],output=fluo_shift_aligned[i],order=1)
-            
+            fluo_shift_aligned[i] = data_stack_shift(fluo_ori_data[i], -1*shift[i], np.asarray(lines_shift_dict[Theta]))
+                            
         fluo_sa = fluo_merged.create_group('fluo_shift_aligned')
         fluo_sa.create_dataset('XRF_norm',data=fluo_shift_aligned, compression='lzf')
         fluo_sa.attrs['NX_class'] = 'NXdata'
@@ -221,13 +221,13 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
         
         shift = list(np.asarray(dest_h5['entry/merged_data/alignment/shift']))
         Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
-        shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],shift))
+        shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],np.asarray(shift)))
         print(shift_dict)
 
         if 'lines_shift' in dest_h5['entry/merged_data/alignment'].keys():
 
             lines_shift = list(np.asarray(dest_h5['entry/merged_data/alignment/lines_shift']))
-            lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],lines_shift))
+            lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],np.asarray(lines_shift)))
         else:
             lines_shift_dict = dict(zip([Theta for Theta,filename in  Theta_list],[None]*len(Theta_list)))
              
@@ -270,8 +270,7 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
     instruction_list = []
     for i,todo in enumerate(todo_list):
         #DEBUG:
-        print('todo #{:2d}'.format(i))
-        print(todo)
+        print('todo #{:2d}:\n  -> {}'.format(i,todo[0]))
         instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose, counter=i)
         instruction_list.append(instruction_fname)
 
@@ -297,13 +296,14 @@ def parallel_align_diffraction(dest_fname, no_processes=4, verbose=False):
 def collect_align_diffraction_data(dest_fname,verbose):
     
     collect_starttime = time.time()
-    print('collecting all the parallely processed data in '.format(dest_fname))
+    print('collecting all the parallely processed data in {}'.format(dest_fname))
     curr_dir = os.path.dirname(dest_fname)
     alignmap_dir = curr_dir+os.path.sep+'diff_aligned/'
 
     with h5py.File(dest_fname) as dest_h5:
         Theta_list = [[float(key), value.value] for key, value in dest_h5['entry/integrated_files'].items()]
         axes = dest_h5['entry/merged_data/axes']
+        diff_group = dest_h5['entry/merged_data'].create_group('diffraction')
         
         with h5py.File(Theta_list[0][1],'r') as first_h5:
             troi_list = first_h5['entry/integrated/'].keys()
@@ -312,15 +312,16 @@ def collect_align_diffraction_data(dest_fname,verbose):
                 troi_ax_source = first_h5['entry/integrated/{}/axes'.format(troi)]
                 for key, value in troi_ax_source.items():
                     troi_ax_dest.create_dataset(name=key,data=np.asarray(value))
-
-
-                  
+                    
+                troi_calibration_group = dest_h5.create_group('entry/calibration/{}/'.format(troi))
+                for key, value in first_h5['entry/integrated/{}/calibration/{}'.format(troi,troi)].items():
+                    troi_calibration_group.create_dataset(name=key,data=np.asarray(value))                                                        
                     
         for troiname in troi_list:
             source_dir = alignmap_dir+troiname+os.path.sep
             fname_list = [os.path.realpath(source_dir + x) for x in os.listdir(source_dir) if x.find('.h5')]
             fname_list.sort()
-            troi_merged = dest_h5['entry/merged_data'].create_group(troi_name)
+            troi_merged = diff_group.create_group(troiname)
             troi_merged.attrs['NX_class'] = 'NXcollection'
             with h5py.File(fname_list[0],'r') as first_h5:
                 merge_datasets = first_h5.keys()
@@ -378,7 +379,7 @@ def collect_align_diffraction_data(dest_fname,verbose):
         
 def init_h5_file(masterfolder, verbose =False):
 
-    dest_fname = os.path.realpath(masterfolder + os.path.sep + 'merged.h5')
+    dest_fname = os.path.realpath(masterfolder + 'merged.h5')
     my_h5_fname_list = find_my_h5_files(masterfolder)
     
     if os.path.exists(dest_fname):
@@ -435,14 +436,13 @@ def main():
     # # no_processes = 22
 
     # ## this is created by read_rois.py:
-    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+    masterfolder = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_rebin/'
     dest_fname = init_h5_file(masterfolder=masterfolder, verbose=True)
     do_fluo_merge(dest_fname, verbose=True)
     # dest_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/merged.h5'
     # # ## somehow interactively create data to deglitch:    
     # # ## 'entry/merged_data/alignment/lines_shift
     
-
     do_fluo_lines_shift(dest_fname, lines_shift_fname='/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/line_shift.dat')
                                     
     # ## first fit then align
@@ -450,7 +450,7 @@ def main():
     # ## first align them fit
     # # do_align_diffraction_data(dest_fname, no_processes=4, verbose=False)
     # one process takes ~6% of gpu2 memory
-    parallel_align_diffraction(dest_fname, no_processes=6, verbose=False)
+    parallel_align_diffraction(dest_fname, no_processes=12, verbose=False)
     collect_align_diffraction_data(dest_fname, verbose = True)
         
 if __name__ == "__main__":

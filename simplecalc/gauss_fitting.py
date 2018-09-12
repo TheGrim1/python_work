@@ -186,20 +186,22 @@ def conservative_peak_guess(data,
     return guess
 
 
-def gauss_plus_bkg_func(p, t): 
+def gauss_plus_bkg_func(p, t, force_positive=False): 
     '''
     p0 = a
     p1 = mu
     p2 = sigma
     p3 = c
     '''
+    if force_positive:
+        p[0]=np.absolute(p[0])
     return p[0]*(1.0/math.sqrt(2*math.pi*(p[2]**2)))*math.e**((-(t-p[1])**2/(2*p[2]**2))) + p[3]
 
 
-def gauss_plus_bkg_residual(p, x, y):
-    return (gauss_plus_bkg_func(p,x) - y)
+def gauss_plus_bkg_residual(p, x, y, force_positive=False):
+    return (gauss_plus_bkg_func(p,x,force_positive=force_positive) - y)
 
-def do_gauss_plus_bkg_fit(data, verbose = False):
+def do_gauss_plus_bkg_fit(data, verbose = False, force_positive=False):
     '''
     p0 = a
     p1 = mu
@@ -208,13 +210,27 @@ def do_gauss_plus_bkg_fit(data, verbose = False):
     '''
     constant_guess = np.min(data[1,:])
     sigma_guess = np.absolute(data[0,0]-data[0,1])
-    a_guess = (np.max(data[1,:]) - constant_guess )/ sigma_guess
+    a_guess = (np.max(data[1,:]) - constant_guess )*len(data[0,:])/ sigma_guess
     mu_guess    = data[0,:][np.argmax(data[1,:])]
+
+    v0 = [a_guess, mu_guess, sigma_guess, constant_guess]
     
-    v0 = [a_guess, sigma_guess, mu_guess, constant_guess]
+    if verbose == True:
+        fig = plt.figure(figsize=(9, 9)) #make a plot
+        ax1 = fig.add_subplot(111)
+        ax1.plot(data[0],data[1],'gs') #spectrum
+        ax1.plot(data[0],gauss_plus_bkg_func(v0,data[0]),'b') #fitted spectrum
+        print('guess peaks at')
+        print(("p[0], a1: ", v0[0]))
+        print(("p[1], mu1: ", v0[1]))
+        print(("p[2], sigma1: ", v0[2]))
+        print(("p[3], c: ", v0[3]))
+        plt.show()
+        
+
 
     def optfunction(p,x,y):
-        return gauss_plus_bkg_residual(p = p, x = x, y = y)
+        return gauss_plus_bkg_residual(p = p, x = x, y = y, force_positive=force_positive)
     out = leastsq(optfunction, v0, args=(data[0], data[1]), maxfev=100000, full_output=1) #Gauss Fit
     v = out[0] #fit parameters out
     covar = out[1] #covariance matrix output
@@ -226,8 +242,6 @@ def do_gauss_plus_bkg_fit(data, verbose = False):
         ax1 = fig.add_subplot(111)
         ax1.plot(data[0],data[1],'gs') #spectrum
         ax1.plot(xxx,ccc,'b') #fitted spectrum
-        print('found peaks at')
-        l = 1
         print('found peak with')
         print(("p[0], a1: ", v[0]))
         print(("p[1], mu1: ", v[1]))

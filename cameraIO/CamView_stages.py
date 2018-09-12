@@ -782,6 +782,78 @@ class EH3_smrhexpiezo_mai18(stage):
         # lookuptables:
         self.lookup = LUTs.LUT_Generic(self.motors,self.stagegeometry)
         
+
+class lab_TOMO_navi_sep18(stage):
+    '''
+    updated sep 06
+    '''
+    def __init__(self, spechost = 'lid13lab1', specsession = 'navitar', initialize_cameras = True):
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'top':
+                               {'camera_index':0, 'horz_func':'y', 'vert_func':'x','focus':'z'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'x', 'vert_func':'z','focus':'y'}})
+        
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['top'] = [200,320]
+            self.cross_pxl['side'] = [200,320]
+
+            self.initialize_cameras(plot=False,camera_type='usb')
+        
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
+                      'y'      : {'specname':'naviy','is_rotation':False},
+                      'z'      : {'specname':'naviz','is_rotation':False},
+                      'phi'    : {'specname':'smphi','is_rotation':True},
+                      'kappa'  : {'specname':'smkappa','is_rotation':True}}
+
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+
+        # lists of motors that will the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
+        self.stagegeometry['COR_motors'] = {'phi':{'motors':['y','x','z'],'view':'top','invert':False},
+                                            'kappa': {'motors':['x','z','y'],'view':'side','invert':True}}                
+    
+
+        # connect to spec
+        self.connect(spechost=spechost, specsession=specsession)
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+        
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1)
+            
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['top'] = {'set1':{'x':1,'y':1,'z':1}}
+        self.stagegeometry['same_calibration']['side'] = {'set1':{'x':1,'y':1,'z':1}}
+
+        self.calibration = {}
+        self.calibration.update({'side':{}})
+        self.calibration.update({'top':{}})
+        print('setting default calibration for zoomed out microscopes')
+        self._calibrate('y',495.4,'top')
+        self._calibrate('z',-497.828,'side')
+        
+        # lookuptables:
+        self.lookup = LUTs.LUT_TOMO_Navitar()
+
+
+
 class lab_smrotgonio_navi_jul18(stage):
     '''
     updated jul 30
@@ -851,6 +923,7 @@ class lab_smrotgonio_navi_jul18(stage):
         
         # lookuptables:
         self.lookup = LUTs.LUT_Navitar()
+
 
         
 class EH3_hex_phikappa_gonio(stage):

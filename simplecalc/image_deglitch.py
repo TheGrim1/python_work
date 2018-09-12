@@ -10,9 +10,6 @@ sys.path.append('/data/id13/inhouse2/AJ/skript')
 from simplecalc.fitting import do_gauss_fit
 from simplecalc.fitting import do_logistic_fit
 
-
-
-
 def shift_lines(p, image):
     p = list(p)
     for i in range(len(p)):
@@ -221,12 +218,14 @@ def data_stack_shift(data, shift, lines_shift):
     arbitrary shape > 2
     idea:
     shift.shape <= data.shape
-    lines_shift = list/array of floats
+    lines_shift = list/array of floats len = data.shape[0]
     always shifts first axes
     first shift, then lines_shift
+    preserves dtype, careful with ints and rounding!
     '''
 
     # had weird results after ndshift if data in and data out were the same object!
+    dytpe = data.dtype
     shifted_data=np.zeros_like(data)
     ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
     data=np.copy(shifted_data)
@@ -238,5 +237,5 @@ def data_stack_shift(data, shift, lines_shift):
                 ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
             else:
                 shifted_data[i] = data[i]
+        return shifted_data
 
-    return shifted_data

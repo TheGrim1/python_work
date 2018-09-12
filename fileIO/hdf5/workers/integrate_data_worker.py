@@ -95,7 +95,8 @@ def integrate_data_worker(pickledargs_fname):
 
                 q2d_data, dummy1, dummy2 = ai.integrate2d(data = raw_data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='q_nm^-1', polarization_factor=0.99)
 
-                target_group['q_2D/data'][target_index] = q2d_data
+                # casting to uint32 is only safe if data was multiplied from raw counts!
+                target_group['q_2D/data'][target_index] = np.asarray(q2d_data,dtype=np.uint32)
                 I_azim = q2d_data.sum(1)
                 target_group['chi_azimuthal/I'][target_index,:] = I_azim
                 I_radial = q2d_data.sum(0)
@@ -103,7 +104,7 @@ def integrate_data_worker(pickledargs_fname):
 
                 tth2d_data, dummy1, dummy2 = ai.integrate2d(data = raw_data, mask = mask, npt_azim = npt_azim ,npt_rad = npt_rad , unit='2th_deg', polarization_factor=0.99)
 
-                target_group['tth_2D/data'][target_index] = tth2d_data
+                target_group['tth_2D/data'][target_index] = np.asarray(tth2d_data,dtype=np.uint32)
                 I_tth = tth2d_data.sum(0)
                 target_group['tth_radial/I'][target_index,:] = I_tth
                 

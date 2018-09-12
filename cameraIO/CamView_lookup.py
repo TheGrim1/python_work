@@ -9,13 +9,18 @@ from __future__ import print_function
 import collections
 import numpy as np
 
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
+
 class LookupDict(collections.MutableMapping):
     def __init__(self, motors_dc):
         self.currpos = dict()
         self.motors = motors_dc
         self.store = dict()
         
-
     def __getitem__(self, key):
         '''
         here a calcutation of interdependent lookuptables (eg. phi - kappa) can be done
@@ -121,3 +126,32 @@ class LookupDict_Phi_hexXZKappa(LookupDict):
 
         
     
+class Lut_TOMO_Phi_PhiKappa2D(LookupDict):
+    '''
+    child of LookupDict that corrects the rotation around <phi> when the axis of phi is tilted by kappa in the x,z-plane
+    '''
+    def __init__(self, motors, lookup):
+        self.currpos = dict()
+        self.motors = motors
+        self.store = dict()
+        self.update(lookup['phi'])
+        if 'z' not in list(self.store.keys()):
+            self.update({'hex_z':np.zeros(shape = self.store['x'].shape)})
+
+    def __getitem__(self, key):
+        kappa_val = self.wm('kappa') % 360
+        kappa_list = [x for x in self.store.keys() if type(x)==np.int32]
+
+        kappa_nearest = find_nearest(np.asarray(kappa_list),kappa_val)
+        info = "key {}; kappa_val = {}; nearest lookup: {}".format(key,kappa_val,kappa_nearest)
+            
+        return self.store[kappa_nearest][key]
+
+    def add_phi_for_kappa(kappa_val,phi_lookupdict):
+        
+        kappa_val = kappa_val%360
+        # doubles the lookuptable, but handles cases where kappa < 0 or kappa > 360:
+        self.update({np.int(kappa_val):phi_lookup_dict})
+        self.update({np.int(kappa_val+360):phi_lookup_dict})
+
+

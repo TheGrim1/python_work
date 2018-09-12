@@ -267,9 +267,9 @@ class LUT_Anyberg(object):
         # print(shift)
 
         ## The following commented code adds shift = (shift with previous lookup) + (new shift_lookup)
-        old_positions = list(self.lookup[motor][motor])
-        old_mots = []
+        old_mots=[]
         if shift_relative:
+            
             for i,mot in enumerate(lookupmotors):
                 if mot in self.lookup[motor].keys():
                     old_mots.append(list(self.lookup[motor][mot]))
@@ -280,12 +280,13 @@ class LUT_Anyberg(object):
 
                 s_i = np.asarray(shift[i])
                 shift[i] = list(d_i + s_i)
-        else:
+        elif not overwrite:
             for i,mot in enumerate(lookupmotors):
                 if mot in self.lookup[motor].keys():
                     old_mots.append(list(self.lookup[motor][mot]))
                 else:
                     old_mots.append([0.0]*len(old_positions))                    
+
 
         if not overwrite:
             print('updating old lookuptable')
@@ -509,6 +510,80 @@ class LUT_Anyberg(object):
         for (k,v) in target_pos.items():
             self.dummy_mv(k,v)
 
+class LUT_TOMO_Navitar(LUT_Anyberg):
+    ''' 
+    specific lookuptable interface for the phi-kappa gonio based on the smaract motors on strx,y,z in 
+    as used by the CamView stage class in the nanolab optical setup
+    '''
+    MDC = dict(
+        kappa = dict(
+            is_rotation = True,
+            invert      = False,
+            COR_motors  = ['x','z'],
+            default_pos = 0, # at this position lookups do not interfere, i.e. this is the default position to make lookuptables for any other motors
+        ),
+        phi = dict(
+            is_rotation = True,
+            invert      = True,
+            COR_motors  = ['y','x'],
+            default_pos = 0,
+        ),
+        x = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        y = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        z = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+
+    )
+
+    def __init__(self):
+        self.lookup_fnames ={}
+        self.lookup = {}
+        self.dynamic_lookup = {}
+        
+        self.motors = self.MDC
+        # initial positions
+        pos_list = [(k,0) for k in list(self.motors.keys())]
+        self.pos = dict(pos_list)
+
+        [self.init_current_pos(mot) for mot in ['phi','kappa']]
+        
+        # external to internal motorname translation
+        self.mto_lookup = mto_lookup = dict(
+            phi = "phi",
+            kappa = "kappa",
+            x = "x",
+            y = "y",
+            z = "z")
+        
+        tems = list(mto_lookup.items())
+        semt = [(v,k) for (k,v) in tems]
+        self.mto_eig = dict(semt)
+        self.show()
+
+        
+    def link_dynamic(self, load=False):
+        '''
+        relink the dynamic lookups
+        '''
+        
+        self.phi_dynamic_lookup = dyl = LookupDict_Phi_XZKappa(self.motors, self.lookup)
+        dyl.mockup_currpos(self.pos)
+
+        self.dynamic_lookup['phi'] = dyl
+        self.dynamic_lookup['kappa'] = self.lookup['kappa']
+
+        print("dynam lookup done.")
 
 class LUT_Navitar(LUT_Anyberg):
     ''' 

@@ -28,7 +28,7 @@ class ETHCameras(object):
         img_no = self.image_counters[cam_no]
         cp = baslertools2.CameraProxy(devname=devname, img_no=img_no)
         cp.set_live()
-        # cp.show_devinfo()
+        cp.show_devinfo()
         arr, num = cp.acquire_greyscale_int18() # returns int16 numpy array
         self.image_counters[cam_no] = int(num) ### needed to get a new  image on every grab
         if type(troi)==type(None):

@@ -69,6 +69,9 @@ class h5_scan_nexus(object):
         self.update_data(verbose=verbose)
         self.trois = {}
         self.noprocesses = 5
+        self.bin_size = 1
+        self.cts_multiplication = 10000
+        
 
 
     def setup_ID01(self,
@@ -122,23 +125,23 @@ class h5_scan_nexus(object):
     
     def create_poni_for_trois(self, verbose =False):
         orignal_poni_fname = self.nx_f['entry/instrument/calibration/'+self.detector].attrs['ponifile_original_path']
-        if verbose:
-            print('reading ponifile:')
-            
 
         troipath = os.path.dirname(self.fname)
+        rebin = [self.bin_size,self.bin_size]
+        print('rebinning poni by {} x {}'.format(rebin[0],rebin[1]))
         
         for troiname in self.integrated.keys():
             troi = np.asarray(self.integrated[troiname]['troi'])
-            (dummy, troiponifname) = poni_for_troi(orignal_poni_fname, troi, troiname, troipath)
+            (dummy, troiponifname) = poni_for_troi(orignal_poni_fname, troi, troiname+'_rebin_{}_{}'.format(rebin[0],rebin[1]), troipath, rebin=rebin, verbose=verbose)
 
             nx_g = self.integrated[troiname]
             nx_g = nuf.update_from_ponifile(nx_g,
-                                            properties={'fname':troiponifname}, groupname=troiname)
+                                            properties={'fname':troiponifname},
+                                            groupname=troiname)
 
-        if verbose:
-            print('creating ponifile:')
-            print(troiponifname)
+            
+        print('creating ponifile:')
+        print(troiponifname)
 
     
     def integrate_self(self, verbose = False):
@@ -162,7 +165,7 @@ class h5_scan_nexus(object):
                 
                 datashape = h5_file[raw_datasetpath].shape 
                 # dtype = h5_file[raw_datasetpath].dtype
-                dtype = np.float32
+                dtype = np.uint64
                 datalength = datashape[0]
 
                 
@@ -231,6 +234,7 @@ class h5_scan_nexus(object):
                 h5troi_group['axes'].create_dataset(name = 'tthtroi', data=tthtroi)
                 h5troi_group['axes'].create_dataset(name = 'px_horz', data=troi_to_range(troi)[1])
                 h5troi_group['axes'].create_dataset(name = 'px_vert', data=troi_to_range(troi)[0])
+                h5troi_group['axes'].create_dataset(name = 'bin_size', data=self.bin_size)
                     
                 
                 h5troi_group['q_radial/frame_no'] = h5troi_group['axes/frame_no']
@@ -408,7 +412,10 @@ class h5_scan_nexus(object):
 
 
             datashape, datatype = get_datagroup_shape(source_group, troi=troi, verbose=verbose)
-
+            if self.bin_size!=1:
+                datashape[1]=datashape[1]//self.bin_size
+                datashape[2]=datashape[2]//self.bin_size
+                
             target_index = 0
             target_datasetpath = 'entry/integrated/{}/raw_data/data'.format(troiname)
 
@@ -442,6 +449,8 @@ class h5_scan_nexus(object):
                                   source_index_list[i],
                                   source_maskpath,
                                   troi,
+                                  self.bin_size,
+                                  self.cts_multiplication,
                                   verbose]) for i in range(len(target_index_list))]
                 
                         
@@ -478,6 +487,8 @@ class h5_scan_nexus(object):
                                           source_index_list[i],
                                           source_maskpath,
                                           troi,
+                                          self.bin_size,
+                                          self.cts_multiplication,
                                           verbose]) for i in range(len(target_index_list))]
                 
                         
@@ -490,7 +501,7 @@ class h5_scan_nexus(object):
                     
             troi_grouppath = 'entry/integrated/{}'.format(troiname)
             raw_data_group = h5_dubious[troi_grouppath]['raw_data']
-            raw_data_group.create_dataset(shape=datashape, dtype=datatype, name='data', compression='lzf')
+            raw_data_group.create_dataset(shape=datashape, dtype=np.uint64, name='data', compression='lzf')
             raw_data_group.create_dataset(data=np.arange(datashape[0]), name='frame_no')
             h5_dubious.flush()
 
@@ -669,7 +680,8 @@ def do_read_one_h5(args):
     troi_dict = args[5]
     mask_fname = args[6]
     test = args[7]
-    verbose = args[8]
+    bin_size = args[8]    
+    verbose = args[9]
 
     print('process {} working on {}'.format(os.getpid(),data_fname))
     
@@ -685,6 +697,7 @@ def do_read_one_h5(args):
         one_h5.add_troi(troiname,troi)
         
     one_h5.noprocesses = 1
+    one_h5.bin_size = bin_size
     one_h5.add_mask(mask_fname, verbose=verbose)
     one_h5.create_poni_for_trois(verbose= verbose)
     one_h5.read_all_trois(verbose=verbose, test=test)
@@ -705,11 +718,12 @@ def do_r1_w3_gpu2():
     eigerscanno_list = [get_eigerrunno(parse_master_fname(x)) for x in all_datafiles]
     specscanno_list = [x + spec_to_eiger_scanno_offset for x in eigerscanno_list]
 
-    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_gpu2/'
+    save_dir = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_rebin/read_rois/'
 
-    troi_tr = ((95, 1606), (372-95, 1840-1606))
+    troi_tr = ((95, 1606), (374-95, 1840-1606))
     troi_ml = ((1212, 80), (1605-1212, 497-80))
     troi_dict=dict([['troi_tr',troi_tr],['troi_ml',troi_ml]])
+    bin_size = 3
     
     mask_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/testmask.edf'
     calib_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/calib/calib3.poni'
@@ -735,15 +749,19 @@ def do_r1_w3_gpu2():
         todo.append(troi_dict)
         todo.append(mask_fname)
         todo.append(test)
+        todo.append(bin_size)
         todo.append(verbose)
         
         todo_list.append(todo)
 
-    # do_read_one_h5(todo_list[0])
-    pool = Pool(super_processes,worker_init(os.getpid()))
-    pool.map_async(do_read_one_h5, todo_list)
-    pool.close()
-    pool.join()
+    if super_processes == 1:
+        for todo in todo_list:
+            do_read_one_h5(todo)
+    else:
+        pool = Pool(super_processes,worker_init(os.getpid()))
+        pool.map_async(do_read_one_h5, todo_list)
+        pool.close()
+        pool.join()
 
 
     
@@ -787,8 +805,8 @@ def do_r1_w3():
         todo.append(troi_dict)
         todo.append(mask_fname)
         todo.append(test)
+        todo.append(bin_size)
         todo.append(verbose)
-        
         todo_list.append(todo)
 
     

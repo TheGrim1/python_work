@@ -15,6 +15,7 @@ def ponidict_full(ponidict):
         if item[1] == 'empty':
             full = False
     return full
+
 def read_ponilines(line):
 
     param = line.lstrip().rstrip().split(':')[0]
@@ -48,14 +49,17 @@ def write_poni(ponidict,filename):
     ponilines.append('# \n')
     ponilines.append('# poni for troi calculated at '+localtime+'\n')
     for item in parameterlist:
-        ponilines.append(item + ": " + str(ponidict[item])+ "\n")
+        try:
+            ponilines.append(item + ": " + str(ponidict[item])+ "\n")
+        except ValueError:
+            pass
         
     f = open(filename,'w')
     
     f.writelines(['%s' % l for l in ponilines])
     f.close()
 
-def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1', troipath=None):
+def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1', troipath=None, rebin=None, verbose = False):
     '''
     creates a new PONI file that is corrected for the given troi\n
     This is Eiger4M specific!\n
@@ -63,11 +67,22 @@ def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1', troip
     '''
 
     ponidict = read_poni(filename)
-    
+
+
     ponidict['Poni1']+= - troi[0][0] * ponidict['PixelSize1']
 
     ponidict['Poni2']+= - troi[0][1] * ponidict['PixelSize2']
 
+    if type(rebin) != type(None):
+        ponidict['PixelSize1'] = float(ponidict['PixelSize1'])*rebin[0]
+        ponidict['PixelSize2'] = float(ponidict['PixelSize2'])*rebin[1]
+        
+    if verbose:
+        print('new rebinned pixel size:')
+        print(ponidict['PixelSize1'])
+        print(ponidict['PixelSize1'])
+    
+    
     if troipath == None:
         savefilename = filename[:filename.find('.poni')] + '_%s.poni' % troiname
     else:

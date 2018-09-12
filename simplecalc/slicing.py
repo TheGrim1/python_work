@@ -1,6 +1,15 @@
 from __future__ import print_function
 import numpy as np
 
+def rebin(a, shape):
+    '''
+    trows away values outside of a.shape % shape
+    '''
+    len0 = (a.shape[0]//shape[0])
+    len1 = (a.shape[1]//shape[1])
+    b = a[0: len0*shape[0], 0: len1*shape[1]]
+    sh = len0,shape[0],len1,shape[1]
+    return b.reshape(sh).sum(-1).sum(1)
 
 def troi_to_range(troi):
     (ystart, yend, xstart, xend) = troi_to_xy(troi)

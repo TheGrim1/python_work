@@ -3,8 +3,9 @@ from __future__ import print_function
 import numpy as np
 import h5py
 import os, sys
-from scipy import interpolate.interp1d as interp1d
-from xrayutils import FuzzyGridder3D 
+from scipy.interpolate import interp1d
+from xrayutilities import FuzzyGridder3D
+import pythonmisc.my_xrayutilities as my_xu
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import pythonmisc.pickle_utils as pu
 
@@ -45,13 +46,23 @@ def qxyz_regroup_worker(pickledargs_fname):
     source_fname = unpickled_args[0]
     source_ds_path = unpickled_args[1]
     target_fname = unpickled_args[2]
-    [i,j] = unpickled_args[3]
-    nx,ny,nz = unpickled_args[4]
-    Theta_list = unpickled_args[5]
-    fine_Theta_list = unpickled_args[6] 
-    [qx, qy, qz] = unpickled_args[7]
-    verbose = unpickled_args[7]
+    troi = np.asarray(unpickled_args[3])
+    troi_poni = unpickled_args[4]
+    [i,j] = [int(x) for x in list(unpickled_args[5])]
+    nx,ny,nz = [int(x) for x in unpickled_args[6]]
+    Theta_index_list = [int(x) for x in unpickled_args[7]]
+    Theta_list = [float(x) for x in unpickled_args[8]]
+    fine_Theta_list = [float(x) for x in unpickled_args[9]]
+    [kappa,phi] = [float(x) for x in unpickled_args[10]]
+    verbose = unpickled_args[11]
 
+    for key, value in troi_poni.items():
+        print(key+' '+ str(value) + str(type(value)))
+
+    
+    # find Q regrouping, memory heavy!
+    xu_exp = my_xu.get_id13_experiment(troi, troi_poni)
+    qx, qy, qz = xu_exp.Ang2Q.area(fine_Theta_list,kappa,phi)
     gridder = FuzzyGridder3D(nx,ny,nz)
     
     if verbose:
@@ -64,17 +75,27 @@ def qxyz_regroup_worker(pickledargs_fname):
     with h5py.File(target_fname,'w') as target_file:
         with h5py.File(source_fname,'r') as source_file:
             if verbose:
-                print('getting data')
-            raw_data = np.asarray(target_fname[source_ds_path][i,j][slice(Theta_list[0], Theta_list[-1],1)])
+                print('getting data from {}'.format(source_fname))
+                print(Theta_index_list[0])
+                print(Theta_index_list[-1])
+            raw_data = np.asarray(source_file[source_ds_path][i,j][slice(Theta_index_list[0], Theta_index_list[-1]+1,1)])
+            dtype=raw_data.dtype
             if verbose:
-                print('interpolating')             
-            f = interp1d(Theta_list, raw_data, order=1)
+                print('interpolating {}'.format(source_fname))
+                print(len(Theta_list),raw_data.shape, dtype)
+                
+            f = interp1d(Theta_list, raw_data, axis=0, assume_sorted=True)
             interp_data = f(fine_Theta_list)
 
             if verbose:
-                print('regridding, saving')
-            data_group = target_file.create_group['entry/data']
-            ds = data_group.create_dataset(name='data', data = np.asarray(gridder(qx,qy,qz,interp_data),dtype=raw_data.dtype, compression='lzf')
+                print('regridding {}\n saving {}'.format(source_fname, target_fname))
+                print('realspace grid: ', qx.shape, qx.dtype)
+                print('data: ', interp_data.shape, interp_data.dtype)
+                
+            data_group = target_file.create_group('entry/data')
+            gridder(qx,qy,qz,interp_data)
+            data = np.asarray(gridder.data,dtype=dtype)
+            ds = data_group.create_dataset(name='data', data = data, compression='lzf')
                 
             # target_file.flush()
             
