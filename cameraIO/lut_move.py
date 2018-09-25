@@ -269,7 +269,7 @@ class LUT_Anyberg(object):
         ## The following commented code adds shift = (shift with previous lookup) + (new shift_lookup)
         old_mots=[]
         if shift_relative:
-            
+            old_positions = self.lookup[motor][motor]
             for i,mot in enumerate(lookupmotors):
                 if mot in self.lookup[motor].keys():
                     old_mots.append(list(self.lookup[motor][mot]))
@@ -280,7 +280,8 @@ class LUT_Anyberg(object):
 
                 s_i = np.asarray(shift[i])
                 shift[i] = list(d_i + s_i)
-        elif not overwrite:
+        if not overwrite and not shift_relative:
+            old_positions = self.lookup[motor][motor]
             for i,mot in enumerate(lookupmotors):
                 if mot in self.lookup[motor].keys():
                     old_mots.append(list(self.lookup[motor][mot]))

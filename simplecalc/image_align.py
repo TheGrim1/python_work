@@ -40,7 +40,7 @@ def centerofmass_align(imagestack, alignment= None):
     '''
     shifts the images in imagestack so that their center of mass lies on the COM of imagestack[0]
     works for arbitrary dimensions
-    only aligns for axes where alignmetn != 0, defaults to ones
+    only aligns for axes where alignment != 0, defaults to ones
     '''
     if type(alignment) == type(None):
         alignment = np.ones_like(imagestack.shape)
@@ -57,7 +57,6 @@ def centerofmass_align(imagestack, alignment= None):
         shift.append(ishift)
         #print shift
         nd.shift(imagestack[i],ishift, output = imagestack[i])
-    
 
     shift = np.asarray(shift)
     
@@ -308,7 +307,31 @@ def single_correlation_align(reference, image):
     return (image, shift)
 #    return (correlation, shift)
 
+def com_and_mask_align(imagestack, com_axis = 1, mask_direction = 1, threshold = 1.0):
+    '''
+    aligns with com along the given axis AND THEN uses mask_align in the direction stated 
+    com_axis:        0  = vert;              1 = horz axis
+    mask_directopm : -1 = bottom_edge/right; 1 = top,left
+    '''
+    axes = [0,1]
+    axes.pop(com_axis)
+    mask_axis = axes[0]
 
+    com_alignment = [0,0]
+    com_alignment[com_axis] = 1
+
+    imagestack, shift = centerofmass_align(imagestack, com_alignment)
+    
+    mask_alignment = [0,0]
+    mask_alignment[mask_axis] = mask_direction
+    
+    imagestack, mask_shift = mask_align(imagestack, threshold, mask_alignment)
+    
+    for i in range(len(shift)):
+        shift[i][mask_axis] = mask_shift[i][mask_axis]
+
+    return (imagestack, shift)
+    
 def mask_align(imagestack, threshold = 5, alignment = (0,0)):
     'masks the aling array by thresholding.\n Aligns to the alighnment = (1,1) = top - left/n(-1,1) = btm - left/n(1,-1) = top - right/n(-1,-1) = bottom - right corner. A value of 0 in alignment does not align that direction.\n Returns the imagestack array aligned to the first array in the stack and a list of the shift (r[0]-a[0],r[1]-a[1]).'
 
@@ -348,6 +371,67 @@ def mask_align(imagestack, threshold = 5, alignment = (0,0)):
             kshift[0] = (dcols - drefcols)*alignment[0]*(-1)
         if alignment[1]:
             alignrows = maskalign.sum(0)[::alignment[1]]
+            drows  = 0
+            i = 0
+            while not alignrows[i]:        
+                drows += 1
+                i     += 1
+                kshift[1] = (drows - drefrows)*alignment[1]*(-1)
+
+        shift.append(kshift)
+        imagestack[k,:,:] = nd.shift(imagestack[k,:,:],shift[k])
+
+    shift = np.asarray(shift)
+    return (imagestack, shift)
+
+def forcetop_mask_align(imagestack, threshold = 5, alignment = (0,0)):
+    '''masks the aling array by thresholding.\n Aligns to the alighnment = (1,1) = top - left/n(-1,1) = btm - left/n(1,-1) = top - right/n(-1,-1) = bottom - right corner. A value of 0 in alignment does not align that direction.\n
+    Unlike mask_align, only the first line in the first alignment direction (i.e. the 1 = top, 0 = btm most line) is used for the left/right alignment
+    Returns the imagestack array aligned to the first array in the stack and a list of the shift (r[0]-a[0],r[1]-a[1]).'''
+
+    maskreference = np.where(imagestack[0,:,:] > threshold, 1, 0)
+    
+    shift = [(0,0)]
+    drefcols  = 0
+
+# count 0s for reference  
+    if alignment[0]:
+        refcols   = maskreference.sum(1)
+        col_ind  = range(len(refcols))[::alignment[0]]
+        i = 0
+        while not refcols[col_ind[i]]:        
+            i    += 1
+        drefcols = col_ind[i]
+            
+    else:
+        raise NotImplementedError('not aligning in axis 0 is not implemented for this mode!')
+            
+    drefrows = 0
+
+    if alignment[1]:
+        refrows  = maskreference[drefcols,:][::alignment[1]]   
+        i        = 0
+        # print(refrows)
+        while not refrows[i]:        
+            drefrows += 1
+            i        += 1
+
+    # print 'found drefcols = %s and drefrows = %s' %(drefcols,drefrows)
+    
+    for k in range(1,imagestack.shape[0]):
+        kshift = [0,0]
+        maskalign     = np.where(imagestack[k,:,:] > threshold, 1, 0)
+        if alignment[0]:
+            aligncols   = maskalign.sum(1)
+            col_ind  = range(len(aligncols))[::alignment[0]]
+            i = 0
+            while not aligncols[col_ind[i]]:        
+                i    += 1
+            dcols = col_ind[i]
+
+            kshift[0] = (dcols - drefcols)*(-1)
+        if alignment[1]:
+            alignrows = maskalign[dcols,:][::alignment[1]]
             drows  = 0
             i = 0
             while not alignrows[i]:        
@@ -442,6 +526,10 @@ def image_align(imagestack, mode = {'mode':'sift'}):
         (imagestack, shift) = elastix_align(imagestack, mode = mode['elastix_mode'])
     elif mode['mode'] == 'crosscorrelation_1d':
         (imagestack, shift) = crosscorrelation_align_1d(imagestack, axis = mode['axis'])
+    elif mode['mode'] == 'com_and_mask':
+        (imagestack, shift) = com_and_mask_align(imagestack, com_axis = mode['com_axis'], mask_direction=mode['mask_direction'], threshold=mode['threshold'])
+    elif mode['mode'] == 'forcetop_mask':
+        (imagestack, shift) = forcetop_mask_align(imagestack, threshold = mode['threshold'], alignment = mode['alignment'])
     else:
         print("%s is not a valid mode" % mode)    
         

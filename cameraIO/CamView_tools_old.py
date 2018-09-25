@@ -12,7 +12,6 @@ import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from scipy.ndimage.filters import median_filter as median_filter
 
 # local imports
 path_list = os.path.dirname(__file__).split(os.path.sep)
@@ -58,7 +57,7 @@ class stage(object):
                                {'camera_index':1, 'horz_func':'y', 'vert_func':'z'}}) 
         self.saved_positions = {}
         self.reference_image = {}
-        self.median_filter = 0
+
 
     def connect(self,spechost = 'lid13lab1', 
                  specsession = 'motexplore', 
@@ -130,7 +129,7 @@ class stage(object):
         print('mv %s %s' %(function, position))
         try:
             cmd(self.motors[function]['specname'], position)
-        except SpecClient.SpecClientError.SpecClientTimeoutError:
+        except SpecClientTimeoutError:
             if repeat > 3:
                 repeat+=1
                 print('SpecClientTimeoutError: repeating mv')
@@ -275,13 +274,7 @@ class stage(object):
     def _get_view(self, view='top', troi = None):        
         if view in self.views:
             camera_index = self.views[view]['camera_index']
-            if self.median_filter:
-                img = median_filter(self.cameras.grab_image(camera_index,troi),size=self.median_filter)
-                img[-1,-1]=0
-                return img
-                            
-            else:
-                return self.cameras.grab_image(camera_index,troi)
+            return self.cameras.grab_image(camera_index,troi)
         else:
             print(('could not find "%s" in the predefined views ' %view, self.views))
             return
@@ -434,6 +427,8 @@ class stage(object):
         cutcontrast [-1.0:1.0](optional) use a negative value to cut dark values, positive for bright values
         move_using_lookup [boolean]
         '''
+        if mode.upper() not in ['ELASTIX','COM','CC','USERCLICK']:
+            raise NotImplementedError(mode +' is not a valid image alignment mode for getting the COR')
 
         if plot > 1:
             plot_imagestack = True
@@ -528,10 +523,14 @@ class stage(object):
             'COM'     - center of mass, fastest
             'elastix' - default, includes contribution of second axis
             'CC'      - 1d_cross correlation, slow
+            'test'    - does all the modes, really slow
         axis = 0 -> vert, axis = 1 -> horz (motor in view)
         '''
             
         print('motor %s will be calibrated with a series of images in %s view' % (motor, view))
+
+        if mode.upper() not in ['ELASTIX','COM','CC','TEST','USERCLICK']:
+            raise NotImplementedError(mode ,' is not a valid image alignment mode for calibration')
         
         pos_ini = np.copy(self.wm(motor))
         positions = [pos_ini + i*stepsize for i in range(points)]
@@ -557,7 +556,42 @@ class stage(object):
         
         ### start with actual calibration code:
 
-        if mode.upper() == 'ELASTIX':
+        if mode.upper() == 'TEST':
+        ### testing all modes the other elifs are copies of each following boilerplate block of code:
+            shift = []
+
+            dummy = np.copy(imagestack)
+            mode  = {'mode':'elastix', 'elastix_mode':'translation'}
+            dummy, elas_shift = ia.image_align(dummy, mode)
+            elas_sum = dummy.sum(0)
+            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(elas_shift)]
+            print(mode['mode'] + ' found a shift of ', shift)
+            calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
+            print(mode['mode'] + ' found calibration of ', calibration)
+            
+            dummy = np.copy(imagestack)
+            mode  = {'mode':'crosscorrelation_1d', 'axis': axis}
+            dummy, CC_shift = ia.image_align(dummy, mode)
+            CC_sum = dummy.sum(0)
+            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(CC_shift)]
+            print(mode['mode'] + ' found a shift of ', shift)
+            calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
+            print(mode['mode'] + ' found calibration of ', calibration)
+
+            dummy = np.copy(imagestack)
+            alignment = np.array([0,0])
+            alignment[axis] = 1
+            mode  = {'mode':'centerofmass', 'alignment':alignment}
+            dummy, COM_shift = ia.image_align(dummy, mode)
+            COM_sum = dummy.sum(0)
+            shift = [[positions[i],np.sign(dxdy[axis])*np.sqrt(dxdy[0]**2+dxdy[1]**2)] for i,dxdy in enumerate(COM_shift)]
+            shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(CC_shift)]
+            # shift = [[positions[i],np.sqrt(dx**2+dy**2)] for i,[dx,dy] in enumerate(COM_shift)]
+            print(mode['mode'] + ' found a shift of ', shift)
+            calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
+            print(mode['mode'] + ' found calibration of ', calibration)
+
+        elif mode.upper() == 'ELASTIX':
             dummy = np.copy(imagestack)
             mode  = {'mode':'elastix', 'elastix_mode':'translation'}
             dummy, elas_shift = ia.image_align(dummy, mode)
@@ -599,7 +633,7 @@ class stage(object):
             calibration = -fit.do_linear_fit(np.asarray(shift),verbose = True)[0]
             print(mode['mode'] + ' found calibration of ', calibration)    
         else:
-            raise NotImplementedError('%s is not an implemented mode. Try "CC", "COM", "userclick" or "elastix"' %mode)
+            raise NotImplementedError('%s is not an implemented mode. Try "test", "CC", "COM", "userclick" or "elastix"' %mode)
             
         
         print('found calibration of %s pxls/motor unit' % calibration)
@@ -693,11 +727,10 @@ class stage(object):
     def align_to_reference_image(self,
                                  view = 'side',
                                  mode = 'com',
-                                 align_motors = None, 
+                                 aign_motors = None, 
                                  correct_vertical=True,
                                  focus_motor_range = None,
                                  focus_points = 20,
-                                 refocus=False,
                                  plot = False,
                                  troi = None,
                                  cutcontrast=0.5,
@@ -705,132 +738,43 @@ class stage(object):
         '''
         <align_motors> [horz_motor, vert_motor, focussing_motor]
         '''
+        if focus_motor_range!=None:
+            self.
 
-        if align_motors == None: # assume the same motors as for COR
-            mot0 = self.views[view]['horz_func']
-            mot1 = self.views[view]['vert_func']
-            mot2 = self.views[view]['focus']
-        else:
-            mot0 = align_motors[0]
-            mot1 = align_motors[1]
-            mot2 = align_motors[2]
-            
         
-        if focus_motor_range != None:
-            print('focussing')
-            self.auto_focus(view=view,
-                            motor=mot2,
-                            motor_range=focus_motor_range,
-                            plot=plot,
-                            points=focus_points,
-                            move_using_lookup=False,
-                            troi=troi,
-                            backlashcorrection=-focus_motor_range/focus_points,
-                            sleep=sleep)
-
-        reference = self.reference_image[view]
-        if sleep:
-            print('sleeping {}s'.format(sleep))
-            time.sleep(sleep)
-        image = self._get_view(view)
-        
-        imagestack = np.stack([reference, image])
-        
-        if type(cutcontrast)!=type(None):
-            imagestack =  self._optimize_imagestack_contrast(imagestack, cutcontrast)
-
-        # plt.matshow(np.where(imagestack.sum(axis=0),1,0))
-        mode_dict = self.get_mode_dict(mode)
-        aligned, shift = ia.image_align(imagestack, mode_dict)
-        
-        print('alignment found shift ',shift) 
-        if plot:
-            plt.imshow(np.sum(aligned,axis=0))
-        shift = np.asarray(shift)
-        shift_0 = shift[1,1]
-        shift_1 = shift[1,0]
-        
-        self.mvr(mot0,shift_0, move_in_pxl=True, view=view)
-        if correct_vertical:
-            self.mvr(mot1,shift_1, move_in_pxl=True, view=view)
-            
-        if focus_motor_range != None and refocus:
-            print('refocussing')
-            self.auto_focus(view=view,
-                            motor=mot2,
-                            motor_range=focus_motor_range,
-                            plot=plot,
-                            points=focus_points,
-                            move_using_lookup=False,
-                            troi=troi,
-                            backlashcorrection=focus_motor_range/focus_points,
-                            sleep=sleep)
-
-            
+                                 
+    
 ##### lookuptable functionality
 
-    def move_to_lookup_pos(self, function, position, motor_list=None, silent=False):
-        '''
-        if motor_list==None moves all motors in the lookuptable for <function> to the position that was saved in the lookuptabe.
-        
-        N.B.! This can move to unexpected places if relative positions are beeing used in the lookup.
-
-        '''
-
-        lut= self.lookup.lookup[function]
-
-        if type(motor_list) == type(None):
-            motor_list=lut.keys()
-
-
-        motor_pos_dict ={}
-        for motor in motor_list:
-            motor_pos_dict.update({motor:np.interp(position,lut[function],lut[motor])})
-
-        if not silent:
-            for key, val in motor_pos_dict.items():
-                print('will move:')
-                print('{} to {}'.format(key,val))
-
-        if raw_input('if you enter y now: ').upper()[0]=='Y':
-            for key, val in motor_pos_dict.items():
-                self.mv(key,val)
-        else:
-            print('not moving')
-            
-
-    def make_tmp_lookup(self,
-                        motor = 'rotz',
-                        view = 'side',
-                        positions = [0,1,2,3,4,5],
-                        mode = 'com',
-                        resolution = None,
-                        lookup_motors = None,
-                        correct_vertical=True,
-                        focus_motor_range = 0.1,
-                        focus_points = 20,
-                        refocus=False,
-                        plot = False,
-                        troi = None,
-                        cutcontrast=0.5,
-                        backlashcorrection = True,
-                        savename = None,
-                        move_using_lookup=False,
-                        saveimages=False,
-                        saveimages_prefix='lookup1',
-                        sleep=0,
-                        align_to_cross=True):
+    def make_tmp_lookup_side_view(self,
+                                  motor = 'rotz',
+                                  view = 'side',
+                                  positions = [0,1,2,3,4,5],
+                                  mode = 'com',
+                                  resolution = None,
+                                  lookup_motors = None,
+                                  correct_vertical=True,
+                                  focus_motor_range = 0.1,
+                                  focus_points = 20,
+                                  plot = False,
+                                  troi = None,
+                                  cutcontrast=0.5,
+                                  backlashcorrection = True,
+                                  savename = None,
+                                  move_using_lookup=False,
+                                  saveimages=False,
+                                  saveimages_prefix='lookup1',
+                                  sleep=0):
         ''' 
         creates a lookup table for <motor>
-        corresponding movement command = self.mv(..., move_using_lookup = True,...)
         the lookuptable will contain positions of <motor> between 0 and 360 seperated by <resolution> 
         OR values for the defined list of angles <positions>
-        for the motors listed under self.stagegeometry['COR_motors'][<motor>]['motors'] positions minimising the movement of the sample are found using the imagealigment mode 'mode' (see self.make_calibration)
+        for the motors listed under self.stagegeometry['COR_motors'][<motor>]['motors'] positions minimising the movement of the sample are found using the imagealigment mode 'mode' (see self.calibrate_axis)
         alternatively you can define motors <lookup_motors> [horz_motor, vert_motor, focussing_motor]
-        mode.upper() can be ['ELASTIX','COM','CC','USERCLICK','MASK_TL','MASK_TR','TOPMASK_l','TOPMASK_r']
-        tries to align all positions with first position, which is kept as referemce_image
-        if correct_vertical = False - ignores the vertical correction (sometimes good for needles)
-        if focus_motor_range = None - does not try to focus (usually good for top view)
+        corresponding movement command = self.mv(..., move_using_lookup = True,...)
+        mode.upper() can be ['ELASTIX','COM','CC','USERCLICK','MASK_TL','MASK_TR']
+        tries to align all positions with first position
+        if correct_vertical = False, ignores the vertical correction (sometimes good for needles)
         overwrites current lookup.tmp_lookup
         backlashcorrection = bool or value of correction
         '''
@@ -847,15 +791,17 @@ class stage(object):
                 print('WARNING: too many positions, will not plot!')
                     
 
+        if mode.upper() not in ['ELASTIX','COM','CC','USERCLICK','MASK_TL','MASK_TR']:
+            raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
+
         if lookup_motors == None: # assume the same motors as for COR
-            mot0 = self.views[view]['horz_func']
-            mot1 = self.views[view]['vert_func']
-            mot2 = self.views[view]['focus']    
+            mot0 = self.stagegeometry['COR_motors'][motor]['motors'][0]
+            mot1 = self.stagegeometry['COR_motors'][motor]['motors'][1]
+            mot2 = self.stagegeometry['COR_motors'][motor]['motors'][1]
         else:
             mot0 = lookup_motors[0]
             mot1 = lookup_motors[1]
             mot2 = lookup_motors[2]
-        motor_list = [mot0,mot1,mot2]
             
         print('will try to get a lookuptable to align rotation in ', motor)
         print('to focus with %s' %(mot2))
@@ -870,15 +816,14 @@ class stage(object):
                 
         if backlashcorrection:
             print('doing backlashcorrection')
-            self.mv(motor,2*positions[0]-positions[1], move_using_lookup=move_using_lookup)
+            self.mv(motor,positions[0]-float(backlashcorrection), move_using_lookup=move_using_lookup)
                 
             
-        self.lookup.initialize_tmp_lookup(lookupmotor=motor,save_motor_list=motor_list)
-
-        print('\n\ngoing to first position of {}'.format(len(positions)))
-        self.mv(motor,positions[0],move_using_lookup=move_using_lookup)
-        
-        if not align_to_cross:
+        self.lookup.initialize_tmp_lookup(lookupmotor=motor,save_motor_list=[mot0,mot1,mot2])
+        for i, pos in enumerate(positions):
+            print('\n\ngoing to lookup position {} of {}'.format(i+1,len(positions)))
+            
+            self.mv(motor,pos,move_using_lookup=move_using_lookup)
             if focus_motor_range != None:
                 print('focussing')
                 self.auto_focus(view=view,
@@ -890,62 +835,69 @@ class stage(object):
                                 troi=troi,
                                 backlashcorrection=focus_motor_range/focus_points,
                                 sleep=sleep)
-            if sleep:
-                print('sleeping {}s'.format(sleep))
-                time.sleep(sleep)
-            self.update_reference_image(view)
-            print('got reference image')
-            self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
 
-        else:
-            if cutcontrasts[0]>0:
-                self.reference_image[view] = np.zeros_like(self._get_view(view))
-                self.reference_image[views][self.cross_pxl[view][0],self.cross_pxl[view][1]] = 255
-            else:           
-                self.reference_image[view]= np.ones_like(self._get_view(view))*255
-                self.reference_image[view][self.cross_pxl[view][0],self.cross_pxl[view][1]] = 0
+            if i==0:
+                print('reference image ')
+                self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
+                reference = self._get_view(view)
+                save_image = reference
+
+            else:                                          
+                print('aligning to reference image ')
+                image = self._get_view(view)
+                imagestack = np.stack([reference, image])
                 
-            print('set reference image')
-            print('aligning to reference image ')
-            self.align_to_reference_image(view=view,
-                                          mode=mode,
-                                          align_motors=motor_list, 
-                                          correct_vertical=correct_vertical,
-                                          focus_motor_range=focus_motor_range,
-                                          focus_points=focus_points,
-                                          refocus=refocus,
-                                          plot=plot,
-                                          troi=troi,
-                                          cutcontrast=cutcontrast,
-                                          sleep=sleep)
-            self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
+                if type(cutcontrast)!=type(None):
+                    imagestack =  self._optimize_imagestack_contrast(imagestack, cutcontrast)
+                if mode.upper() == 'ELASTIX':
+                    print('WARNING THIS IS NOT TESTED')
+                    sleep(4)
+                    mode_dict  = {'mode':'elastix', 'elastix_mode':'translation'}
+                elif mode.upper() == 'CC':
+                    print('WARNING THIS IS NOT TESTED')
+                    sleep(4)                  
+                    mode_dict  = {'mode':'crosscorrelation'}
+                elif mode.upper() == 'COM':
+                    alignment = np.array([1,1])
+                    mode_dict  = {'mode':'centerofmass', 'alignment':alignment}     
+                elif mode.upper() == 'USERCLICK':
+                    mode_dict  = {'mode':'userclick'}
+                elif mode.upper() == 'MASK_TL':
+                    mode_dict  = {'mode':'mask','alignment':(1,1),'threshold':1}
+                elif mode.upper() == 'MASK_TR':
+                    mode_dict  = {'mode':'mask','alignment':(1,-1),'threshold':1}
+                    
+                aligned, shift = ia.image_align(imagestack, mode_dict)
+                print('alignment found shift ',shift) 
+                if plot:
+                    plt.imshow(np.sum(aligned,axis=0))
+                shift = np.asarray(shift)
+
+                shift_0 = shift[1,1]
+                shift_1 = shift[1,0]
                 
+                self.mvr(mot0,shift_0, move_in_pxl=True, view=view)
+                if correct_vertical:
+                    self.mvr(mot1,shift_1, move_in_pxl=True, view=view)
 
-        
-        
-        for i, pos in enumerate(positions[1:]):
-            
-            print('\n\ngoing to lookup position {} of {}'.format(i+2,len(positions)))            
-            self.mv(motor,pos,move_using_lookup=move_using_lookup)
-
-            
-            print('aligning to reference image ')
-            self.align_to_reference_image(view=view,
-                                          mode=mode,
-                                          align_motors=motor_list, 
-                                          correct_vertical=correct_vertical,
-                                          focus_motor_range=focus_motor_range,
-                                          focus_points=focus_points,
-                                          refocus=refocus,
-                                          plot=plot,
-                                          troi=troi,
-                                          cutcontrast=cutcontrast,
-                                          sleep=sleep)
+                if focus_motor_range != None:
+                    print('refocussing')
+                    self.auto_focus(view=view,
+                                    motor=mot2,
+                                    motor_range=focus_motor_range,
+                                    plot=plot,
+                                    points=focus_points,
+                                    move_using_lookup=False,
+                                    troi=troi,
+                                    backlashcorrection=focus_motor_range/focus_points,
+                                    sleep=sleep)
 
                 
-            self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
-            if saveimages:
-                save_image = self._get_view(view)
+                self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
+                if saveimages:
+                    save_image = self._get_view(view)
+
+                    
             if saveimages:
                 image_fname = save_prefix+'{:6d}.png'.format(i)
                 it.array_to_imagefile(save_image,image_fname)               
@@ -953,22 +905,22 @@ class stage(object):
         print('\nDONE\nlookup ready to be saved in .tmp_lookup')
 
             
-    def _make_tmp_lookup_top_view_old(self,
-                                      motor = 'rotz',
-                                      view = 'top',
-                                      positions = [0,1,2,3,4,5],
-                                      mode = 'com',
-                                      resolution = None,
-                                      lookup_motors = None,
-                                      plot = True,
-                                      troi = None,
-                                      cutcontrast=0.5,
-                                      backlashcorrection = True,
-                                      savename = None,
-                                      move_using_lookup=False,
-                                      saveimages=False,
-                                      saveimages_prefix='lookup1',
-                                      sleep=0):
+    def make_tmp_lookup_top_view(self,
+                                 motor = 'rotz',
+                                 view = 'top',
+                                 positions = [0,1,2,3,4,5],
+                                 mode = 'com',
+                                 resolution = None,
+                                 lookup_motors = None,
+                                 plot = True,
+                                 troi = None,
+                                 cutcontrast=0.5,
+                                 backlashcorrection = True,
+                                 savename = None,
+                                 move_using_lookup=False,
+                                 saveimages=False,
+                                 saveimages_prefix='lookup1',
+                                 sleep=0):
         ''' 
         creates a lookup table for <motor>
         the lookuptable will contain positions of <motor> between 0 and 360 seperated by <resolution> 
@@ -1093,38 +1045,7 @@ class stage(object):
                           COR_shift=COR_shift)
         
         print('Lookuptable not saved. Use self._save_lookup if you want to.')
-
-##### util:
-
-    def get_mode_dict(self, mode):
-           
-        if mode.upper() == 'ELASTIX':
-            print('WARNING THIS IS NOT TESTED')
-            sleep(4)
-            mode_dict  = {'mode':'elastix', 'elastix_mode':'translation'}
-        elif mode.upper() == 'CC':
-            print('WARNING THIS IS NOT TESTED')
-            sleep(4)                  
-            mode_dict  = {'mode':'crosscorrelation'}
-        elif mode.upper() == 'COM':
-            alignment = np.array([1,1])
-            mode_dict  = {'mode':'centerofmass', 'alignment':alignment}     
-        elif mode.upper() == 'USERCLICK':
-            mode_dict  = {'mode':'userclick'}
-        elif mode.upper() == 'MASK_TL':
-            mode_dict  = {'mode':'mask','alignment':(1,1),'threshold':2}
-        elif mode.upper() == 'MASK_TR':
-            mode_dict  = {'mode':'mask','alignment':(1,-1),'threshold':2}
-        elif mode.upper() == 'COMMASK':
-            mode_dict  = {'mode':'com_and_mask','com_axis':1,'mask_direction':1,'threshold':2}
-        elif mode.upper() == 'TOPMASK_R':
-            mode_dict  = {'mode':'forcetop_mask','alignment':(1,1),'threshold':2}
-        elif mode.upper() == 'TOPMASK_L':
-            mode_dict  = {'mode':'forcetop_mask','alignment':(1,-1),'threshold':2}
-        else:
-            raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
-        return mode_dict
-    
+                        
 ##### some cosmetic plotting
 
     def _show_results(self, imagestack, aligned, positions,save=False,prefix = '',COR=[10,10]):
@@ -1155,10 +1076,7 @@ class stage(object):
             it.array_to_imagefile(aligned_sum,imagefname=prefix+"aligned_sum.png")
             it.array_to_imagefile(initial_sum,imagefname=prefix+"initial_sum.png")
                                             
-
-
+        
 ###### debug functions
     def _get_SpecClient_file():
         return
-
-    

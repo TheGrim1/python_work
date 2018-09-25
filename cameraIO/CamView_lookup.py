@@ -151,7 +151,7 @@ class Lut_TOMO_Phi_PhiKappa2D(LookupDict):
         
         kappa_val = kappa_val%360
         # doubles the lookuptable, but handles cases where kappa < 0 or kappa > 360:
-        self.update({np.int(kappa_val):phi_lookup_dict})
-        self.update({np.int(kappa_val+360):phi_lookup_dict})
+        self.update({np.int32(kappa_val):phi_lookup_dict})
+        self.update({np.int32(kappa_val+360):phi_lookup_dict})
 
 

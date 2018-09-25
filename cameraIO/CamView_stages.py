@@ -53,11 +53,12 @@ class phi_kappa_gonio(stage):
             self.initialize_cameras(plot=False,camera_type='usb')                        
             self.background = {}
 
+
             # General point of reference
             self.cross_pxl = {}
             self.cross_pxl['top'] = [600,1000]
             self.cross_pxl['side'] = [600,1000]
-            
+        self.reference_image = {}            
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
@@ -195,7 +196,7 @@ class EH2_phi_kappa_gonio(stage):
             self.cross_pxl['side'] = [300,400]
             
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh2-vlm1','id13/limaccds/eh2-vlm2'])
-        
+        self.reference_image = {}        
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'strx','is_rotation':False},
@@ -460,7 +461,7 @@ class motexplore_jul17(stage):
             self.cross_pxl['top'] = [600,1000]
             self.cross_pxl['side'] = [600,1000]
             self.initialize_cameras(plot=False,camera_type='usb')
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
@@ -527,7 +528,7 @@ class EH3_cameras_apr18(stage):
             self.cross_pxl['vlm1'] = [200,300]
             self.cross_pxl['vlm2'] = [200,300]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'nnp1','is_rotation':False},
@@ -592,7 +593,7 @@ class EH3_smrhex_mai18(stage):
             self.cross_pxl['vlm1'] = [576/2,748/2]
             self.cross_pxl['vlm2'] = [576/2,748/2]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'nnx', 'is_rotation':False},
@@ -655,7 +656,7 @@ class EH3_XYTHetahex_mai18(stage):
             self.cross_pxl['vlm1'] = [576/2,748/2]
             self.cross_pxl['vlm2'] = [576/2,748/2]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'hex_x'      : {'specname':'nnx', 'is_rotation':False},
@@ -732,7 +733,7 @@ class EH3_smrhexpiezo_mai18(stage):
             self.cross_pxl['vlm1'] = [576/2,748/2]
             self.cross_pxl['vlm2'] = [576/2,748/2]
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'nnp1', 'is_rotation':False},
@@ -803,7 +804,7 @@ class lab_TOMO_navi_sep18(stage):
             self.cross_pxl['side'] = [200,320]
 
             self.initialize_cameras(plot=False,camera_type='usb')
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
@@ -852,8 +853,223 @@ class lab_TOMO_navi_sep18(stage):
         # lookuptables:
         self.lookup = LUTs.LUT_TOMO_Navitar()
 
+class EH2_TOMO_navi_sep18(stage):
+    '''
+    updated sep 06
+    '''
+    def __init__(self, spechost = 'lid13eh21', specsession = 'scanning', initialize_cameras = True):
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'inline':
+                               {'camera_index':0, 'horz_func':'y', 'vert_func':'z','focus':'x'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'x', 'vert_func':'z','focus':'y'}})
+        
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['inline'] = [229,373]
+            self.cross_pxl['side'] = [229,373]
+            self.median_filter = 3
 
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh2-vlm1','id13/limaccds/eh2-vlm2'])
+        self.reference_image = {}
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {'x'      : {'specname':'strx','is_rotation':False},
+                      'y'      : {'specname':'stry','is_rotation':False},
+                      'z'      : {'specname':'strz','is_rotation':False},
+                      'phi'    : {'specname':'smphi','is_rotation':True},
+                      'kappa'  : {'specname':'smkappa','is_rotation':True}}
 
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+
+        # lists of motors that will the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>'],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
+        self.stagegeometry['COR_motors'] = {'phi':{'motors':['y','x','z'],'view':None,'invert':False},
+                                            'kappa': {'motors':['x','z','y'],'view':'side','invert':True}}                
+    
+
+        # connect to spec
+        self.connect(spechost=spechost, specsession=specsession)
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+        
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1)
+            
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['inline'] = {'set1':{'x':1,'y':1,'z':1}}
+        self.stagegeometry['same_calibration']['side'] = {'set1':{'x':1,'y':1,'z':1}}
+
+        self.calibration = {}
+        self.calibration.update({'side':{}})
+        self.calibration.update({'inline':{}})
+        print('setting default calibration for zoomed in microscope')
+        self._calibrate('y',495.4,'inline')
+        self._calibrate('z',-3424,'side')
+        
+        # lookuptables:
+        self.lookup = LUTs.LUT_TOMO_Navitar()
+
+    def make_tmp_lookup_both_views(self,
+                                   motor = 'phi',
+                                   views = ['inline','side'],
+                                   positions = [0,1,2,3,4,5],
+                                   mode = 'com',
+                                   resolution = None,
+                                   lookup_motors = ['y','x'],
+                                   correct_vertical=True,
+                                   plot = False,
+                                   troi = None,
+                                   cutcontrasts=[0.1,0.1],
+                                   backlashcorrection = True,
+                                   savename = None,
+                                   move_using_lookup=False,
+                                   saveimages=False,
+                                   saveimages_prefix='lookup1',
+                                   sleep=0,
+                                   align_to_cross = True):
+        ''' 
+        creates a lookup table for <motor>
+        corresponding movement command = self.mv(..., move_using_lookup = True,...)
+        the lookuptable will contain positions of <motor> between 0 and 360 seperated by <resolution> 
+        OR values for the defined list of angles <positions>
+        for the motors listed under self.stagegeometry['COR_motors'][<motor>]['motors'] positions minimising the movement of the sample are found using the imagealigment mode 'mode' (see self.make_calibration)
+        alternatively you can define motors <lookup_motors> [horz_motor_1, horz_motor_2, vert_motor_1]
+        mode.upper() can be ['ELASTIX','COM','CC','USERCLICK','MASK_TL','MASK_TR','TOPMASK_l','TOPMASK_r']
+        tries to align all positions with first position, which is kept as referemce_image
+        if correct_vertical = False - ignores the vertical correction (sometimes good for needles)
+        overwrites current lookup.tmp_lookup
+        backlashcorrection = bool or value of correction
+        '''
+
+        if type(positions) == type(None):
+            if type(resolution) == type(None):
+                raise ValueError('please define either a <resolution> or a list <positions>')
+            else:
+                positions = [x*resolution for x in range(int(360/resolution))]
+
+        if len(positions)>10:
+            if plot==True:
+                plot=False
+                print('WARNING: too many positions, will not plot!')
+
+        if lookup_motors == None: # assume the same motors as for COR
+            mot0 = self.views[0]['horz_func']
+            mot1 = self.views[1]['horz_func']
+            mot2 = self.views[0]['vert_func']
+        else:
+            mot0 = lookup_motors[0]
+            mot1 = lookup_motors[1]
+            mot2 = lookup_motors[2]
+        motor_list = [mot0,mot1,mot2]
+            
+        print('will try to get a lookuptable to align rotation in ', motor)
+        print('with horizontal motor %' %(mot2))
+        print('viewed from the ', views[1])
+        print('and with motors %s (horz) an %s (vert)' %(mot0, mot1))
+        print('viewed from the ', views[0])
+        print('using alignment algorithm: ', mode)
+                
+        if plot > 1:
+            plot_stack=True
+        else:
+            plot_stack=False
+                
+        if backlashcorrection:
+            print('doing backlashcorrection')
+            self.mv(motor,positions[0]+positions[0]-positions[1], move_using_lookup=move_using_lookup)
+                
+        self.lookup.initialize_tmp_lookup(lookupmotor=motor,save_motor_list=motor_list)
+
+        print('\n\ngoing to first position of {}'.format(len(positions)))
+        self.mv(motor,positions[0],move_using_lookup=move_using_lookup)
+        if focus_motor_range != None:
+            print('focussing')
+            self.auto_focus(view=view,
+                            motor=mot2,
+                            motor_range=focus_motor_range,
+                            plot=plot,
+                            points=focus_points,
+                            move_using_lookup=False,
+                            troi=troi,
+                            backlashcorrection=focus_motor_range/focus_points,
+                            sleep=sleep)
+        if sleep:
+            print('sleeping {}s'.format(sleep))
+            time.sleep(sleep)
+
+        if not align_to_cross:
+            self.update_reference_image(views[0])
+            self.update_reference_image(views[1])
+        else:
+            if cutcontrasts[0]>0:
+                self.reference_image[views[0]] = np.zeros_like(self._get_view(views[0]))
+                self.reference_image[views[0]][self.cross_pxl[views[0]][0],self.cross_pxl[views[0]][1]] = 255
+            else:
+                self.reference_image[views[0]] = np.ones_like(self._get_view(views[0]))*255
+                self.reference_image[views[0]][self.cross_pxl[views[0]][0],self.cross_pxl[views[0]][1]] = 0
+            if cutcontrasts[1]>0:
+                self.reference_image[views[1]] = np.zeros_like(self._get_view(views[1]))
+                self.reference_image[views[1]][self.cross_pxl[views[1]][0],self.cross_pxl[views[1][1]] = 255
+            else:
+                self.reference_image[views[1]] = np.ones_like(self._get_view(views[1]))*255
+                self.reference_image[views[1]][self.cross_pxl[views[1]][0],self.cross_pxl[views[1]][1]] = 0
+        print('got reference image')
+        
+        for i, pos in enumerate(positions[1:]):
+            
+            print('\n\ngoing to lookup position {} of {}'.format(i+2,len(positions)))            
+            self.mv(motor,pos,move_using_lookup=move_using_lookup)
+
+            
+            print('aligning to reference image 1')
+            self.align_to_reference_image(view=views[0],
+                                          mode=mode,
+                                          align_motors=motor_list, 
+                                          correct_vertical=correct_vertical,
+                                          focus_motor_range=None,
+                                          refocus=refocus,
+                                          plot=plot,
+                                          troi=troi,
+                                          cutcontrast=cutcontrasts[0],
+                                          sleep=sleep)
+            print('aligning to reference image 2')
+            self.align_to_reference_image(view=views[1],
+                                          mode=mode,
+                                          align_motors=motor_list, 
+                                          correct_vertical=False,
+                                          focus_motor_range=None,
+                                          refocus=refocus,
+                                          plot=plot,
+                                          troi=troi,
+                                          cutcontrast=cutcontrasts[1],
+                                          sleep=sleep)
+            
+
+                
+            self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
+            if saveimages:
+                save_image = self._get_view(view)
+            if saveimages:
+                image_fname = save_prefix+'{:6d}.png'.format(i)
+                it.array_to_imagefile(save_image,image_fname)               
+
+        print('\nDONE\nlookup ready to be saved in .tmp_lookup')
+
+        
 class lab_smrotgonio_navi_jul18(stage):
     '''
     updated jul 30
@@ -874,7 +1090,7 @@ class lab_smrotgonio_navi_jul18(stage):
             self.cross_pxl['side'] = [600,1000]
 
             self.initialize_cameras(plot=False,camera_type='usb')
-        
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'navix','is_rotation':False},
@@ -944,7 +1160,7 @@ class EH3_hex_phikappa_gonio(stage):
             self.cross_pxl['sample'] = (576/2, 748/2)
             self.cross_pxl['wall'] = (576/2, 748/2)
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
-            
+        self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'nnx','is_rotation':False},

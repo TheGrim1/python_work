@@ -134,6 +134,8 @@ def do_parallel_regrouping(merged_fname, Q_dim, interp_factor = 1, limit_Thetas=
              
     result_fname_list = glob.glob(dest_dir+os.path.sep+'*.h5')
 
+    if os.path.exists(Qmerged_fname):
+        os.remove(Qmerged_fname)
     with h5py.File(Qmerged_fname) as dest_h5:
         for troiname in troi_list:
             q_group = dest_h5.create_group('entry/merged_data/diffraction/{}/Qxzy/'.format(troiname))

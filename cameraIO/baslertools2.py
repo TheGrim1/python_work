@@ -13,10 +13,15 @@ from PyTango import DeviceProxy   # better to use PyTango.gevent ?
 
 # from bliss.data.routines.pixmaptools import qt4 as pixmaptools
 # import pixmaptools.qt4 as pixmaptools
+sys.path.append('/data/id13/inhouse2/AJ/skript')
+sys.path.insert(0, "/mntdirect/_data_opid13_inhouse/Manfred/PLATFORM/d_mnext3/mnext3/SW/muenchhausen/EIGER-DVP/.DVP_1000")
 from pythonmisc import qt4 as pixmaptools
 try:
+    print('haha')
     from pythonmisc import qimage2ndarray
+
 except:
+    print('hahaha')
     import qimage2ndarray
 #from Qub.CTools import pixmaptools
 #from bliss.data.routines.pixmaptools import qt4 as pixmaptools
@@ -145,7 +150,7 @@ class Viewer(object):
                 f.close()
                 pos = p0,p1 = list(map(int, l.split()))
             except:
-                pos = 20,20
+                pos = 373, 230
                 
             self.marker.set_pos(pos)
         
@@ -192,8 +197,8 @@ class Marker(object):
 
 
 
-def main():
-    args = sys.argv[1:]
+def main(args):
+
     devn = args[0]
     if not int(devn) in (1,2):
         print("camera selection can be only 1 or 2")
@@ -205,4 +210,5 @@ def main():
     v.gui_run()
 
 if __name__ == '__main__':
-    main()
+    args = sys.argv[1:]
+    main(args)
