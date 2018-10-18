@@ -19,7 +19,7 @@ def gauss2d_func(p,x,y,force_positive=False):
         return A/(2*np.pi*sx*sy*np.sqrt(1-rho**2))*np.exp(-num/denom)
 
 def gauss2d_errorf(p,data,x,y,force_positive=False):
-    return np.ravel(gauss2d(p,x,y,force_positive)-data)
+    return np.ravel(gauss2d_func(p,x,y,force_positive)-data)
 
 def guess_gauss2d(data,x,y):
     y0i,x0i = np.unravel_index(np.argmax(data),data.shape)
@@ -40,7 +40,7 @@ def guess_gauss2d(data,x,y):
 
     return np.array([x0,y0,sx,sy,rho,A],dtype=np.float32)
 
-def do_gauss2d_fit(data,x,y,force_positive=False):
+def do_gauss2d_fit(data,x=None,y=None,force_positive=False):
 
     if type(x)==type(None):
         x,y=np.meshgrid(range(data.shape[1]),range(data.shape[0]))

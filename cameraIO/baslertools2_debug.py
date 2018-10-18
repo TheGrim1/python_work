@@ -80,11 +80,12 @@ class CameraProxy(object):
                 _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, image_data[1][:header_size])
                 #print "ver=%r, img_mode=%r, frame_number=%r, width=%d, height=%d" % (ver, img_mode, frame_number, width, height)
                 self.shape = (height, width)
-                raw_buffer = numpy.fromstring(image_data[1][header_size:], numpy.uint16)
+                raw_buffer = numpy.fromstring(image_data[1][header_size:], numpy.uint16).copy()
             else:
                 print("ERROR : No header found")
                 raise error("image acquisition failed")
             image_counter = int(device.video_last_image_counter)
+        image_data[1].clear()
 
         scaling = pixmaptools.LUT.Scaling()
 
@@ -150,7 +151,7 @@ class Viewer(object):
                 f.close()
                 pos = p0,p1 = list(map(int, l.split()))
             except:
-                pos = 315, 183
+                pos = 373, 230
                 
             self.marker.set_pos(pos)
         

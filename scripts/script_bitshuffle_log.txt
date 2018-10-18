@@ -1,0 +1,121 @@
+***************************************************************************
+BITSHUFFLE 8 processes
+hint: do a top in a different terminal to see how many processes I'm hogging
+27826 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000054.h5
+27822 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000050.h5
+27825 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000053.h5
+27823 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000051.h5
+27824 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000052.h5
+27821 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000049.h5
+27827 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000055.h5
+27828 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000056.h5
+I got arbitrary number 1048563933.0
+It took 72.03s to read 16000.0 frames
+           = 222.14Hz
+***************************************************************************
+NO BITSHUFFLE 8 processes
+hint: do a top in a different shell to see how many processes I'm hogging
+28165 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000049.h5
+28167 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000051.h5
+28172 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000056.h5
+28166 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000050.h5
+28170 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000054.h5
+28171 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000055.h5
+28168 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000052.h5
+28169 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000053.h5
+I got arbitrary number 1048564215.0
+It took 78.56s to read 16000.0 frames
+           = 203.67Hz
+***************************************************************************
+BITSHUFFLE serial
+hint: do a top in a different terminal to see how many processes I'm hogging
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000057.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000058.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000059.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000060.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000061.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000062.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000063.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000064.h5
+I got arbitrary number 1048564033.0
+It took 100.10s to read 16000 frames
+           = 159.84Hz
+***************************************************************************
+NO BITSHUFFLE serial
+hint: do a top in a different shell to see how many processes I'm hogging
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000057.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000058.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000059.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000060.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000061.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000062.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000063.h5
+27816 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000064.h5
+I got arbitrary number 1048564333.0
+It took 157.48s to read 16000 frames
+           = 101.60Hz
+
+
+
+nanofocus:~ % export OMP_NUM_THREADS=4
+nanofocus:~ % python /data/id13/inhouse2/AJ/skript/scripts/script_bitshuffle_problem.py 4
+finding files:
+got 80 files with bslzf4
+and 80 with lzf4 compression
+For 8 data files of each list I will perform sum(frame[slice(0,2000,100),200]) on each frame and see how long this takes
+***************************************************************************
+BITSHUFFLE 8 processes
+hint: do a top in a different terminal to see how many processes I'm hogging
+4570 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000069.h5
+4567 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000066.h5
+4572 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000071.h5
+4568 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000067.h5
+4566 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000065.h5
+4571 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000070.h5
+4573 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000072.h5
+4569 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000068.h5
+I got arbitrary number 1048563969.0
+It took 51.09s to read 16000.0 frames
+           = 313.20Hz
+***************************************************************************
+NO BITSHUFFLE 8 processes
+hint: do a top in a different shell to see how many processes I'm hogging
+4909 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000071.h5
+4903 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000065.h5
+4908 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000070.h5
+4907 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000069.h5
+4910 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000072.h5
+4906 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000068.h5
+4904 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000066.h5
+4905 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000067.h5
+I got arbitrary number 1048564298.0
+It took 77.06s to read 16000.0 frames
+           = 207.63Hz
+***************************************************************************
+BITSHUFFLE serial
+hint: do a top in a different terminal to see how many processes I'm hogging
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000073.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000074.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000075.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000076.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000077.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000078.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000079.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_21_data_000080.h5
+I got arbitrary number 1048563868.0
+It took 113.11s to read 16000 frames
+           = 141.46Hz
+***************************************************************************
+NO BITSHUFFLE serial
+hint: do a top in a different shell to see how many processes I'm hogging
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000073.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000074.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000075.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000076.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000077.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000078.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000079.h5
+4561 doing /data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1/align_20_data_000080.h5
+I got arbitrary number 1048564230.0
+It took 157.49s to read 16000 frames
+           = 101.59Hz

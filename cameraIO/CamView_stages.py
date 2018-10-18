@@ -895,8 +895,6 @@ class EH2_TOMO_navi_sep18(stage):
         #                                     'invert':<True/False>}} # invert if rotation not right handed with respect to the motors
         self.stagegeometry['COR_motors'] = {'phi':{'motors':['y','x','z'],'view':None,'invert':False},
                                             'kappa': {'motors':['x','z','y'],'view':'side','invert':True}}                
-    
-
         # connect to spec
         self.connect(spechost=spechost, specsession=specsession)
 
@@ -1023,7 +1021,7 @@ class EH2_TOMO_navi_sep18(stage):
                 self.reference_image[views[0]][self.cross_pxl[views[0]][0],self.cross_pxl[views[0]][1]] = 0
             if cutcontrasts[1]>0:
                 self.reference_image[views[1]] = np.zeros_like(self._get_view(views[1]))
-                self.reference_image[views[1]][self.cross_pxl[views[1]][0],self.cross_pxl[views[1][1]] = 255
+                self.reference_image[views[1]][self.cross_pxl[views[1]][0],self.cross_pxl[views[1][1]]] = 255
             else:
                 self.reference_image[views[1]] = np.ones_like(self._get_view(views[1]))*255
                 self.reference_image[views[1]][self.cross_pxl[views[1]][0],self.cross_pxl[views[1]][1]] = 0

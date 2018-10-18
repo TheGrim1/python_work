@@ -1,0 +1,229 @@
+import numpy as np
+from scipy.ndimage import shift as ndshift
+from scipy.ndimage.filters import gaussian_filter as gauss_fil
+import fabio
+import h5py
+
+import sys,os
+sys.path.append('/data/id13/inhouse2/AJ/skript/')
+import simplecalc.fitting2d as fit2d
+
+
+def shift_freqaxis(array, copy=True):
+    '''
+    corrected version to move freq = 0 to the middle of the array
+    only 2D
+    with ndshift mode='wrap' the last line is lost 
+    '''
+    if copy:
+        data = np.copy(array)
+    else:
+        data = array
+
+    return np.fft.fftshift(data,axes=tuple(np.arange(array.ndim-1)))
+   
+def shiftback_freqaxis(array, copy=True):
+    '''
+    corrected version to move freq = 0 to the middle of the array
+    only 2D
+    with ndshift mode='wrap' the last line is lost 
+    '''
+    if copy:
+        data = np.copy(array)
+    else:
+        data = array
+
+    return np.fft.ifftshift(data,axes=tuple(np.arange(array.ndim-1)))
+
+def get_power(array,shift = True):
+    power_spec = np.asarray(np.abs(array)**2,dtype=np.uint64)
+    if shift:
+        return shift_freqaxis(power_spec)
+    else:
+        return power_spec
+
+def get_amplitude(array, shift=True):
+    amp_spec = np.asarray(np.abs(array),dtype=np.uint64)
+    if shift:
+        return shift_freqaxis(amp_spec)
+    else:
+        return np.sqrt(amp_spec)
+    
+
+def get_phase(array,shift=True,deg=True,power_spec=None):
+    '''
+    shifted only for 2D arrrays
+    '''
+    if type(power_spec)==type(None):
+        power_spec = get_power(array,shift=False)
+            
+    threshold = power_spec.max()/1000
+    phase_spec = np.where(power_spec>threshold,np.angle(array,deg=deg).astype(np.float32),0)
+
+    if shift:
+        return shift_freqaxis(phase_spec)
+    else:
+        return phase_spec
+
+def get_carrier_freq(array, mode='max'):
+    '''
+    returns the main, 'carrier' frequency of the signal array
+    modes == 'avg', 'gauss_fit', 'max'
+    gauss_fit is 2-dim only
+    '''
+
+    power_spec = get_power(array,shift=True)
+    power_spec -= power_spec.mean()
+    power_spec = np.where(power_spec>0,power_spec,0)
+    
+    ranges = [np.linspace(-(x-1)/2,(x-1)/2,x) for x in array.shape[:-1]]
+    ranges.append(np.linspace(0,array.shape[-1]-1,array.shape[-1]))
+
+    if mode.upper()== 'MAX':
+        carrier_index = np.unravel_index(np.argmax(power_spec, axis=None), power_spec.shape)
+        return [ranges[x][ind] for x,ind in enumerate(carrier_index)]
+
+    elif mode.upper()== 'AVG':
+        meshgrid = np.asarray(np.meshgrid(*ranges,indexing='ij'))
+        return np.asarray([np.average(x,weights=power_spec) for x in meshgrid])    
+
+    elif mode.upper()== 'GAUSS_FIT':
+        assert array.ndim == 2
+        meshgrid = np.asarray(np.meshgrid(*ranges,indexing='ij'))
+        fit_result = fit2d.do_gauss2d_fit(power_spec,x=meshgrid[1],y=meshgrid[0],force_positive=True)
+        return [fit_result[0][0],fit_result[0][1]]
+    else:
+        raise NotImplementedError('mode {} is not implemented'.format(mode))
+    
+
+def get_carrier_phase(array,mode='max'):
+    '''
+    returns the phase at the 'carrier' frequency of the signal array (2-dim, shift_corrected)
+    modes == 'avg', 'gauss_fit', 'max'
+    '''
+
+    power_spec = get_power(array,shift=True)
+    phase_spec = get_phase(array, shift=True)
+    power_spec -= power_spec.mean()
+    power_spec = np.where(power_spec>0,power_spec,0)
+    
+    ranges = [np.linspace(-(x-1)/2,(x-1)/2,x) for x in array.shape[:-1]]
+    ranges.append(np.arange(array.shape[-1]))
+
+    if mode.upper()== 'MAX':
+        carrier_index = np.unravel_index(np.argmax(power_spec, axis=None), power_spec.shape)
+        return phase_spec[carrier_index]
+
+    elif mode.upper()== 'AVG':
+        
+        return np.average(phase_spec,weights=power_spec)    
+
+    elif mode.upper()== 'GAUSS_FIT':
+
+        meshgrid = np.asarray(np.meshgrid(*ranges,indexing='ij'))
+        fit_result = fit2d.do_gauss2d_fit(power_spec,x=meshgrid[1],y=meshgrid[0],force_positive=True)
+        gauss_weight = fit2d.gauss2d_func(fit_result[0], x=meshgrid[1],y=meshgrid[0],force_positive=True)
+        return np.average(phase_spec,weights=gauss_weight)
+    
+    else:
+        raise NotImplementedError('mode {} is not implemented'.format(mode))
+
+def get_background(edf_fname_list):
+    '''
+    simple avg of all frames. Assumes sufficiently heterogenous (esp. phase!) scan.
+    '''
+
+    sum_frame = np.zeros(shape=fabio.open(edf_fname_list[0]).dims,dtype=np.int64)
+    for fname in edf_fname_list:
+        sum_frame += fabio.open(fname).data
+
+    mean_frame = gauss_fil(np.asarray(sum_frame/len(edf_fname_list),dtype = np.uint16),3)
+    
+    return mean_frame
+
+def save_interferometer_scan(source_path='/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/DATA/test_scans/eh3/',
+                             save_path='/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/PROCESS/FFT/',
+                             scanname='dmesh_1',
+                             mapshape = None,
+                             background_fname='/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/PROCESS/FFT/bkg_frame.edf'):
+
+    path = source_path + os.path.sep + scanname
+    edf_fname_list = [path+os.path.sep+x for x in os.listdir(path) if x.find('.edf')>0]
+    edf_fname_list.sort()
+    
+    path = os.path.realpath(save_path+os.path.sep+scanname+os.path.sep)
+    if not os.path.exists(save_path+os.path.sep+scanname):
+        os.makedirs(path)
+
+    no_frames= len(edf_fname_list)
+    if type(mapshape)==type(None):
+        mapshape=tuple(no_frames)
+
+
+    background_frame = fabio.open(background_fname).data
+    real_shape = list(mapshape) + list(background_frame.shape)
+    real_dtype = background_frame.dtype
+
+    Background = np.fft.rfft2(background_frame)
+    background_power = get_power(Background)
+    background_amplitude = get_amplitude(Background)
+    background_phase = get_phase(Background, power_spec = shiftback_freqaxis(background_power))
+    fft_shape = list(mapshape) + list(background_power.shape)
+    power_dtype = background_power.dtype
+    amplitude_dtype = background_amplitude.dtype
+    phase_dtype = background_phase.dtype
+
+    indexes = np.meshgrid(*[range(x) for x in mapshape],indexing='ij')
+    index_list = zip(*[x.flatten() for x in indexes])
+    
+    with h5py.File(path+os.path.sep+scanname+'.h5','w') as h5_f:
+        entry=h5_f.create_group('entry')
+        fft_group=entry.create_group('fft')
+        real_group = entry.create_group('real')
+        background_group = entry.create_group('background')
+
+        background_group.create_dataset('real',
+                                        data=background_frame,
+                                        compression='lzf')
+        background_group.create_dataset('power_spec',
+                                        data=background_power,
+                                        compression='lzf')
+        background_group.create_dataset('amplitude_spec',
+                                        data=background_amplitude,
+                                        compression='lzf')
+        background_group.create_dataset('phase_spec',
+                                        data=background_phase,
+                                        compression='lzf')
+
+        
+        real_ds=real_group.create_dataset('frames',shape=real_shape,dtype=real_dtype,compression='lzf',chunks=tuple([1]*len(mapshape)+[real_shape[-2],real_shape[-1]]))
+        power_ds=fft_group.create_dataset('power_spec',shape=fft_shape,dtype=power_dtype,compression='lzf',chunks=tuple([1]*len(mapshape)+[fft_shape[-2],fft_shape[-1]]))
+        amplitude_ds=fft_group.create_dataset('amplitude_spec',shape=fft_shape,dtype=amplitude_dtype,compression='lzf',chunks=tuple([1]*len(mapshape)+[fft_shape[-2],fft_shape[-1]]))
+        phase_ds=fft_group.create_dataset('phase_spec',shape=fft_shape,dtype=phase_dtype,compression='lzf',chunks=tuple([1]*len(mapshape)+[fft_shape[-2],fft_shape[-1]]))      
+        
+        for i,(index,fname) in enumerate(zip(index_list,edf_fname_list)):
+
+            print('reading {} of {} frames'.format(i+1,no_frames))
+            frame = gauss_fil(fabio.open(fname).data,3)
+            Frame = np.fft.rfft2(frame)
+            Frame = Frame - Frame[0,0]/Background[0,0]*Background
+            real_ds[index] = frame
+            power_spec = get_power(Frame)
+            amplitude_spec = get_amplitude(Frame)
+            power_ds[index] = power_spec
+            amplitude_ds[index] = amplitude_spec
+            phase_ds[index] = get_phase(Frame, power_spec=shiftback_freqaxis(power_spec))           
+            
+            
+        
+if __name__=='__main__':
+    scanname = sys.argv[1]
+
+    if len(sys.argv) == 4:
+        mapshape = (int(sys.argv[2]), int(sys.argv[3]))
+        print('mapshape = ')
+        print(mapshape)
+    else:
+        mapshape=None
+        
+    save_interferometer_scan(scanname=scanname, mapshape=mapshape)

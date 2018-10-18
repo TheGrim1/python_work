@@ -1,0 +1,54 @@
+'''
+This is supposed to illustrate the problem ID13 is expiriencing with the performance of bitshuffle
+'''
+import h5py
+import socket
+import time
+
+
+workstation = socket.gethostname()
+
+if workstation in ['led13gpu1', 'lid13gpu2']:
+    PATH = '/hz/data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1'
+else:
+    PATH = '/data/id13/inhouse3/THEDATA_I3_2/d_2018-09-26_user_ls2873_bianconi/DATA/AUTO-TRANSFER/eiger1'
+
+def do_something(frame):
+    return sum(frame[slice(0,2000,100),200])
+
+def do_test():
+    print('finding files:')
+    bslz4_fname_list = [os.path.listdir(PATH) if fname.find('align_21_data')>0][0:80]
+    lz4_fname_list = [os.path.listdir(PATH) if fname.find('align_20_data')>0][0:80]
+    
+    print('got {} files with bslzf4\nand {} with lzf4 compression'.format(len(bslz4_fname_list),len(lz4_fname_list)))
+
+    print('For 4 data files of each list will perform sum(frame[slice(0,2000,100),200]) on each frame and
+see how long this takes')
+
+    for i in range(20):
+        bslzf4_list = bslz4_fname_list[(i*4):(i+1)*4]
+        for fname in bslzf4_list:
+            arb_num = 0
+            counter = 0
+            with h5py.File(fname,'r') as h5_f:
+                start_time=time.time()
+                for frame in h5_f['entry/data/data']:
+                    arb_num += do_something
+                    counter+=1
+                end_time=time.time()
+                diff_time = start_time-end_time
+                print('BITSHUFFLE arbitrary number {}'.format(arb_num))
+                print('It took {:.2f}s to read {} frames'.format(diff_time, counter))
+                print('                 at {:.2f}Hz'.format(counter/diff_time)
+
+                      
+                    
+            
+
+        lzf4_list = lz4_fname_list[(i*4):(i+1)*4]
+        
+    
+if __name__=='__main__':
+    do_test()
+    

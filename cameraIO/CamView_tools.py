@@ -898,11 +898,11 @@ class stage(object):
             self.lookup.add_pos_to_tmp_lookup(motor,self._get_pos())
 
         else:
-            if cutcontrasts[0]>0:
+            if cutcontrast>0:
                 self.reference_image[view] = np.zeros_like(self._get_view(view))
-                self.reference_image[views][self.cross_pxl[view][0],self.cross_pxl[view][1]] = 255
+                self.reference_image[view][self.cross_pxl[view][0],self.cross_pxl[view][1]] = 762
             else:           
-                self.reference_image[view]= np.ones_like(self._get_view(view))*255
+                self.reference_image[view]= np.ones_like(self._get_view(view))*762
                 self.reference_image[view][self.cross_pxl[view][0],self.cross_pxl[view][1]] = 0
                 
             print('set reference image')
@@ -1118,9 +1118,9 @@ class stage(object):
         elif mode.upper() == 'COMMASK':
             mode_dict  = {'mode':'com_and_mask','com_axis':1,'mask_direction':1,'threshold':2}
         elif mode.upper() == 'TOPMASK_R':
-            mode_dict  = {'mode':'forcetop_mask','alignment':(1,1),'threshold':2}
+            mode_dict  = {'mode':'forcetop_mask','alignment':(1,1),'threshold':1}
         elif mode.upper() == 'TOPMASK_L':
-            mode_dict  = {'mode':'forcetop_mask','alignment':(1,-1),'threshold':2}
+            mode_dict  = {'mode':'forcetop_mask','alignment':(1,-1),'threshold':1}
         else:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
         return mode_dict

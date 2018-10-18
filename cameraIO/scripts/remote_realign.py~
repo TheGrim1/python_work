@@ -1,0 +1,6 @@
+import sys, os
+import numpy as np
+
+importpath = '/data/id13/inhouse2/AJ/skript/'
+sys.path.append(importpath)
+import CamView_stages as cvs
