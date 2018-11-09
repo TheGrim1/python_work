@@ -5,6 +5,7 @@ from scipy.optimize import leastsq
 import numpy as np
 import scipy.ndimage as nd
 import sys,os
+import warnings
 # local imports
 path_list = os.path.dirname(__file__).split(os.path.sep)
 importpath_list = []
@@ -18,7 +19,7 @@ sys.path.append(importpath)
 from simplecalc import image_align as ia
 from simplecalc import rotated_series as rs
 from .COR_fit import COR_from_yth, COR_from_xth
-        
+
 
 def COR_2d_elastix(imagestack, thetas, rotation = 0):
     '''
@@ -173,7 +174,7 @@ def COR_1d_COM(linestack, thetas, rotation=0, relative = False):
     '''
     return the coordinates of the COR 
     lines stacked in linestack.shape[0]
-    lines linestack are projections along 'y', i.e. linestack.shape[1] is x for projection = 0
+    lines linestack are projections along 'x', i.e. linestack.shape[1] is x for projection = 0
     rotation = angle of the projection in xy plane in degrees
     '''
     dummy        = np.copy(linestack)

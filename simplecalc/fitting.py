@@ -101,35 +101,126 @@ def do_empirical_fit(data, empirical_function, verbose=False):
         
     return beta
 
-    
+def guess_period_scan(data, period_guess=None, verbose=False):
+
+    test_data = data[:,1]-data[:,1].mean()
+    if type(period_guess)==type(None):
+        scan_range = np.linspace(1,data.shape[0]/2,data.shape[0]*2)
+    else:
+        scan_range = np.asarray(period_guess)
+    correlation=[]
+    for period in scan_range:
+        p_correlation=0
+        for phase in np.linspace(0,360,72):
+            probe = sin_func([1,phase,period,0],data[:,0])
+            p_correlation=max(np.sum(probe*test_data),p_correlation)
+        correlation.append(p_correlation)
+    if verbose:
+        plt.plot(scan_range,correlation)
+    return scan_range[np.asarray(correlation).argmax()] 
+
+
 def sin_func(p, t):
     '''
     p[0] = amp
-    p[1] = phase
-    p[2] = offset
+    p[1] = phase in deg
+    p[2] = period
+    p[3] = offset
     p[0]*np.sin(t - p[1]) + p[2]
     '''
-    return p[0]*np.sin(t - p[1]) + p[2]
+    return np.abs(p[0])*np.sin((t/np.abs(p[2])+p[1]/360)*2*np.pi) + p[3]
 
-def do_sin_fit(data, verbose = False):
+def do_sin_fit(data, verbose = False,period_guess=None):
 
     _func = sin_func
     Model = scipy.odr.Model(_func)
     Data = scipy.odr.RealData(data[:,0], data[:,1])
     amp_guess = np.max(data[:,1]) - np.min(data[:,1])
-    phase_guess = 0
+    phase_guess = 0.0
     offset_guess = 0.5*(np.max(data[:,1]) + np.min(data[:,1]))
+    if type(period_guess) == type('asdf'):
+        if period_guess.upper() == 'SCAN':
+            period_guess = guess_period_scan(data,period_guess=None,verbose=verbose)
+        else:
+            period_guess = float(period_guess)
+    if type(period_guess)==list:
+        period_guess = guess_period_scan(data,period_guess=period_guess,verbose=verbose)
+    if type(period_guess)==np.ndarray:
+        period_guess = guess_period_scan(data,period_guess=period_guess,verbose=verbose)
+    if type(period_guess)==type(None):
+        period_guess=0
+    
     if verbose:
         print('amp_guess = ', amp_guess)
         print('phase_guess = ', phase_guess)
+        print('period_guess = ', period_guess)
         print('offset_guess = ', offset_guess)
 
-    Odr = scipy.odr.ODR(Data, Model, [amp_guess, phase_guess, offset_guess], maxit = 10000000)
+    guess = [amp_guess, phase_guess, period_guess, offset_guess]
+    Odr = scipy.odr.ODR(Data, Model, guess, maxit = 10000000)
     Odr.set_job(fit_type=2)    
     output = Odr.run()
     #output.pprint()
     beta    = output.beta
     betastd = output.sd_beta
+
+    beta[0] = np.abs(beta[0])
+    beta[2] = np.abs(beta[2])
+
+    if verbose :
+        fig, ax = plt.subplots()
+    #    print "poly", fit_np
+        print("fit result amp: \n", beta[0])
+        print("fit result phase: \n", beta[1])
+        print('fit_result period = ', beta[2])
+        print("fit result offset: \n", beta[3])
+
+        ax.plot(data[:,0], _func(beta, data[:,0]), "r--", lw = 2)
+
+        ax.plot(data[:,0], data[:,1], "bo")
+        # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
+
+        # ax.plot(data[:,0], _func([max_guess, min_guess, inflection_guess, sigma_guess ], data[:,0]), "g--", lw = 2)
+
+        plt.tight_layout()
+
+        plt.show()
+        
+    return beta
+
+def sin360period_func(p, t):
+    '''
+    p[0] = amp
+    p[1] = phase in deg
+    p[2] = offset
+    p[0]*np.sin(t - p[1]) + p[2]
+    '''
+    return np.abs(p[0])*np.sin((t+p[1])/360*2*np.pi) + p[2]
+
+def do_sin360period_fit(data, verbose = False):
+
+    _func = sin360period_func
+    Model = scipy.odr.Model(_func)
+    Data = scipy.odr.RealData(data[:,0], data[:,1])
+    amp_guess = np.max(data[:,1]) - np.min(data[:,1])
+    phase_guess = 0.0
+    offset_guess = 0.5*(np.max(data[:,1]) + np.min(data[:,1]))
+
+    
+    if verbose:
+        print('amp_guess = ', amp_guess)
+        print('phase_guess = ', phase_guess)
+        print('offset_guess = ', offset_guess)
+
+    guess = [amp_guess, phase_guess, offset_guess]
+    Odr = scipy.odr.ODR(Data, Model, guess, maxit = 10000000)
+    Odr.set_job(fit_type=2)    
+    output = Odr.run()
+    #output.pprint()
+    beta    = output.beta
+    betastd = output.sd_beta
+
+    beta[0] = np.abs(beta[0])
 
     if verbose :
         fig, ax = plt.subplots()
@@ -138,9 +229,11 @@ def do_sin_fit(data, verbose = False):
         print("fit result phase: \n", beta[1])
         print("fit result offset: \n", beta[2])
 
+        ax.plot(data[:,0], _func(beta, data[:,0]), "r--", lw = 2)
+
         ax.plot(data[:,0], data[:,1], "bo")
         # plt.plot(data[:,0], numpy.polyval(fit_np, data[:,0]), "r--", lw = 2)
-        ax.plot(data[:,0], _func(beta, data[:,0]), "r--", lw = 2)
+
         # ax.plot(data[:,0], _func([max_guess, min_guess, inflection_guess, sigma_guess ], data[:,0]), "g--", lw = 2)
 
         plt.tight_layout()

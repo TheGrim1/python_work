@@ -1,0 +1,130 @@
+import silx.io as sio
+import h5py
+import sys,os
+import numpy as np
+from multiprocessing import Pool
+sys.path.append('/data/id13/inhouse2/AJ/skript')
+
+import simplecalc.image_align as ia
+from pythonmisc.worker_suicide import worker_init
+
+
+def eval_vlm1_scan(args):
+    scanname = args[0]
+    threshold = args[1]
+    
+    source_path='/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/DATA/test_scans/eh3/'
+    save_path='/hz/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/PROCESS/vlm/'
+    
+    path = source_path + os.path.sep + scanname
+    print path
+    edf_fname_list = [path+os.path.sep+x for x in os.listdir(path) if x.find('.edf')>0]
+    edf_fname_list.sort()
+
+    path = os.path.realpath(save_path+os.path.sep+scanname+os.path.sep)
+    if not os.path.exists(save_path+os.path.sep+scanname):
+        os.makedirs(path)
+
+    save_fname = path+os.path.sep+scanname+'_vlm1.h5'
+    mapshape = (100,100)
+
+    stepsize = 5.*5/4.95/100
+    if scanname.find('kmap')>=0:
+        is_kmap = True
+        kmap_edf = sio.open(edf_fname_list[0])
+        first = kmap_edf['scan_0/instrument/detector_0/data'][0]
+        no_frames = kmap_edf['scan_0/instrument/detector_0/data'].shape[0]
+    else:
+        is_kmap = False
+        no_frames= len(edf_fname_list)
+        mapshape=tuple([no_frames])
+        stepsize = 0.
+        first = sio.open(edf_fname_list[0])['scan_0/instrument/detector_0/data']
+        
+    first = np.where(first<threshold,0,first-threshold)
+    real_shape = list(mapshape)+list(first.shape)
+    real_dtype=first.dtype
+    indexes = np.meshgrid(*[range(x) for x in mapshape],indexing='ij')
+    index_list = zip(*[x.flatten() for x in indexes])
+
+    pid=os.getpid()
+    
+    with h5py.File(save_fname,'w') as h5_f:
+        entry=h5_f.create_group('entry')
+        image_group = entry.create_group('image')
+        position_group = entry.create_group('positions')
+                
+        frame_ds=image_group.create_dataset('frames',shape=real_shape,dtype=real_dtype,compression='lzf',chunks=tuple([1]*len(mapshape)+[real_shape[-2],real_shape[-1]]))
+        
+        x_img_ds=position_group.create_dataset('x_img',shape=mapshape,dtype=np.float32)
+        x_img_ds.attrs['unit']='pxl'
+        z_img_ds=position_group.create_dataset('z_img',shape=mapshape,dtype=np.float32)
+        z_img_ds.attrs['unit']='pxl'
+        time_ds=position_group.create_dataset('time_of_day',shape=mapshape,dtype=np.float32)
+        time_ds.attrs['unit']='s'
+
+        del_x_ds=position_group.create_dataset('del_x',shape=mapshape,dtype=np.float32)
+        del_x_ds.attrs['unit']='um'
+        del_x_ds.attrs['comment']='x_img - nnp4_nominal'
+        del_z_ds=position_group.create_dataset('del_z',shape=mapshape,dtype=np.float32)
+        del_z_ds.attrs['unit']='um'
+        del_x_ds.attrs['comment']='z_img - nnp6_nominal'
+        
+        if is_kmap:
+
+            nnp4_nom_ds=position_group.create_dataset('nnp4_nominal',data=indexes[1]*stepsize,compression='lzf')
+            nnp4_nom_ds.attrs['unit']='um'
+            nnp4_enc_ds=position_group.create_dataset('nnp4_encoder',shape=mapshape,dtype=np.float32)
+            nnp4_enc_ds.attrs['unit']='um'
+            nnp6_nom_ds=position_group.create_dataset('nnp6_nominal',data=indexes[0]*stepsize,compression='lzf')
+            nnp6_nom_ds.attrs['unit']='um'
+            nnp6_enc_ds=position_group.create_dataset('nnp6_encoder',shape=mapshape,dtype=np.float32)
+            nnp6_enc_ds.attrs['unit']='um'
+
+        for i,index in enumerate(index_list):
+            print('{} reading {} of {} frames'.format(pid,i+1,no_frames))
+            if is_kmap:
+                frame = kmap_edf['scan_0/instrument/detector_0/data'][i]
+                time_of_day = kmap_edf['scan_0/instrument/detector_0/others/time_of_day'][i]
+            else:
+                fname = edf_fname_list[i]
+                edf = sio.open(fname)
+                frame = edf['scan_0/instrument/detector_0/data']
+                time_of_day = edf['scan_0/instrument/detector_0/others/time_of_day'][0]
+
+            frame = np.where(frame<threshold,0,frame-threshold)
+            frame_ds[index]= frame   
+            imagestack = np.asarray([first,frame])
+            _, shift = ia.mask_and_com_align(imagestack,com_axis=1,mask_direction=-1,cut_com_troi=True,threshold=0.5)
+            x_pxl = shift[1][1]
+            z_pxl = - shift[1][0]
+            x_img_ds[index]= x_pxl
+            z_img_ds[index]= z_pxl
+            time_ds[index] = time_of_day
+
+            if is_kmap:
+                del_x_ds[index]= x_pxl * 125.0 / 672.- nnp4_nom_ds[index]
+                del_z_ds[index]= z_pxl * 125.0 / 672.- nnp6_nom_ds[index]
+            else:
+                del_x_ds[index]= x_pxl * 125.0 / 672.
+                del_z_ds[index]= z_pxl * 125.0 / 672.
+
+    
+if __name__=='__main__':
+   
+    do = sys.argv[1]
+    
+    if do == 'kmap':
+        scanname_list = [['kmap_{}'.format(x),110] for x in range(25,30)]
+        scanname_list += [['kmap_{}'.format(x),50] for x in [40,41,42]]
+        pool = Pool(len(scanname_list),worker_init(os.getpid()))
+        pool.map(eval_vlm1_scan, scanname_list)
+        pool.close()
+        pool.join()
+    elif do== 'loop':
+        scanname_list = [['loopscan_{}'.format(x),60] for x in range(14,45)]
+        pool = Pool(max(len(scanname_list),36),worker_init(os.getpid()))
+        pool.map(eval_vlm1_scan, scanname_list)
+        pool.close()
+        pool.join()
+

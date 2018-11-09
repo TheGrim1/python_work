@@ -52,6 +52,7 @@ class phi_kappa_gonio(stage):
                               
             self.initialize_cameras(plot=False,camera_type='usb')                        
             self.background = {}
+            self.median_filter = False
 
 
             # General point of reference
@@ -181,6 +182,7 @@ class EH2_phi_kappa_gonio(stage):
 
         if initialize_cameras:
             self.background = {}
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -429,6 +431,7 @@ class EH2_cameras(stage):
         # General point of reference
         self.cross_pxl = {}
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             self.views = {}
             self.views.update({'top':
@@ -448,6 +451,7 @@ class motexplore_jul17(stage):
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'motexplore', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -515,6 +519,7 @@ class EH3_cameras_apr18(stage):
     '''
     def __init__(self, spechost= 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -580,6 +585,7 @@ class EH3_smrhex_mai18(stage):
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -643,6 +649,7 @@ class EH3_XYTHetahex_mai18(stage):
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -720,6 +727,7 @@ class EH3_smrhexpiezo_mai18(stage):
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -790,6 +798,7 @@ class lab_TOMO_navi_sep18(stage):
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'navitar', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -1074,6 +1083,7 @@ class lab_smrotgonio_navi_jul18(stage):
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'navitar', initialize_cameras = True):
         if initialize_cameras:
+            self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
@@ -1152,6 +1162,7 @@ class EH3_hex_phikappa_gonio(stage):
                                {'camera_index':1, 'horz_func':'phi', 'vert_func':'kappa','focus':None}})
                               
             self.background = {}
+            self.median_filter = False
 
             # General point of reference
             self.cross_pxl = {}

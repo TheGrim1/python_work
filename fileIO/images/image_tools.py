@@ -11,11 +11,43 @@ import PIL.Image as Image
 import os
 
 from PyQt4.QtGui import QImage, qRgb
+import cv2
+
+def images_to_video(source_folder, save_fname=None, fps=40):
+    '''
+    finds_all files in a folder and writes then to a .avi viedo file
+    assumes all files are images! ignores avi files
+    '''
+
+    fname_list = [os.path.join(source_folder,x) for x in os.listdir(source_folder) if x.find('.avi')<0]
+    fname_list.sort()
+    if type(save_fname) == type(None):
+        save_fname = os.path.join(source_folder, os.path.splitext(os.path.basename(fname_list[0]))[0]+'.avi')
+
+        frame_shape = imagefile_to_array(fname_list[0]).shape
+    frame_shape=(frame_shape[2],frame_shape[1])
+    print(frame_shape)
+    writer = cv2.VideoWriter(save_fname, cv2.VideoWriter_fourcc(*"MJPG"), fps,frame_shape)
+    for i, fname in enumerate(fname_list):
+        print('recording frame {} of {}'.format(i+1, len(fname_list)))
+        frame = imagefile_to_array(fname)
+        writer.write(np.dstack([frame[0],frame[1],frame[2]]))
+    writer.release()
+    
+def imagestack_to_video(imagestack, output_name, fps):
+    '''
+    the imagestack way is not good, just an example 
+    '''
+    writer = cv2.VideoWriter(output_name+".avi", cv2.VideoWriter_fourcc(*"MJPG"), fps,frame_shape)
+    for frame in imagestack:
+        writer.write(np.dstack[frame,frame,frame])
+    writer.release()
+
 
 def imagefile_to_array(imagefname):
     """
     Loads image into 3D Numpy array of shape 
-    (width, height, channels)
+    (channels, height, width)
     """
     with Image.open(imagefname) as image:         
         im_arr = np.fromstring(image.tobytes(), dtype=np.uint8)

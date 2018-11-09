@@ -25,7 +25,7 @@ from simplecalc.slicing import troi_to_slice
 from simplecalc.gauss_fitting import fit_2d_gauss
 from simplecalc.rotated_series import rotate_series
 from simplecalc.gauss_fitting import do_multi_gauss_fit
-from userIO.GenericIndexTracker import run_GenericIndexTracker
+
 from fileIO.datafiles import open_data
 
 def do_shift(imagestack, shift):
@@ -68,7 +68,7 @@ def userclick_align(imagestack, norm='linear', coordinates_fname=None):
     '''
     prompts user input for each frame aligning them to the first frame and selected pixel
     '''
-
+    from userIO.GenericIndexTracker import run_GenericIndexTracker
     # if coordinates_fname==None:
     #     coordinates_fname = os.getcwd() + os.path.sep + "image_align_coordinates_{}.dat".format(int(time.time()))
     # else:
@@ -331,7 +331,45 @@ def com_and_mask_align(imagestack, com_axis = 1, mask_direction = 1, threshold =
         shift[i][mask_axis] = mask_shift[i][mask_axis]
 
     return (imagestack, shift)
+
+def mask_and_com_align(imagestack, com_axis = 1, mask_direction = 1, threshold = 1.0, cut_com_troi=False):
+    '''
+    aligns with mask_align along the given axis AND THEN uses com in the direction stated 
+    if cut_com_troi: only use the troi not affected by the mask shift to center com *=0 all the rest
+    com_axis:        0  = vert;              1 = horz axis
+    mask_directopm : -1 = bottom_edge/right; 1 = top,left
+    '''
+    axes = [0,1]
+    axes.pop(com_axis)
+    mask_axis = axes[0]
     
+    mask_alignment = [0,0]
+    mask_alignment[mask_axis] = mask_direction
+    
+    imagestack, mask_shift = mask_align(imagestack, threshold, mask_alignment)
+    
+    if cut_com_troi:
+        max_shift = int(np.max(np.ceil(mask_shift)))
+        min_shift = int(np.min(np.floor(mask_shift)))
+        if mask_axis == 0:
+            imagestack[:,0:max_shift,:]*=0
+            imagestack[:,min_shift+imagestack.shape[1]:,:]*=0
+        else:
+            imagestack[:,:,0:max_shift]*=0
+            imagestack[:,:,min_shift+imagestack.shape[1]:]*=0
+
+            
+    com_alignment = [0,0]
+    com_alignment[com_axis] = 1
+
+    imagestack, shift = centerofmass_align(imagestack, com_alignment)
+    
+    for i in range(len(shift)):
+        shift[i][mask_axis] = mask_shift[i][mask_axis]
+    
+    return (imagestack, shift)
+    
+
 def mask_align(imagestack, threshold = 5, alignment = (0,0)):
     'masks the aling array by thresholding.\n Aligns to the alighnment = (1,1) = top - left/n(-1,1) = btm - left/n(1,-1) = top - right/n(-1,-1) = bottom - right corner. A value of 0 in alignment does not align that direction.\n Returns the imagestack array aligned to the first array in the stack and a list of the shift (r[0]-a[0],r[1]-a[1]).'
 
@@ -526,6 +564,8 @@ def image_align(imagestack, mode = {'mode':'sift'}):
         (imagestack, shift) = elastix_align(imagestack, mode = mode['elastix_mode'])
     elif mode['mode'] == 'crosscorrelation_1d':
         (imagestack, shift) = crosscorrelation_align_1d(imagestack, axis = mode['axis'])
+    elif mode['mode'] == 'mask_and_com':
+        (imagestack, shift) = com_and_mask_align(imagestack, com_axis = mode['com_axis'], mask_direction=mode['mask_direction'], threshold=mode['threshold'])
     elif mode['mode'] == 'com_and_mask':
         (imagestack, shift) = com_and_mask_align(imagestack, com_axis = mode['com_axis'], mask_direction=mode['mask_direction'], threshold=mode['threshold'])
     elif mode['mode'] == 'forcetop_mask':

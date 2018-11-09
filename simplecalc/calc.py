@@ -3,11 +3,29 @@ from __future__ import division
 
 import sys, os
 import numpy as np
-sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
-from simplecalc import fitting
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 import scipy.ndimage as nd
+from scipy.ndimage.filters import median_filter as med_fil
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+
+
+from simplecalc import fitting
+
+
+
+def clean_outliers(data,outlier_factor, median_radius):
+    '''
+    will replace all datapoints that are > data.mean * (1 + outlier_factor) or < data.mean * (1 - outlier_factor)
+    with the median in radius (scipy.ndimage.filters.median_filter)
+    '''
+    result = np.copy(data)
+    med_filterd = med_fil(data, median_radius)
+    data_mean = np.mean(data)
+    result = np.where(data>data_mean * (1 + outlier_factor), med_filterd, data)
+    result = np.where(result<data_mean * (1 - outlier_factor), med_filterd, result)
+    return result
 
 
 def find_nearest(array, value):
@@ -352,4 +370,12 @@ def circle_maskfunc(x, y, cy, cx, radius):
     else:
         return False
 
-    
+def get_hm_com(data):
+    '''
+    com of everything above the hm
+    which is something like the spec cen
+    '''
+    min, max = data.min(), data.max()
+    hm = (min+max)/2.
+    top_data = np.where(data<hm,0,data)
+    return nd.measurements.center_of_mass(top_data)

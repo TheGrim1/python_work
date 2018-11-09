@@ -52,6 +52,7 @@ class phi_kappa_gonio(stage):
                               
             self.initialize_cameras(plot=False,camera_type='usb')                        
             self.background = {}
+            self.median_filter=False
 
             # General point of reference
             self.cross_pxl = {}
@@ -198,7 +199,7 @@ class EH2_phi_kappa_gonio(stage):
             self.cross_pxl['side'] = [300,400]
             
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh2-vlm1','id13/limaccds/eh2-vlm2'])
-        
+        self.median_filter=False
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
         motor_dict = {'x'      : {'specname':'strx','is_rotation':False},
@@ -430,6 +431,7 @@ class EH2_cameras(stage):
     def __init__(self, specsession = 'motexplore', initialize_cameras = True):
         # General point of reference
         self.cross_pxl = {}
+        self.median_filter=False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             self.views = {}
@@ -535,6 +537,7 @@ class motexplore_jul17(stage):
     updated nov17
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'motexplore', initialize_cameras = True):
+        self.median_filter=False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -602,6 +605,7 @@ class EH3_cameras_apr18(stage):
     updated apr18
     '''
     def __init__(self, spechost= 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.median_filter=False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -671,6 +675,7 @@ class EH3_smrhex_mai18(stage):
     updated mai 18
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.median_filter=False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -737,6 +742,7 @@ class EH3_smrhexpiezo_mai18(stage):
     updated mai 18
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.median_filter=False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view

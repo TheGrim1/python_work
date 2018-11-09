@@ -1,0 +1,105 @@
+import h5py
+import sys,os
+import numpy as np
+from multiprocessing import Pool
+from scipy.interpolate import interp1d
+sys.path.append('/data/id13/inhouse2/AJ/skript')
+
+import simplecalc.fourier as four
+from pythonmisc.worker_suicide import worker_init
+import simplecalc.calc as calc
+import simplecalc.fitting as fit
+
+def do_all_periods_to_angles(fname):
+    with h5py.File(fname) as source_h5:
+        fft_eval_group = source_h5['entry/fft_eval']
+        phi_period = fft_eval_group['phi_period']
+        kappa_period = fft_eval_group['kappa_period']
+        fft_eval_group.create_dataset('phi',data=phi_period_to_angle(phi_period))
+        fft_eval_group.create_dataset('kappa',data=kappa_period_to_angle(kappa_period))
+    
+    
+def phi_period_to_angle(period):
+    '''
+    valid only for 69 < period < 89.3 which was calibrated!
+    '''
+    phi_positions = np.linspace(1.93491-0.02,1.93491+0.02,100)
+    phi_cal =  np.asarray([89.23 , 88.63959 , 88.33092 , 88.041504, 87.6982  , 87.33734 ,
+                           87.06737 , 86.80774 , 86.45972 , 86.33253 , 86.01373 , 85.804634,
+                           85.59082 , 85.38149 , 85.24307 , 85.079285, 84.97815 , 84.81575 ,
+                           84.72496 , 84.5849  , 84.501854, 84.38052 , 84.29904 , 84.12538 ,
+                           84.05051 , 83.96785 , 83.864105, 83.74277 , 83.64438 , 83.45393 ,
+                           83.27676 , 83.1661  , 82.94072 , 82.79061 , 82.60225 , 82.4142  ,
+                           82.16938 , 81.93485 , 81.67442 , 81.39719 , 81.13128 , 80.81523 ,
+                           80.53911 , 80.25423 , 79.89011 , 79.60332 , 78.63308 , 78.37806 ,
+                           78.09697 , 77.82901 , 77.66191 , 77.295746, 77.0712  , 76.87181 ,
+                           76.64223 , 76.4557  , 76.2396  , 76.10462 , 75.881004, 75.70003 ,
+                           75.571075, 75.46052 , 75.36659 , 75.24964 , 75.12289 , 75.058395,
+                           74.96493 , 74.90416 , 74.82193 , 74.71605 , 74.65817 , 74.547485,
+                           74.48064 , 74.372375, 74.27963 , 74.22558 , 74.059204, 73.945175,
+                           73.85304 , 73.73009 , 73.59178 , 73.46176 , 73.198616, 73.06781 ,
+                           72.920555, 72.819305, 72.42339 , 72.23685 , 72.062225, 71.79958 ,
+                           71.49017 , 71.27534 , 70.57185 , 70.24171 , 69.936905, 69.775986,
+                           69.49542 , 69.37557 , 69.12795 , 68.999 ], dtype=np.float32)
+    
+    period=np.where(period>phi_cal.max(),phi_cal.max(),period)
+    period=np.where(period<phi_cal.min(),phi_cal.min(),period)
+    return interp1d(phi_cal, phi_positions, kind='cubic')(period)
+
+def kappa_period_to_angle(period):
+    '''
+    valid only for -88.25 < period < -69 which was calibrated!
+    '''
+    kappa_positions = np.linspace(0.23991-0.02,0.23991+0.02,100)
+    kappa_cal = np.asarray([-88.2500 , -88.013596, -87.7328  , -87.539536, -87.32779 ,
+                            -87.17441 , -86.96848 , -86.814224, -86.6562  , -86.51965 ,
+                            -86.37782 , -86.246056, -86.13595 , -86.03598 , -85.930984,
+                            -85.83472 , -85.73064 , -85.64402 , -85.52266 , -85.44347 ,
+                            -85.367386, -85.22496 , -85.11076 , -84.98974 , -84.859055,
+                            -84.72383 , -84.56914 , -84.37119 , -84.19911 , -83.99423 ,
+                            -83.80287 , -83.559494, -83.32756 , -83.08966 , -82.81031 ,
+                            -82.548065, -82.21477 , -81.93979 , -81.64975 , -81.27265 ,
+                            -80.903725, -80.61787 , -80.25066 , -79.92078 , -79.51486 ,
+                            -79.193146, -78.12007 , -77.742645, -77.41788 , -77.105774,
+                            -76.76651 , -76.47385 , -76.27857 , -75.98527 , -75.70382 ,
+                            -75.494965, -75.282104, -75.07381 , -74.89703 , -74.73204 ,
+                            -74.56801 , -74.41695 , -74.25552 , -74.12738 , -74.04094 ,
+                            -73.93994 , -73.81923 , -73.73866 , -73.672714, -73.59485 ,
+                            -73.51792 , -73.47513 , -73.399376, -73.34018 , -73.270615,
+                            -73.21276 , -73.135124, -73.071884, -72.972496, -72.90024 ,
+                            -72.81429 , -72.72255 , -72.59721 , -72.4729  , -72.36229 ,
+                            -72.20253 , -72.038216, -71.8932  , -71.71799 , -71.51204 ,
+                            -71.31557 , -71.12172 , -70.877914, -70.639366, -70.47667 ,
+                            -70.18854 , -69.91424 , -69.63869 , -69.38023 , -69.0],
+                           dtype=np.float32)
+    
+    period=np.where(period>kappa_cal.max(),kappa_cal.max(),period)
+    period=np.where(period<kappa_cal.min(),kappa_cal.min(),period)
+    
+    return interp1d(kappa_cal, kappa_positions, kind='cubic')(period)
+
+
+if __name__=='__main__':
+    
+    scanname_list = []
+    scanname_list += ['loopscan_{}'.format(x) for x in range(6,11)]
+    scanname_list += ['dmesh_4']
+    scanname_list += ['kmap_{}'.format(x) for x in [12]]
+    todo_list = []
+    # for scanname in scanname_list:
+
+    #     todo_list.append([scanname])      
+                          
+
+
+    # # four.do_full_process(*todo_list[0])
+    # print(todo_list)
+    # pool=Pool(len(todo_list),worker_init(os.getpid()))
+    # pool.map(four.do_full_process,todo_list)
+    # pool.close()
+    # pool.join()
+
+    
+    fname_tpl='/data/id13/inhouse10/THEDATA_I10_1/d_2018-07-30_commi_BLISS_aj/PROCESS/FFT/{}/{}_fft_eval.h5'    
+    for scanname in scanname_list:
+        do_all_periods_to_angles(fname_tpl.format(scanname,scanname))
