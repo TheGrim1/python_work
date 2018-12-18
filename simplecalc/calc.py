@@ -13,7 +13,21 @@ sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 
 from simplecalc import fitting
 
+def rotate_dataset(angles, x, y, angles_in_deg = True):
+    '''
+    returns new_x, new_y
+    with 
+    new_x = x * cos(angles) + y * sin(angles)
+    new_y = -x * sin(angles) + y * cos(angles)
 
+    angles in deg
+    '''
+    if angles_in_deg:
+        a = np.pi/180.*angles        
+    else:
+        a = angles
+
+    return (x*np.cos(a) + y*np.sin(a), -x*np.sin(a) + y*np.cos(a))
 
 def clean_outliers(data,outlier_factor, median_radius):
     '''
@@ -375,7 +389,7 @@ def get_hm_com(data):
     com of everything above the hm
     which is something like the spec cen
     '''
-    min, max = data.min(), data.max()
-    hm = (min+max)/2.
+    min_val, max_val = data.min(), data.max()
+    hm = (min_val+max_val)/2.
     top_data = np.where(data<hm,0,data)
     return nd.measurements.center_of_mass(top_data)

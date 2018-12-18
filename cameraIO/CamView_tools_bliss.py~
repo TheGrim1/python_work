@@ -31,10 +31,6 @@ sys.path.insert(0, importpath)
 from fileIO.images.image_tools import optimize_greyscale
 import fileIO.images.image_tools as it
 from simplecalc.slicing import troi_to_slice
-from SpecClient import SpecCommand, SpecMotor
-import SpecClient
-print('getting SpecClient from:')
-print(SpecClient.__file__)
 
 import simplecalc.centering as cen
 import simplecalc.image_align as ia
@@ -60,20 +56,8 @@ class stage(object):
         self.reference_image = {}
         self.median_filter = 0
 
-    def connect(self,spechost = 'lid13lab1', 
-                 specsession = 'motexplore', 
-                 timeout = 10000):
-        print('connecting to %s' % spechost)
-        self.spechost    = spechost
-        print('specsession named %s'  % specsession)
-        self.specsession = specsession
-        self.timeout     = timeout
-        self._specversion_update()
-        self.COR = None
         
 ##### handling motors
-    def _specversion_update(self):
-        self.specversion = self.spechost + ':' + self.specsession
                    
     def _add_motors(self,**kwargs):
         self.motors.update(kwargs)
@@ -82,7 +66,7 @@ class stage(object):
                 rot_str = 'rotational'
             else:
                 rot_str = 'linear'
-            print('added %s motor for %s%s called %s%s in this spec session' %(rot_str,(10-len(function))*' ',function,(10-len(motdict['specname']))*' ',motdict['specname']))
+            print('added %s motor for %s%s called %s%s in this spec session' %(rot_str,(10-len(function))*' ',function,(10-len(motdict['blissname']))*' ',motdict['blissname']))
 
     def _correct_with_lookup(self, function, startpos_dc, end_pos):
         print('correcting movement of %s with motors:' % function)
@@ -108,10 +92,11 @@ class stage(object):
 
         startpos_dc = self._get_pos()
 
-        cmd = SpecCommand.SpecCommand('mvr', self.specversion, self.timeout)
-        print('mvr %s %s' %(function, distance))
-        cmd(self.motors[function]['specname'], distance)
 
+
+        print('mvr %s %s' %(function, distance))
+        self.motors[function]['blissmotor'].rmove(distance)
+        
         ### optional correction of motors using lookuptable
         if move_using_lookup:
             end_pos = self.wm(function)
@@ -125,20 +110,10 @@ class stage(object):
            move_using_lookup = False, sleep=0, repeat=0):
 
         startpos_dc = self._get_pos() # needed for move_using_lookup
- 
-        cmd = SpecCommand.SpecCommand('mv', self.specversion, self.timeout)  
+
         print('mv %s %s' %(function, position))
-        try:
-            cmd(self.motors[function]['specname'], position)
-        except SpecClient.SpecClientError.SpecClientTimeoutError:
-            if repeat > 3:
-                repeat+=1
-                print('SpecClientTimeoutError: repeating mv')
-                self.mv(function, position, move_using_lookup=False, sleep=0.0,repeat=repeat)
-            else:
-                print("Unexpected error:", sys.exc_info()[0])
-                raise
-                
+        self.motors[function]['blissmotor'].move(position)
+    
         ### optional correction of motors using lookuptable
         if move_using_lookup:
             end_pos = self.wm(function)
@@ -189,8 +164,8 @@ class stage(object):
                              
     def wm(self, function):
         # print 'getting position of motor %s'% self.motors[function]['specname']
-        specmotor = SpecMotor.SpecMotor(self.motors[function]['specname'], self.specversion)  
-        return specmotor.getPosition()
+
+        return self.motors[function]['blissmotor'].position
 
     def _get_pos(self):
         pos_dc = {}
@@ -222,11 +197,6 @@ class stage(object):
                     factor = motorset[othermotor]/motorset[motor]
                     self.calibration[view].update({othermotor:factor*calibration}) 
         
-    def send_SpecCommand(self, command):
-        print('sending %s the command:'% self.specversion)
-        print(command)
-        cmd = SpecCommand.SpecCommand(command , self.specversion, self.timeout)  
-        cmd()
 
     def get_motor_dict(self):
         motor_dict = {}
@@ -468,6 +438,7 @@ class stage(object):
                                   
                 
         dpxl = self.cross_to(COR_pxl[1],COR_pxl[0], view=view, move=False)
+        
         COR_motors = self.stagegeometry['COR_motors'][motor]['motors']
         # updating the absolute position of the COR in motor units:
         for i, COR_mot in enumerate(COR_motors):
@@ -1333,9 +1304,5 @@ class stage(object):
             it.array_to_imagefile(initial_sum,imagefname=prefix+"initial_sum.png")
                                             
 
-
-###### debug functions
-    def _get_SpecClient_file():
-        return
 
     

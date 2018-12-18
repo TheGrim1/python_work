@@ -41,6 +41,7 @@ import simplecalc.centering as cen
 
 class phi_kappa_gonio(stage):
     def __init__(self, specsession = 'navitar', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -179,7 +180,7 @@ class EH2_phi_kappa_gonio(stage):
     '''
     def __init__(self, spechost = 'id13CTRL', specsession = 'zap', initialize_cameras = True):
         # def __init__(self, specsession = 'motexplore', initialize_cameras = True):
-
+        self.run_in_bliss = False
         if initialize_cameras:
             self.background = {}
             self.median_filter = False
@@ -430,6 +431,7 @@ class EH2_cameras(stage):
     def __init__(self, specsession = 'motexplore', initialize_cameras = True):
         # General point of reference
         self.cross_pxl = {}
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -450,6 +452,7 @@ class motexplore_jul17(stage):
     updated nov17
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'motexplore', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -518,15 +521,15 @@ class EH3_cameras_apr18(stage):
     updated apr18
     '''
     def __init__(self, spechost= 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
+            
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
             self.views = {}
             self.views.update({'vlm1':
-                               {'camera_index':0, 'horz_func':'y', 'vert_func':'z','focus':'x'},
-                               'vlm2':
-                               {'camera_index':1, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
+                               {'camera_index':0, 'horz_func':'y', 'vert_func':'z','focus':'x'}})
             
             # General point of reference
             self.cross_pxl = {}
@@ -584,6 +587,7 @@ class EH3_smrhex_mai18(stage):
     updated mai 18
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -648,6 +652,7 @@ class EH3_XYTHetahex_mai18(stage):
     updated mai 18
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -726,6 +731,7 @@ class EH3_smrhexpiezo_mai18(stage):
     updated mai 18
     '''
     def __init__(self, spechost = 'lid13eh31', specsession = 'eh3', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -797,6 +803,7 @@ class lab_TOMO_navi_sep18(stage):
     updated sep 06
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'navitar', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -867,6 +874,7 @@ class EH2_TOMO_navi_sep18(stage):
     updated sep 06
     '''
     def __init__(self, spechost = 'lid13eh21', specsession = 'scanning', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -1082,6 +1090,7 @@ class lab_smrotgonio_navi_jul18(stage):
     updated jul 30
     '''
     def __init__(self, spechost = 'lid13lab1', specsession = 'navitar', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             self.median_filter = False
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
@@ -1148,10 +1157,9 @@ class lab_smrotgonio_navi_jul18(stage):
         # lookuptables:
         self.lookup = LUTs.LUT_Navitar()
 
-
-        
 class EH3_hex_phikappa_gonio(stage):
     def __init__(self, spechost = 'lid13eh31',  specsession = 'eh3', initialize_cameras = True):
+        self.run_in_bliss = False
         if initialize_cameras:
             # this list defines which camera is called by view, here view = 'top' -> camera 0:
             # and which motors will by default (cross_to function) move the sample in this view
@@ -1169,6 +1177,7 @@ class EH3_hex_phikappa_gonio(stage):
             self.cross_pxl['sample'] = (576/2, 748/2)
             self.cross_pxl['wall'] = (576/2, 748/2)
             self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1','id13/limaccds/eh3-vlm2'])
+
         self.reference_image = {}
         # dictionary connecting function of the motor and its specname:
         self.motors      = {}
@@ -1326,3 +1335,323 @@ class EH3_hex_phikappa_gonio(stage):
             it.save_series(sidestack,savename_list=[side_prefix+ str(int(x)) + '.png' for x in phi_pos])
             it.array_to_imagefile(topstack.sum(0),imagefname=top_prefix+"_sum.png")
             it.array_to_imagefile(sidestack.sum(0),imagefname=side_prefix+"_sum.png")
+
+class lab_ThetaHexMarsPhikappaXy(stage):
+    def __init__(self,spechost = 'lid13lab1', specsession = 'navitar',initialize_cameras = True, camera_list=[]):
+        '''
+        motors_dict = dict([motor_name: str,motor: bliss_motor_instance])
+        camera = [bliss_ct_function, camera_counter (eg. vlm1), exp_time :float]
+           i.e. camera_list = [camera1, camera2 etc.]
+
+        '''
+        self.run_in_bliss = False
+        # connectto spec
+        self.connect(specsession = specsession,spechost=spechost)
+        
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':{'camera_index':0, 'horz_func':'nny', 'vert_func':'nnz','focus':'nnx'},
+                               'side':
+                               {'camera_index':1, 'horz_func':'x', 'vert_func':'z','focus':'y'}})
+            
+                              
+            self.background = {}
+            self.median_filter = False
+
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['vlm1'] = (576/2, 748/2)
+            self.cross_pxl['side'] = (576, 1000)
+
+            self.initialize_cameras(plot=False,camera_type='usb')
+
+        self.reference_image = {}
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {}
+        for motor_name in ['phi','kappa']:
+            motor_dict.update({motor_name:
+                               {'specname':'sm{}'.format(motor_name), 'is_rotation':True}})
+            
+        for motor_name in ['x','y','z']:
+            motor_dict.update({motor_name:
+                               {'specname':'navi{}'.format(motor_name), 'is_rotation':False}})
+        
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+        
+        # lists of motors that will move the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>',<motor_parallel_in_view>],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not rigt handed with respect to the motors
+        
+        self.stagegeometry['COR_motors'] = {'kappa':{'motors':['x','z','y'],'view':'side','invert':True}} 
+        self.stagegeometry['COR_motors'] = {'phi':{'motors':['smy','smy','z'],'view':'top','invert':False}}
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        print(self.stagegeometry['COR_motors'])
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1) 
+        
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['vlm1'] = {}
+        self.stagegeometry['same_calibration']['vlm1'].update({'set1':{'navix':1000,'naviy':1000,'naviz':1000,'smx':1,'smy':1,'nnp4':1,'nnp5':1,'nnp6':1}})
+        self.stagegeometry['same_calibration']['side'] = {}
+        self.stagegeometry['same_calibration']['side'].update({'set1':{'navix':1000,'naviy':1000,'naviz':1000,'smx':1,'smy':1,'nnp4':1,'nnp5':1,'nnp6':1}})
+        
+        self.calibration = {}
+        self.calibration.update({'vlm1':{}})
+        self.calibration.update({'side':{}})
+        print('setting default calibration for 5x microscope objective')
+        self._calibrate('nnx',-537.8,'vlm1')
+        self._calibrate('nnx',-537.8,'side')
+
+        # lookuptables:
+        self.lookup = LUTs.LUT_Navitar()
+        
+        # lookuptables look like this:
+        # self.lookup[motor] = {} # look up dict for <motor>
+        ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <kappas>
+        ## positions in otor must be sorted! 
+        # eg. and empty <kappa> lookup for <mot0> and <mot1>:
+        # kappas = np.arange(360)
+        # shift = np.zeros(shape = (kappas.shape[0],2))
+        # self.lookup[motor].update({motor: kappas})  
+        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
+        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
+
+        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
+
+        ## addon for wall mounted camera:
+        self.camera_position = {}
+
+        
+    def connect_phi_to_kappa(self):
+        '''
+        after having loaded or made a lookuptable for function 'phi', this will change the type of self.lookup['phi'] to the UserDict class 'lookupdict_phi_kappa'.
+        now the lookuptable is dependent on the current values of the function 'kappa'.
+        this may disturbt the correct funcitonlaity of the inherited 'make_lookup' function of the stage class (TODO)
+        '''
+        self.lookup.link_dynamic()
+
+
+class EH3_spec_ThetaHexMarsPhikappaXy(stage):
+    def __init__(self, spechost= 'lid13eh31', specsession = 'eh3', initialize_cameras = True, camera_list=[]):
+        '''
+        blissmotors_dict = dict([motor_name: str,motor: bliss_motor_instance])
+        camera = [bliss_ct_function, camera_counter (eg. vlm1), exp_time :float]
+           i.e. camera_list = [camera1, camera2 etc.]
+
+        '''
+        self.run_in_bliss = False
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':{'camera_index':0, 'horz_func':'nny', 'vert_func':'nnz','focus':'nnx'}})
+                              
+                              
+            self.background = {}
+            self.median_filter = False
+
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['vlm1'] = (331, 413)
+
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1'])
+
+        self.reference_image = {}
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {}
+        for motor_name in ['Theta',
+                           'smphi','smkappa']:
+            motor_dict.update({motor_name:
+                              {'specname':motor_name, 'is_rotation':True}})
+            
+        for motor_name in ['nnx','nny','nnz',
+                           'nnp4','nnp5','nnp6',
+                           'smx','smy']:
+            motor_dict.update({motor_name:
+                               {'specname':motor_name, 'is_rotation':False}})
+        
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+        
+        # lists of motors that will move the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>',<motor_parallel_in_view>],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not rigt handed with respect to the motors
+        
+        self.stagegeometry['COR_motors'] = {'smkappa':{'motors':['nnp5','nnp6','nnp5'],'view':'vlm1','invert':True}} 
+        self.stagegeometry['COR_motors'] = {'smphi':{'motors':['nnp4','nnp5','nnp6'],'view':None,'invert':False}}
+        self.stagegeometry['COR_motors'] = {'Theta':{'motors':['nnx','nny','nnz'],'view':None,'invert':False}}
+
+
+        
+        # connectto spec
+        self.connect(spechost=spechost,specsession = specsession)
+        
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        print(self.stagegeometry['COR_motors'])
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1) 
+        
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['vlm1'] = {}
+        self.stagegeometry['same_calibration']['vlm1'].update({'set1':{'nnx':1000,'nny':1000,'nnz':1000,'smx':1,'smy':1,'nnp4':1,'nnp5':1,'nnp6':1}})
+        
+        self.calibration = {}
+        self.calibration.update({'vlm1':{}})
+        print('setting default calibration for 50x microscope objective')
+        self._calibrate('nnx',-4054.72408278576,'vlm1')
+
+
+        # lookuptables:
+        self.lookup = LUTs.LUT_VO2()
+        
+        # lookuptables look like this:
+        # self.lookup[motor] = {} # look up dict for <motor>
+        ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <kappas>
+        ## positions in otor must be sorted! 
+        # eg. and empty <kappa> lookup for <mot0> and <mot1>:
+        # kappas = np.arange(360)
+        # shift = np.zeros(shape = (kappas.shape[0],2))
+        # self.lookup[motor].update({motor: kappas})  
+        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
+        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
+
+        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
+
+
+        
+    def connect_phi_to_kappa(self):
+        '''
+        after having loaded or made a lookuptable for function 'phi', this will change the type of self.lookup['phi'] to the UserDict class 'lookupdict_phi_kappa'.
+        now the lookuptable is dependent on the current values of the function 'kappa'.
+        this may disturbt the correct funcitonlaity of the inherited 'make_lookup' function of the stage class (TODO)
+        '''
+        self.lookup.link_dynamic()
+
+        
+class EH3_bliss_ThetaHexMarsPhikappaXy(stage):
+    def __init__(self, blissmotors_dict={}, initialize_cameras = True, camera_list=[]):
+        '''
+        blissmotors_dict = dict([motor_name: str,motor: bliss_motor_instance])
+        camera = [bliss_ct_function, camera_counter (eg. vlm1), exp_time :float]
+           i.e. camera_list = [camera1, camera2 etc.]
+
+        '''
+        self.run_in_bliss = True
+        if initialize_cameras:
+            # this list defines which camera is called by view, here view = 'top' -> camera 0:
+            # and which motors will by default (cross_to function) move the sample in this view
+            self.views = {}
+            self.views.update({'vlm1':{'camera_index':0, 'horz_func':'nny', 'vert_func':'nnz','focus':'nnx'}})
+                              
+                              
+            self.background = {}
+            self.median_filter = False
+
+            # General point of reference
+            self.cross_pxl = {}
+            self.cross_pxl['vlm1'] = (576/2, 748/2)
+
+            self.initialize_cameras(plot=False,camera_type='eth',cameralist = ['id13/limaccds/eh3-vlm1'])
+
+        self.reference_image = {}
+        # dictionary connecting function of the motor and its specname:
+        self.motors      = {}
+        motor_dict = {}
+        for motor_name in ['Theta',
+                           'smphi','smkappa']:
+            motor_dict.update({motor_name:
+                              {'specname':motor_name, 'is_rotation':True, 'blissmotor': blissmotors_dict[motor_name]}})
+            
+        for motor_name in ['nnx','nny','nnz',
+                           'nnp4','nnp5','nnp6',
+                           'smx','smy']:
+            motor_dict.update({motor_name:
+                               {'specname':motor_name, 'is_rotation':False, 'blissmotor': blissmotors_dict[motor_name]}})
+        
+        self._add_motors(**motor_dict)
+
+        # contains the definition of the stage geometry:
+        self.stagegeometry = {}
+        
+        # lists of motors that will move the rotation axis for centering
+        # eg:
+        # self.stagegeometry['COR_motors'] = {'<rotation_motor>':{['<motor_horz_in_view>','<motor_vert_in_view>',<motor_parallel_in_view>],
+        #                                     'parallel_view':'<top/side>',
+        #                                     'invert':<True/False>}} # invert if rotation not rigt handed with respect to the motors
+        
+        self.stagegeometry['COR_motors'] = {'smkappa':{'motors':['nnp5','nnp6','nnp5'],'view':'vlm1','invert':True}} 
+        self.stagegeometry['COR_motors'] = {'smphi':{'motors':['nnp4','nnp5','nnp6'],'view':None,'invert':False}}
+        self.stagegeometry['COR_motors'] = {'Theta':{'motors':['nnx','nny','nnz'],'view':None,'invert':False}}
+
+        # initializing the default COR at the current motor positions
+        self.COR = {}
+        print(self.stagegeometry['COR_motors'])
+        [self.COR.update({motor:[self.wm(COR_motor) for COR_motor in COR_dict['motors']]}) for motor,COR_dict in list(self.stagegeometry['COR_motors'].items())]
+
+        # dicts of motors that can have the same calibration:
+        # level 1 : which view (side or top)
+        # level 2 : group of motors (any name, here 'set1'
+        # level 3 : the motors with relative calibration factors (here 1) 
+        
+        self.stagegeometry['same_calibration'] = {}
+        self.stagegeometry['same_calibration']['vlm1'] = {}
+        self.stagegeometry['same_calibration']['vlm1'].update({'set1':{'nnx':1000,'nny':1000,'nnz':1000,'smx':1,'smy':1,'nnp4':1,'nnp5':1,'nnp6':1}})
+        
+        self.calibration = {}
+        self.calibration.update({'vlm1':{}})
+        print('setting default calibration for 5x microscope objective')
+        self._calibrate('nnx',-537.8,'vlm1')
+
+
+        # lookuptables:
+        self.lookup = LUTs.LUT_VO2()
+        
+        # lookuptables look like this:
+        # self.lookup[motor] = {} # look up dict for <motor>
+        ## IMPORTANT, all defined lookup positions are referenced to the SAME positions for <motor>, here <kappas>
+        ## positions in otor must be sorted! 
+        # eg. and empty <kappa> lookup for <mot0> and <mot1>:
+        # kappas = np.arange(360)
+        # shift = np.zeros(shape = (kappas.shape[0],2))
+        # self.lookup[motor].update({motor: kappas})  
+        # self.lookup[motor].update({mot0: shift[:,0]*self.calibration[view][mot0]})
+        # self.lookup[motor].update({mot1: shift[:,1]*self.calibration[view][mot1]})
+
+        ## else we assume that all motors are correctly defined in the self.lookup[motor] dict!
+
+        ## addon for wall mounted camera:
+        self.camera_position = {}
+
+        
+    def connect_phi_to_kappa(self):
+        '''
+        after having loaded or made a lookuptable for function 'phi', this will change the type of self.lookup['phi'] to the UserDict class 'lookupdict_phi_kappa'.
+        now the lookuptable is dependent on the current values of the function 'kappa'.
+        this may disturbt the correct funcitonlaity of the inherited 'make_lookup' function of the stage class (TODO)
+        '''
+        self.lookup.link_dynamic()
+

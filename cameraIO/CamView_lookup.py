@@ -122,8 +122,61 @@ class LookupDict_Phi_hexXZKappa(LookupDict):
             print("key {}; no kappa correction".format(key))
             return self.store[key]
 
+class LookupDict_smhi_nnxnnz_smkappa(LookupDict):
+    '''
+    child of LookupDict that corrects the rotation around <smphi> when the axis of smphi is tilted by smkappa in the nnx,nnz-plane
+    '''
+    def __init__(self, motors, lookup):
+        self.currpos = dict()
+        self.motors = motors
+        self.store = dict()
+        self.update(lookup['phi'])
+        if 'nnz' not in list(self.store.keys()):
+            self.update({'nnz':np.zeros(shape = self.store['nnx'].shape)})
 
+    def __getitem__(self, key):
+        if self.motors['smkappa']['invert']:
+            kappa_rad = self.wm('smkappa')/180.0*np.pi
+        else:
+            kappa_rad = - self.wm('smkappa')/180.0*np.pi
+            
+        if key == 'nnx':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['nnx']*np.cos(kappa_rad) - self.store['nnz']*np.sin(kappa_rad)
+        elif key == 'nnz':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['npp4']*np.sin(kappa_rad) + self.store['nnz']*np.cos(kappa_rad)
+        else:
+            print("key {}; no kappa correction".format(key))
+            return self.store[key]
 
+class LookupDict_smhi_nnp4nnp6_smkappa(LookupDict):
+    '''
+    child of LookupDict that corrects the rotation around <smphi> when the axis of smphi is tilted by smkappa in the nnp4,nnp6-plane
+    '''
+    def __init__(self, motors, lookup):
+        self.currpos = dict()
+        self.motors = motors
+        self.store = dict()
+        self.update(lookup['phi'])
+        if 'nnp6' not in list(self.store.keys()):
+            self.update({'nnp6':np.zeros(shape = self.store['nnp4'].shape)})
+
+    def __getitem__(self, key):
+        if self.motors['smkappa']['invert']:
+            kappa_rad = self.wm('smkappa')/180.0*np.pi
+        else:
+            kappa_rad = - self.wm('smkappa')/180.0*np.pi
+            
+        if key == 'nnp4':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['nnp4']*np.cos(kappa_rad) - self.store['nnp6']*np.sin(kappa_rad)
+        elif key == 'nnp6':
+            print("key {}; kappa_rad = {}".format(key,kappa_rad))
+            return self.store['npp4']*np.sin(kappa_rad) + self.store['nnp6']*np.cos(kappa_rad)
+        else:
+            print("key {}; no kappa correction".format(key))
+            return self.store[key]
         
     
 class Lut_TOMO_Phi_PhiKappa2D(LookupDict):

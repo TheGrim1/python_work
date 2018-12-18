@@ -8,6 +8,7 @@ import copy
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 from fileIO.datafiles import open_data, save_data
 from cameraIO.CamView_lookup import LookupDict, LookupDict_Phi_XZKappa, LookupDict_Phi_hexXZKappa
+from cameraIO.CamView_lookup import LookupDict_smhi_nnp4nnp6_smkappa
 import os
 
 class LUT_Anyberg(object):
@@ -585,7 +586,7 @@ class LUT_TOMO_Navitar(LUT_Anyberg):
         self.dynamic_lookup['kappa'] = self.lookup['kappa']
 
         print("dynam lookup done.")
-
+ 
 class LUT_Navitar(LUT_Anyberg):
     ''' 
     specific lookuptable interface for the phi-kappa gonio based on the smaract motors on strx,y,z in 
@@ -658,6 +659,93 @@ class LUT_Navitar(LUT_Anyberg):
 
         self.dynamic_lookup['phi'] = dyl
         self.dynamic_lookup['kappa'] = self.lookup['kappa']
+
+        print("dynam lookup done.")
+       
+class LUT_VO2(LUT_Anyberg):
+    ''' 
+    specific lookuptable interface for the phi-kappa gonio based on the smaract motors on strx,y,z in 
+    as used by the CamView stage class in the nanolab optical setup
+    '''
+    MDC = dict(
+        smkappa = dict(
+            is_rotation = True,
+            invert      = True,
+            COR_motors  = ['nnp4','nnp6'],
+            default_pos = 0, # at this position lookups do not interfere, i.e. this is the default position to make lookuptables for any other motors
+        ),
+        smphi = dict(
+            is_rotation = True,
+            invert      = True,
+            COR_motors  = ['nnp4','nnp5'],
+            default_pos = 0,
+        ),
+        nnp4 = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        nnp5 = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        nnp6 = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        smx = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),
+        smy = dict(
+            is_rotation = False,
+            invert      = False,
+            default_pos = 0,
+        ),      
+    )
+
+    def __init__(self):
+        self.lookup_fnames ={}
+        self.lookup = {}
+        self.dynamic_lookup = {}
+        
+        self.motors = self.MDC
+        # initial positions
+        pos_list = [(k,0) for k in list(self.motors.keys())]
+        self.pos = dict(pos_list)
+
+        [self.init_current_pos(mot) for mot in ['smphi','smkappa']]
+        
+        # external to internal motorname translation
+        self.mto_lookup = mto_lookup = dict(
+            smphi = "smphi",
+            smkappa = "smkappa",
+            nnp4 = "nnp4",
+            nnp5 = "nnp5",
+            nnp6 = "nnp6",
+            smx = "smx",
+            smy = "smy")
+        
+        tems = list(mto_lookup.items())
+        semt = [(v,k) for (k,v) in tems]
+        self.mto_eig = dict(semt)
+        self.show()
+
+        
+    def link_dynamic(self, load=False):
+        '''
+        relink the dynamic lookups
+        not dynamic!
+        '''
+        
+        self.phi_dynamic_lookup = dyl = LookupDict(self.motors)
+        dyl.mockup_currpos(self.pos)
+
+        self.dynamic_lookup['smphi'] = self.lookup['smphi']
+        self.dynamic_lookup['smkappa'] = self.lookup['smkappa']
 
         print("dynam lookup done.")
 

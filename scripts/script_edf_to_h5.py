@@ -83,9 +83,6 @@ def do_y_inner_outer_merge(args):
             data = fabio.open(fname).data
             
                     
-            
-    
-
     
 
     

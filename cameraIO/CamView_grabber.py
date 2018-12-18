@@ -18,9 +18,16 @@ class CamView_grabber(object):
                 cameralist=kwargs['cameralist']
             import cameraIO.CamView_ETHCameras as CVETH
             self.cameras = CVETH.ETHCameras(cameralist=cameralist)
+
+        elif camera_type.upper()=='BLISS':
+            import cameraIO.CamView_BlissCameras as CVBLISS
+            cameralist = kwargs['cameralist']
+            self.cameras = CVBLISS.BlissCameras(cameralist=cameralist)
+            
         else:
             print('cameras of type %s not known'%camera_type)
 
+            
     def grab_image(self, i, troi=None):
         return self.cameras.grab_image(cam_no=i,troi=troi)
     

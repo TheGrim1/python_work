@@ -23,7 +23,6 @@ sys.path.append(importpath)
 
 from simplecalc.slicing import troi_to_slice
 from simplecalc.gauss_fitting import fit_2d_gauss
-from simplecalc.rotated_series import rotate_series
 from simplecalc.gauss_fitting import do_multi_gauss_fit
 
 from fileIO.datafiles import open_data

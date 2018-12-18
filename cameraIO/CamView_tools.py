@@ -58,11 +58,15 @@ class stage(object):
                                {'camera_index':1, 'horz_func':'y', 'vert_func':'z'}}) 
         self.saved_positions = {}
         self.reference_image = {}
-        self.median_filter = 0
-
+        self.median_filter = False # toggle automatic camera noise reduction with med filter
+        self.run_in_bliss = False # toggle to control the functionality of mv, mvr and wm
+ 
     def connect(self,spechost = 'lid13lab1', 
                  specsession = 'motexplore', 
                  timeout = 10000):
+        '''
+        only called by spec stages!
+        '''
         print('connecting to %s' % spechost)
         self.spechost    = spechost
         print('specsession named %s'  % specsession)
@@ -73,9 +77,16 @@ class stage(object):
         
 ##### handling motors
     def _specversion_update(self):
+        '''
+        only called by spec stages!
+        '''
         self.specversion = self.spechost + ':' + self.specsession
                    
     def _add_motors(self,**kwargs):
+        '''
+        specname is retained out of lazyness, even for bliss stages.
+        bliss stages NEED to have the bliss.axis instance passed in this dict as kwargs[<motorname>]['blissmotor']! for mvr, mv and wm
+        '''
         self.motors.update(kwargs)
         for function, motdict in list(kwargs.items()):
             if motdict['is_rotation']:
@@ -108,9 +119,12 @@ class stage(object):
 
         startpos_dc = self._get_pos()
 
-        cmd = SpecCommand.SpecCommand('mvr', self.specversion, self.timeout)
         print('mvr %s %s' %(function, distance))
-        cmd(self.motors[function]['specname'], distance)
+        if self.run_in_bliss:
+            self.motors[function]['blissmotor'].rmove(distance)
+        else:
+            cmd = SpecCommand.SpecCommand('mvr', self.specversion, self.timeout)
+            cmd(self.motors[function]['specname'], distance)
 
         ### optional correction of motors using lookuptable
         if move_using_lookup:
@@ -125,19 +139,23 @@ class stage(object):
            move_using_lookup = False, sleep=0, repeat=0):
 
         startpos_dc = self._get_pos() # needed for move_using_lookup
- 
-        cmd = SpecCommand.SpecCommand('mv', self.specversion, self.timeout)  
+
+        if self.run_in_bliss:
+            self.motors[function]['blissmotor'].rmove(distance)
+        else:
+            cmd = SpecCommand.SpecCommand('mv', self.specversion, self.timeout)
+            try:
+                cmd(self.motors[function]['specname'], position)
+            except SpecClient.SpecClientError.SpecClientTimeoutError:
+                if repeat > 3:
+                    repeat+=1
+                    print('SpecClientTimeoutError: repeating mv')
+                    self.mv(function, position, move_using_lookup=False, sleep=0.0,repeat=repeat)
+                else:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    raise
         print('mv %s %s' %(function, position))
-        try:
-            cmd(self.motors[function]['specname'], position)
-        except SpecClient.SpecClientError.SpecClientTimeoutError:
-            if repeat > 3:
-                repeat+=1
-                print('SpecClientTimeoutError: repeating mv')
-                self.mv(function, position, move_using_lookup=False, sleep=0.0,repeat=repeat)
-            else:
-                print("Unexpected error:", sys.exc_info()[0])
-                raise
+
                 
         ### optional correction of motors using lookuptable
         if move_using_lookup:
@@ -189,8 +207,11 @@ class stage(object):
                              
     def wm(self, function):
         # print 'getting position of motor %s'% self.motors[function]['specname']
-        specmotor = SpecMotor.SpecMotor(self.motors[function]['specname'], self.specversion)  
-        return specmotor.getPosition()
+        if self.run_in_bliss:
+            return self.motors[function]['blissmotor'].position
+        else:
+            specmotor = SpecMotor.SpecMotor(self.motors[function]['specname'], self.specversion)  
+            return specmotor.getPosition()
 
     def _get_pos(self):
         pos_dc = {}
@@ -1301,6 +1322,7 @@ class stage(object):
         else:
             raise NotImplementedError(mode ,' is not a valid image alignment mode for making a lookup table')
         return mode_dict
+
     
 ##### some cosmetic plotting
 
