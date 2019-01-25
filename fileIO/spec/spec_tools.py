@@ -10,8 +10,27 @@ from silx.io.spech5 import SpecH5 as spech5
 import sys
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 
-
 from fileIO.images import image_tools as it
+
+def get_ID01_rotations_from_scan_header(header_value):
+    rots = "O0 del  eta  chi  phi  nu  mu  Invalid  osay"
+    if not type(header_value) == np.ndarray:
+        header_value=header_value.split('#')
+    for line in header_value:
+        #print(line)
+        if line.find('P0')>-1:
+            uni_dict = dict(zip(rots.split(),line.split()))
+    for k,v in uni_dict.items():
+        try:
+            uni_dict[k]=float(v)
+        except ValueError:
+            pass
+    
+        
+                
+
+    return uni_dict
+                
 
 def get_scan_starttime(spec_f, scanno):
     if type(spec_f) == str:

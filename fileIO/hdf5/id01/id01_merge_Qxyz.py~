@@ -1,0 +1,118 @@
+import h5py
+import sys,os
+import time
+
+sys.path.append('/data/id13/inhouse2/AJ/skript')
+import fileIO.spec.spec_tools as st
+from pythonmisc.worker_suicide import worker_init
+from fileIO.hdf5.workers import id01qxyz_regroup_worker as qrw
+import pythonmisc.pickle_utils as pu
+
+
+def parse_ij(fname):
+    # tpl = qxyz_redrid_{:06d}_{:06d}.h5
+    i,j=[int(x) for x in os.path.splitext(fname)[0].split('_')[-2::]]
+    return i,j
+
+def do_regrouping(merged_fname, Q_dim, map_shape=(100,100), bin_size=1, interp_factor = 1, verbose = True):
+    Qmerged_fname = os.path.dirname(merged_fname)+os.path.sep+'qxyz_'+os.path.basename(merged_fname)
+    starttime = time.time()
+    total_datalength = 0    ### get the need info:
+    no_processes=1
+
+    with h5py.File(merged_fname,'r') as source_h5:
+        
+        dest_dir = os.path.dirname(merged_fname)+os.path.sep+'qxyz_regrouped/'
+        if os.path.exists(dest_dir):
+            print('deleting old data in {}'.format(dest_dir))
+            rmtree(dest_dir)
+        os.mkdir(dest_dir)
+
+        raw_ds_path = '/instrument/detector/data'
+        raw_ds = source_h5[data_path_list[0]+raw_ds_path]
+        raw_ds_dtype = raw_ds.dtype
+        map_shape = map_shape
+
+        ### change troi size to rebin, required for qxyz
+        troi = [[261,106],[160,320]]
+        troi = [troi[0],[int(troi[1][0]/bin_size),int(troi[1][1]/bin_size)]]
+            
+        Qdata_shape = map_shape + Q_dim
+            
+        # setup todolist for parrallel processes per map point
+
+        dest_fname_tpl = dest_dir + 'qxyz_regrid_{}_{}.h5'.format('{:06d}','{:06d}')
+
+        for i in range(map_shape[0]):
+            for j in range(map_shape[1]):
+                total_datalength += 1
+                todo=[merged_fname,
+                      dest_fname_tpl.format(i,j),
+                      [i,j],
+                      Q_dim,
+                      map_shape,
+                      [cch1,cch2],
+                      distance,
+                      pwidth,
+                      bin_size,
+                      troi,
+                      verbose]
+                todo_list.append(todo)
+                    
+    print('setup parallel proccesses to write to {}'.format(dest_dir))
+    instruction_list = []
+    for i,todo in enumerate(todo_list):
+        instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=False, counter=i)
+        instruction_list.append(instruction_fname)
+    if no_processes==1:
+        print(instruction_list)
+        for i, instruction in enumerate(instruction_list):
+            print('running in single process, loop {}'.format(i))
+            id01qrw.qxyz_regroup_worker(instruction)
+
+        ## non parrallel version for one dataset and timing:
+        #fdw.fit_data_worker(instruction_list[0])
+    else:
+        pool = Pool(no_processes, worker_init(os.getpid()))
+        pool.map_async(id01qrw.qxyz_regroup_employer,instruction_list)
+        pool.close()
+        pool.join()
+
+
+    endtime = time.time()
+    total_time = (endtime - starttime)
+    print('='*25)
+    print('\ntime taken for regrouping of {} datasets = {}'.format(total_datalength, total_time))
+    print(' = {} Hz\n'.format(total_datalength/total_time))
+    print('='*25) 
+             
+    result_fname_list = glob.glob(dest_dir+os.path.sep+'*.h5')
+
+    if os.path.exists(Qmerged_fname):
+        os.remove(Qmerged_fname)
+    with h5py.File(Qmerged_fname) as dest_h5:
+        q_group = dest_h5.create_group('entry/merged_data/diffraction/{}/Qxzy/'.format(troiname))
+        pointwise_group = q_group.create_group('single_files')
+        print(Qdata_shape,raw_ds.dtype)
+        q_ds = q_group.create_dataset(name='data', shape=Qdata_shape, dtype=raw_ds_dtype, compression='lzf')
+        for fname in result_fname_list:
+            print('collecting {}'.format(fname))
+            i,j = parse_ij(fname)
+            pointwise_group.create_dataset('point_{:06d}_{:06d}'.format(i,j),data=fname)
+            with h5py.File(fname,'r') as source_h5:
+                q_ds[i,j] = np.asarray(source_h5['entry/data/data'])
+
+    
+
+def main():
+
+    merged_fname = '/hz/data/id13/inhouse6/THEDATA_I6_1/d_2016-10-27_in_hc2997/PROCESS/aj_log/integrated/r1_w3_rebin/merged.h5'
+
+    Q_dim = [nQx, nQy, nQz] = [30,30,30]
+
+    interp_factor = 5
+    do_parallel_regrouping(merged_fname, Q_dim, interp_factor=interp_factor,limit_Thetas=True)
+
+    
+if __name__ == "__main__":
+    main()

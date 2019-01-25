@@ -146,7 +146,7 @@ def do_parallel_regrouping(merged_fname, Q_dim, interp_factor = 1, limit_Thetas=
             for fname in troi_fname_list:
                 print('collecting {}'.format(fname))
                 i,j = parse_ij(fname)
-                pointwise_group.create_dataset('point_{:06d}_{:06d}',data=fname)
+                pointwise_group.create_dataset('point_{:06d}_{:06d}'.format(i,j),data=fname)
                 with h5py.File(fname,'r') as source_h5:
                     q_ds[i,j] = np.asarray(source_h5['entry/data/data'])
 

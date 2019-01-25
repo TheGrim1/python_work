@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 from simplecalc.calc import add_peaks
 from pythonmisc.parallel.parallelgzip import get_files
 from fileIO.hdf5.open_h5 import open_h5
-
+import fabio
 
 
 def get_shape(fnamelist,framelist=None,group="entry/data/data", troi = None):
@@ -306,3 +306,49 @@ def get_r3_i_list(r3_compatible_path=None):
     return i_list
 
     
+def create_groups(source_group, folder, verbose):
+    current_group = source_group.create_group(folder)
+    source_path = source_group.attrs['source_path']
+    current_path = source_path+'/'+folder
+    print('now in {}'.format(current_path))
+    current_group.attrs['source_path'] = current_path
+
+    # dont want to do this again
+    dir_list = os.listdir(current_path)
+
+    # make the datasets:
+    edf_list = [current_path+'/'+x for x in dir_list if x.find('.edf')>0]
+    print(edf_list)
+    if len(edf_list)==0:
+        pass
+    else:
+        edf_list.sort()
+        first = fabio.open(edf_list[0]).data
+        frame_shape = first.shape
+        data_shape = tuple([len(edf_list)]+list(frame_shape))
+        dtype = first.dtype
+        dest_data = current_group.create_dataset(name=os.path.basename(edf_list[0]),shape=data_shape,dtype=dtype)
+        for i, edf_file in enumerate(edf_list):
+            dest_data[i] = fabio.open(edf_file).data
+            if verbose:
+                print('reading data file {}'.format(edf_file))
+    
+    # recursively call this function on all folders:
+    folder_list = [x for x in dir_list if os.path.isdir(source_path+'/'+x)]
+    for folder in folder_list:
+        create_groups(current_group, folder)
+
+def do_merge_path(source_path, verbose=False):
+    '''
+    writes source_path to a .h5 file
+    recursively dives into the folder structure
+    '''
+    super_folder = source_path.split(os.path.sep)[-1]
+    with h5py.File(source_path+'/'+super_folder+'_merged.h5','w') as dest_h5:
+        # need a group to start somewhere
+        current_group = dest_h5.create_group(super_folder)
+        current_group.attrs['source_path']=source_path
+        # setup subgroups:
+        folder_list = [x for x in os.listdir(source_path) if os.path.isdir(source_path+'/'+x)]
+        for folder in folder_list:
+            create_groups(current_group, folder,verbose)

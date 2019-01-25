@@ -3,7 +3,7 @@ import numpy as np
 
 def rebin(a, shape):
     '''
-    trows away values outside of a.shape % shape
+    throws away values outside of a.shape % shape
     '''
     len0 = (a.shape[0]//shape[0])
     len1 = (a.shape[1]//shape[1])
@@ -23,7 +23,7 @@ def troi_to_xy(troi):
     ystart = troi[0][0]
     yend   = troi[0][0] + troi[1][0]
 
-    return (ystart, yend, xstart, xend)
+    return tuple(ystart, yend, xstart, xend)
 
 def xy_to_troi(ystart,yend = None, xstart = None, xend = None):
 
@@ -52,7 +52,7 @@ def troi_to_slice(troi):
     yend   = troi[0][0] + troi[1][0]
 
 
-    return [slice(ystart,yend,1),slice(xstart,xend,1)]
+    return (slice(ystart,yend,1),slice(xstart,xend,1))
 
 def xy_to_corners(xy):
     return troi_to_corners(xy_to_troi(xy))

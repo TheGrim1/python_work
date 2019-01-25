@@ -16,7 +16,7 @@ def get_ID01_rotations_from_scan_header(header_value):
     rots = "#O0 del  eta  chi  phi  nu  mu  Invalid  osay"
     for line in header_value:
         if line.find('#P0')>-1:
-            return dict(zip(line.split(' '),rots.spit(' '))
+            return dict(zip(line.split(' ')rots.spit(' '))
     
 
 def get_scan_starttime(spec_f, scanno):

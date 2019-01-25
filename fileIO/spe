@@ -13,10 +13,10 @@ sys.path.append('/data/id13/inhouse2/AJ/skript')
 from fileIO.images import image_tools as it
 
 def get_ID01_rotations_from_scan_header(header_value):
-    rots = "#O0 del  eta  chi  phi  nu  mu  Invalid  osay"
+    rots = "O0 del  eta  chi  phi  nu  mu  Invalid  osay"
     for line in header_value:
         if line.find('#P0')>-1:
-            return dict(zip(line.split(' '),rots.spit(' '))
+            return dict(zip(rots.split(' '),line.split(' ')))
     
 
 def get_scan_starttime(spec_f, scanno):

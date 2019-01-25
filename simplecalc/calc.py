@@ -13,6 +13,23 @@ sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 
 from simplecalc import fitting
 
+
+
+def calc_sd(data, data_sum, COM, axes):
+    '''
+    shape data has to be 'shape' of the list axes
+    data.ndim == len(COM) == len(axes)
+    COM is the index of the com, data_sum its mass
+    return sx, sy, sz, s
+    '''
+    weights = np.meshgrid(*np.stack([axes[i]-COM[i] for i in range(len(COM))]))
+
+    weighted_data = (data * weights) 
+    
+    s = [((weighted_data[i]**2).sum()/data_sum)**0.5 for i in range(len(COM))]
+    
+    return np.asarray(s)
+
 def rotate_dataset(angles, x, y, angles_in_deg = True):
     '''
     returns new_x, new_y
