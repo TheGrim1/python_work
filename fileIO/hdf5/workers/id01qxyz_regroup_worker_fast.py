@@ -6,12 +6,17 @@ import os, sys
 from scipy.interpolate import interp1d
 from xrayutilities import FuzzyGridder3D
 
+
+from scipy.ndimage.measurements import center_of_mass as com   
+
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 
 import pythonmisc.my_xrayutilities as my_xu
 import pythonmisc.pickle_utils as pu
 from simplecalc.slicing import rebin, troi_to_slice
 import fileIO.spec.spec_tools as st
+
+from simplecalc.calc import calc_sd
 
 def id01qxzy_regroup_employer(pickledargs_fname):
     '''
@@ -97,10 +102,13 @@ def id01qxyz_regroup_worker(pickledargs_fname):
         qx, qy, qz = xu_exp.Ang2Q.area(fine_eta_list,phi,fine_delta_list)
         gridder = FuzzyGridder3D(nx,ny,nz)
 
-        for i, j, target_fname in zip(i_list, j_list, target_fname_list):
-                
-            with h5py.File(target_fname,'w') as target_file:
+        with h5py.File(target_fname_list[0],'w') as target_file:
+            data_supergroup = target_file.create_group('entry/data')
+            axes_group_exists = False
+            for i, j, ij_fname in zip(i_list, j_list, target_fname_list):
 
+                data_group = data_supergroup.create_group(os.path.splitext(os.path.basename(ij_fname))[0])
+                
                 if verbose:
                     print('getting data from {}'.format(source_fname))
                 index = i*map_shape[1]+j
@@ -108,7 +116,7 @@ def id01qxyz_regroup_worker(pickledargs_fname):
                 # read data and bin:
                 raw_data = np.asarray([rebin(x[index][troi_to_slice(troi)],[bin_size]*2) for x in data_list], dtype=np.float64)
                 print('raw_data.shape = ',raw_data.shape)
-                print('qx.shape =  ',qx.shape)
+                print('qx.shape =  ', qx.shape)
                 dtype=raw_data.dtype
                 if verbose:
                     print('interpolating factor {}'.format(interp_factor))
@@ -118,23 +126,70 @@ def id01qxyz_regroup_worker(pickledargs_fname):
                 interp_data = f(fine_eta_list)
 
                 if verbose:
-                    print('regridding {}\n saving {}'.format(source_fname, target_fname))
+                    print('regridding {}\n saving {}'.format(source_fname, ij_fname))
                     print('realspace grid: ', qx.shape, qx.dtype)
                     print('data: ', interp_data.shape, interp_data.dtype)
-
-                data_group = target_file.create_group('entry/data')
+                    
                 gridder(qx,qy,qz,interp_data)
                 data = np.asarray(gridder.data,dtype=dtype)
                 ds = data_group.create_dataset(name='data', data = data, compression='lzf')
+                
+                if not axes_group_exists:
+                    qx_ax = gridder.xaxis
+                    qy_ax = gridder.yaxis
+                    qz_ax = gridder.zaxis
+                    q_axes = [qx_ax,qy_ax,qz_ax]
+                                                            
+                    axes_group = target_file.create_group('entry/axes')
+                    axes_group.create_dataset(name='qx', data = qx_ax, compression='lzf')
+                    axes_group.create_dataset(name='qy', data = qy_ax, compression='lzf')
+                    axes_group.create_dataset(name='qz', data = qz_ax, compression='lzf')
+                    axes_group.create_dataset(name='eta', data = np.asarray(fine_eta_list), compression='lzf')
+                    axes_group.create_dataset(name='delta', data = np.asarray(fine_delta_list), compression='lzf')
+                    axes_group_exists = True
 
-                axes_group = target_file.create_group('entry/axes')
-                axes_group.create_dataset(name='qx', data = gridder.xaxis, compression='lzf')
-                axes_group.create_dataset(name='qy', data = gridder.yaxis, compression='lzf')
-                axes_group.create_dataset(name='qz', data = gridder.zaxis, compression='lzf')
-                axes_group.create_dataset(name='eta', data = np.asarray(fine_eta_list), compression='lzf')
-                axes_group.create_dataset(name='delta', data = np.asarray(fine_delta_list), compression='lzf')
+                # calc realspace point values
+                data_sum = data.sum()
+                data_max = data.max()
+                i_COM = com(data)
+                qx_com, qy_com, qz_com = q_com = np.asarray([np.interp(x,range(len(q_axes[i])),q_axes[i]) for i,x in enumerate(i_COM)])
+                q = (q_com**2).sum()**0.5
+                sx, sy, sz = sigma = calc_sd(data, data_sum, q_com, q_axes)
+                s = (sigma**2).sum()**0.5
+                
+                # angles
+                theta = np.arccos(abs(qz_com)/q)
+                pitch = np.arccos(qx_com/q)
+                roll = np.arccos(qy_com/q)
+                phi = np.arctan(qx_com/qy_com)
 
-                target_file.flush()
+                # save realspace point values
+                data_group.create_dataset(name='max',data=data_max)
+                data_group.create_dataset(name='sum',data=data_sum)
+
+                data_group.create_dataset(name='qx',data=qx_com)
+                data_group.create_dataset(name='qy',data=qy_com)
+                data_group.create_dataset(name='qz',data=qz_com)
+                data_group.create_dataset(name='q',data=q)
+
+                data_group.create_dataset(name='sx',data=sx)
+                data_group.create_dataset(name='sy',data=sy)
+                data_group.create_dataset(name='sz',data=sz)
+                data_group.create_dataset(name='s',data=s)
+
+                data_group.create_dataset(name='theta',data=theta)
+                data_group.create_dataset(name='phi',data=phi)
+                data_group.create_dataset(name='roll',data=roll)
+                data_group.create_dataset(name='pitch',data=pitch)
+
+                
+            target_file.flush()
+                
+                
+                
+            target_file.flush()
+            
+                    
 
     if verbose:
         print('process {} is done'.format(os.getpid()))

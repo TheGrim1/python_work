@@ -11,24 +11,10 @@ from pythonmisc.worker_suicide import worker_init
 from fileIO.hdf5.workers import id01qxyz_regroup_worker as qrw
 import pythonmisc.pickle_utils as pu
 from simplecalc.slicing import rebin, troi_to_slice
+from simplecalc.calc import calc_sd
 from scipy.ndimage.measurements import center_of_mass as com   
 from multiprocessing import Pool
 
-
-def calc_sd(data, data_sum, COM, axes):
-    '''
-    shape data has to be 'shape' of the list axes
-    data.ndim == len(COM) == len(axes)
-    COM is the index of the com, data_sum its mass
-    return sx, sy, sz, s
-    '''
-    weights = np.meshgrid(*np.stack([axes[i]-COM[i] for i in range(3)]))
-
-    weighted_data = (data * weights) 
-    
-    sx, sy, sz = [((weighted_data[i]**2).sum()/data_sum)**0.5 for i in range(3)]
-    
-    return np.asarray([sx, sy, sz])
 
 def parse_ij(fname):
     # tpl = qxyz_redrid_{:06d}_{:06d}.h5

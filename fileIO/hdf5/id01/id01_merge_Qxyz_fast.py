@@ -5,30 +5,16 @@ import glob
 from shutil import rmtree
 import numpy as np
 
+from multiprocessing import Pool
+
 sys.path.append('/data/id13/inhouse2/AJ/skript')
 import fileIO.spec.spec_tools as st
 from pythonmisc.worker_suicide import worker_init
 from fileIO.hdf5.workers import id01qxyz_regroup_worker_fast as qrw
 import pythonmisc.pickle_utils as pu
 from simplecalc.slicing import rebin, troi_to_slice
-from scipy.ndimage.measurements import center_of_mass as com   
-from multiprocessing import Pool
 
 
-def calc_sd(data, data_sum, COM, axes):
-    '''
-    shape data has to be 'shape' of the list axes
-    data.ndim == len(COM) == len(axes)
-    COM is the index of the com, data_sum its mass
-    return sx, sy, sz, s
-    '''
-    weights = np.meshgrid(*np.stack([axes[i]-COM[i] for i in range(3)]))
-
-    weighted_data = (data * weights) 
-    
-    sx, sy, sz = [((weighted_data[i]**2).sum()/data_sum)**0.5 for i in range(3)]
-    
-    return np.asarray([sx, sy, sz])
 
 def parse_ij(fname):
     # tpl = qxyz_redrid_{:06d}_{:06d}.h5
@@ -39,7 +25,7 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
     Qmerged_fname = os.path.dirname(merged_fname) + os.path.sep + prefix + 'qxyz_'+os.path.basename(merged_fname)
     starttime = time.time()
     total_datalength = 0    ### get the need info:
-    no_processes = 10
+    no_processes = 30
 
     bin_size = par_dict['bin_size']
     
@@ -62,8 +48,11 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         dest_fname_tpl = dest_dir + 'qxyz_regrid_{}_{}.h5'.format('{:06d}','{:06d}')
         todo_list = []
         for i in range(map_shape[0]):
+        # for i in range(5):
+            
             i_list = [i] * map_shape[1]
             j_list = range(map_shape[1])
+            # j_list = range(10)
             total_datalength += map_shape[1]
             todo=[merged_fname,
                   [dest_fname_tpl.format(i,j) for i,j in zip(i_list,j_list)],
@@ -116,10 +105,9 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         max_group = dest_h5.create_group('entry/merged_data/max')
         axes_group = dest_h5.create_group('entry/merged_data/axes')
         
-        
         # get dtype, axis        
         with h5py.File(result_fname_list[0],'r') as source_h5:
-            raw_ds_dtype = source_h5['entry/data/data'].dtype
+            raw_ds_dtype = np.float64
             axes_dict = {'qx':'',
                          'qy':'',
                          'qz':''}
@@ -147,8 +135,10 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         
         theta_ar = np.zeros(shape=map_shape, dtype = np.float64)
         phi_ar = np.zeros(shape=map_shape, dtype = np.float64)
+        roll_ar = np.zeros(shape=map_shape, dtype = np.float64)
+        pitch_ar = np.zeros(shape=map_shape, dtype = np.float64)
+                        
 
-        
         curr_qmax = np.zeros(shape=Qdata_shape[2:], dtype=raw_ds_dtype)
         curr_qsum = np.zeros(shape=Qdata_shape[2:], dtype=np.float64)
         
@@ -157,60 +147,63 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         
         for fname in result_fname_list:
             print('collecting {}'.format(fname))
-            i,j = parse_ij(fname)
-            pointwise_group.create_dataset('point_{:06d}_{:06d}'.format(i,j),data=fname)
+            f_i,f_j = parse_ij(fname)
+            file_group = pointwise_group.create_group(os.path.basename(fname))
+            
             with h5py.File(fname,'r') as source_h5:
-
-                # raw data:
-                data_ij = np.asarray(source_h5['entry/data/data'])
-                q_all_ds[i,j] = np.asarray(source_h5['entry/data/data'])
                 
-                curr_qmax = np.where(data_ij>curr_qmax,data_ij,curr_qmax)
-                curr_qsum += data_ij
-                curr_rmax[i,j] = data_ij.max()
-                data_ij_sum = data_ij.sum()
-                curr_rsum[i,j] = data_ij_sum
+                for i_j, dg in source_h5['entry/data'].items():
+                  
+                    print('collecting group {}'.format(i_j))
+                    r_i,r_j = parse_ij(i_j)
+                    frame_no = r_i*map_shape[1]+r_j
+                    
+                    file_group.create_dataset('{}'.format(frame_no),data='point_{:06d}_{:06d}'.format(r_i,r_j))
+                    # raw data:
+                    data_ij = np.asarray(dg['data'])
+                    q_all_ds[r_i,r_j] = data_ij
 
-                # center of mass, var
-                i_COM = com(data_ij)
-                qx, qy, qz = q_com = np.asarray([np.interp(x,range(len(q_axes[i])),q_axes[i]) for i,x in enumerate(i_COM)])
-                q = (q_com**2).sum()**0.5
-                sx, sy, sz = sigma = calc_sd(data_ij, data_ij_sum, q_com, q_axes)
-                s = (sigma**2).sum()**0.5
+                    curr_qmax = np.where(data_ij>curr_qmax,data_ij,curr_qmax)
+                    curr_qsum += data_ij
+                    curr_rmax[r_i,r_j] = np.float(dg['max'].value)
+                    data_ij_sum = np.float(dg['sum'].value)
+                    curr_rsum[r_i,r_j] = data_ij_sum
 
-                qx_ar[i,j] = qx
-                qy_ar[i,j] = qy
-                qz_ar[i,j] = qz
-                q_ar[i,j] = q
+                    qx_ar[r_i,r_j] = np.float(dg['qx'].value)
+                    qy_ar[r_i,r_j] = np.float(dg['qy'].value)
+                    qz_ar[r_i,r_j] = np.float(dg['qz'].value)
+                    q_ar[r_i,r_j] = np.float(dg['q'].value)
 
-                sx_ar[i,j] = sx
-                sy_ar[i,j] = sy
-                sz_ar[i,j] = sz
-                s_ar[i,j] = s
+                    sx_ar[r_i,r_j] = np.float(dg['sx'].value)
+                    sy_ar[r_i,r_j] = np.float(dg['sy'].value)
+                    sz_ar[r_i,r_j] = np.float(dg['sz'].value)
+                    s_ar[r_i,r_j] = np.float(dg['s'].value)
 
-                # angles
-                theta_ar[i,j] = np.arccos(qz/q)
-                phi_ar[i,j] = np.arctan(qx/qy)
+                    theta_ar[r_i,r_j] = np.float(dg['theta'].value)
+                    phi_ar[r_i,r_j] = np.float(dg['phi'].value)
+                    roll_ar[r_i,r_j] = np.float(dg['pitch'].value)
+                    pitch_ar[r_i,r_j] = np.float(dg['roll'].value)
 
 
-        qx_ds = q_group.create_dataset(name='qx', data = qx_ar,compression='lzf')
-        qy_ds = q_group.create_dataset(name='qy', data = qy_ar,compression='lzf')
-        qz_ds = q_group.create_dataset(name='qz', data = qz_ar,compression='lzf')
-        q_ds = q_group.create_dataset(name='q', data = q_ar,compression='lzf')
+        qx_ds = q_group.create_dataset(name='qx', data = qx_ar)
+        qy_ds = q_group.create_dataset(name='qy', data = qy_ar)
+        qz_ds = q_group.create_dataset(name='qz', data = qz_ar)
+        q_ds = q_group.create_dataset(name='q', data = q_ar)
 
-        sx_ds = s_group.create_dataset(name='sx', data = sx_ar,compression='lzf')
-        sy_ds = s_group.create_dataset(name='sy', data = sy_ar,compression='lzf')
-        sz_ds = s_group.create_dataset(name='sz', data = sz_ar,compression='lzf')
-        s_ds = s_group.create_dataset(name='s', data = s_ar,compression='lzf')
+        sx_ds = s_group.create_dataset(name='sx', data = sx_ar)
+        sy_ds = s_group.create_dataset(name='sy', data = sy_ar)
+        sz_ds = s_group.create_dataset(name='sz', data = sz_ar)
+        s_ds = s_group.create_dataset(name='s', data = s_ar)
 
-        theta_ds = q_group.create_dataset(name='theta', data = theta_ar * 180./np.pi,compression='lzf')
-        phi_ds = q_group.create_dataset(name='phi', data = phi_ar * 180./np.pi,compression='lzf')
+        theta_ds = q_group.create_dataset(name='theta', data = theta_ar * 180./np.pi)
+        phi_ds = q_group.create_dataset(name='phi', data = phi_ar * 180./np.pi)
+        roll_ds = q_group.create_dataset(name='roll', data = roll_ar * 180./np.pi)
+        pitch_ds = q_group.create_dataset(name='pitch', data = pitch_ar * 180./np.pi)
         
-                
-        max_ds = max_group.create_dataset(name='q_space', data=curr_qmax,compression='lzf')
-        sum_ds = sum_group.create_dataset(name='q_space', data=curr_qsum,compression='lzf')
-        max_ds = max_group.create_dataset(name='r_space', data=curr_rmax,compression='lzf')
-        sum_ds = sum_group.create_dataset(name='r_space', data=curr_rsum,compression='lzf')
+        max_ds = max_group.create_dataset(name='q_space', data=curr_qmax)
+        sum_ds = sum_group.create_dataset(name='q_space', data=curr_qsum)
+        max_ds = max_group.create_dataset(name='r_space', data=curr_rmax)
+        sum_ds = sum_group.create_dataset(name='r_space', data=curr_rsum)
 
 
 
@@ -239,8 +232,8 @@ def main():
     # troi = [[261,106],[160,320]]
     troi = [[0,0],[512,512]]
     # troi = [[0,0],[10,10]]
-    bin_size = 1
-    interp_factor = 1
+    bin_size = 2
+    interp_factor = 5
     Q_disc = 50
     Q_dim = [nQx, nQy, nQz] = [Q_disc]*3
     
@@ -261,7 +254,6 @@ def main():
     par_dict['Nch2'] = Nch2
     
     
-
     do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor=interp_factor, prefix=prefix, verbose=True)
 
     

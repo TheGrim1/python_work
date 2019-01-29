@@ -26,7 +26,8 @@ def calc_sd(data, data_sum, COM, axes):
 
     weighted_data = (data * weights) 
     
-    s = [((weighted_data[i]**2).sum()/data_sum)**0.5 for i in range(len(COM))]
+    s = [2*((weighted_data[i]**2).sum()/data_sum)**0.5 for i in
+         range(len(COM))]
     
     return np.asarray(s)
 

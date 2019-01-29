@@ -15,6 +15,7 @@ def main(args):
         threshold = 100
 
     save_fname = os.getcwd() + os.path.sep  +os.path.basename(master_fname)[:os.path.basename(master_fname).find('master')] + 'mask.edf'
+    saveneg_fname = os.getcwd() + os.path.sep  +os.path.basename(master_fname)[:os.path.basename(master_fname).find('master')] + 'mask_neg.edf'
         
 
     with h5py.File(master_fname,'r') as m5:
@@ -27,9 +28,11 @@ def main(args):
     data_perc = np.percentile(data,75,axis=0)
 
     mask = np.asarray(np.where(data_perc>threshold,1,0),dtype=np.uint8)
+    mask_neg = np.where(mask,0,1)
 
     print('saving mask as:\n'+save_fname)
     save_edf(mask,save_fname)
+    save_edf(mask_neg,saveneg_fname)
 
 
 if __name__=='__main__':
