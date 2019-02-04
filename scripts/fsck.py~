@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+from pyfive import misc_low_level
+from pyfive import dataobjects
+from pyfive import high_level
+from pyfive.core import InvalidHDF5File
+import h5py
+
+def _copy_objects(name,src,dest,offset,level):
+    obj = dataobjects.DataObjects(src,offset)
+    if obj.is_dataset:
+        try:
+            data = obj.get_data()
+        except:                 # reference,vlen_strings
+            return
+        dst_dataset = dest.create_dataset(name, obj.shape,
+                                          dtype=obj.dtype,
+                                          compression=obj.compression,
+                                          data=data)
+        return
+    elif name == '/':
+        child_dest = dest
+    else:
+        child_dest = dest.create_group(name)
+
+    for name,offset in obj.get_links().items():
+        try:
+            _copy_objects(name,src,child_dest,offset,level+1)
+        except InvalidHDF5File:
+            if level:
+                raise
+            print("Entry corrupted: %s" % name)
+            try:
+                del dest[name]
+            except KeyError:
+                pass
+            
+def main(source_name,dest_name):
+    with open(source_name,'rb') as src:
+        sb = misc_low_level.SuperBlock(src,0)
+        with h5py.File(dest_name,'w') as dest:
+            _copy_objects('/',src,dest,sb.offset_to_dataobjects,0)
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv[1],sys.argv[2])

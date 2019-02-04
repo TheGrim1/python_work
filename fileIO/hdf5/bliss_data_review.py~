@@ -1,0 +1,22 @@
+import h5py
+import sys, os
+import numpy as np
+import time
+import glob
+from multiprocessing import Pool
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import fileIO.edf.edfIO as open_edf
+from pythonmisc.worker_suicide import worker_init
+
+
+def main(session_path):
+
+    # find the files
+
+    kmaps_fname_list = find_kmaps(session_path)
+
+if __name__ = '__main__':
+        
+    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/alignment/'
+    main(session_path)

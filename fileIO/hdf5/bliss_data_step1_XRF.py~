@@ -1,0 +1,304 @@
+import h5py
+import sys, os
+import numpy as np
+import time
+import glob
+from multiprocessing import Pool
+import datetime
+from shutil import rmtree
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import simplecalc.image_align_elastix as ia
+from pythonmisc.worker_suicide import worker_init
+import fileIO.hdf5.workers.bliss_align_data_worker as badw
+import pythonmisc.pickle_utils as pu
+
+
+def init_h5_file(dest_path, saving_name, verbose =False):
+
+    dest_fname = os.path.realpath(dest_path + saving_name + '_merged.h5')
+    
+    if os.path.exists(dest_fname):
+        os.remove(dest_fname)
+        print('removing {}'.format(dest_fname))
+
+    print('\nwriting to file')
+    print(dest_fname)
+    return dest_fname
+
+def do_fluo_merge(dest_fname, source_fname, verbose=False):
+
+    print('reading fluorescence from counter file {} '.format(source_fname))
+    
+    with h5py.File(dest_fname,'w') as dest_h5:
+        with h5py.File(source_fname,'r') as source_h5:
+            phi_h5path = 'axes/phi'
+
+            print(source_h5.items())
+            print(dest_h5.items())
+            
+            phi_list = [[data_g[phi_h5path].value, data_g] for _, data_g in source_h5.items()]
+            phi_list.sort()
+            print(phi_list)
+            data_g_list = [x[1] for x in phi_list]
+            merged_data = dest_h5.create_group('merged_data')
+            fluo_merged = merged_data.create_group('fluorescence')
+
+            # setup groups in dest_h5
+            map_shape = data_g['XRF'].shape
+            x_pts = map_shape[1]
+            y_pts = map_shape[0]
+            phi_pts = len(data_g_list)
+
+
+            axes = dest_h5['merged_data'].create_group('axes')
+            axes.attrs['NX_class'] = 'NXcollection'
+            axes.create_dataset('phi', dtype= np.float32, shape = (phi_pts,))
+            axes.create_dataset('x' ,data=range(x_pts))
+            axes.create_dataset('y', data=range(y_pts))
+
+            fluo_ori = fluo_merged.create_group('fluo_original')
+            fluo_ori.attrs['NX_class'] = 'NXdata'
+            fluo_ori.attrs['signal'] = 'XRF'
+            fluo_ori.attrs['axes'] = ['phi','y','x']
+            fluo_ori['phi'] = axes['phi']
+            fluo_ori['x'] = axes['x']
+            fluo_ori['y'] = axes['y']
+            fluo_ori.create_dataset(name='XRF', dtype=np.uint64, shape=(phi_pts, y_pts, x_pts), compression='lzf', shuffle=False)
+
+            fluo_aligned = fluo_merged.create_group('fluo_aligned')
+            fluo_aligned.attrs['NX_class'] = 'NXdata'
+            fluo_aligned.attrs['signal'] = 'XRF'
+            fluo_aligned.attrs['axes'] = ['phi','y','x']
+            fluo_aligned['phi'] = axes['phi']
+            fluo_aligned['x'] = axes['x']
+            fluo_aligned['y'] = axes['y']
+
+            for i,[phi_pos, data_g] in enumerate(phi_list):
+                print('reading no {} of {}'.format(i+1,phi_pts))
+                print('phi {}, group {}'.format(phi_pos,data_g.name))
+                # convert to uint32 and *1000 to avoid floats from here on
+                fluo_data = np.asarray(data_g['XRF'],dtype=np.uint64)*1000            
+
+                fluo_ori['XRF'][i]=np.asarray((fluo_data),dtype=np.uint64)
+                axes['phi'][i] = phi_pos
+
+            dest_h5.flush()
+
+            print('aligning')
+
+            fluo_data=np.asarray(fluo_ori['XRF'])
+            fixed_image = int(phi_pts/2)
+            resolutions =  ['4','2','1']
+            aligned, shift = ia.elastix_align(fluo_data, mode ='translation', fixed_image_no=fixed_image, NumberOfResolutions = resolutions)
+
+            fluo_aligned.create_dataset(name='XRF',data=aligned, compression='lzf')
+
+            alignment = merged_data.create_group('alignment')
+            alignment.attrs['NXprocess'] = 'NXprocess'
+            alignment.create_dataset(name='shift',data=shift)
+            alignment_parameters = alignment.create_group('alignment_parameters')
+            alignment_parameters.attrs['script'] = ia.__file__
+            alignment_parameters.attrs['function'] = 'elastix_align'
+            alignment_parameters.attrs['signal'] = fluo_ori.name
+            alignment_parameters.attrs['mode'] = 'translation'
+            alignment_parameters.attrs['fixed_image_no'] = fixed_image
+            alignment_parameters.attrs['NumberOfResolutions'] = resolutions
+
+            dest_h5.flush()
+        print('written to {}'.format(dest_fname))             
+
+
+def do_align_diffraction_data(dest_fname, source_fname, troi_dict, no_processes=4, verbose=False):
+    parallel_align_diffraction(dest_fname, source_fname, troi_dict,  no_processes, verbose)
+    collect_align_diffraction(dest_fname, verbose)
+
+
+def parallel_align_diffraction(dest_fname, source_fname, troi_dict, no_processes=4, verbose=False):
+    '''
+    memory restricted no_process see size of data to be aligned
+    '''
+
+    align_starttime = time.time()
+    total_datalength = 0
+    print('aligning diffraction data from\n{}'.format(dest_fname))
+    todo_list = []
+    curr_dir = os.path.dirname(dest_fname)
+    alignmap_dir = curr_dir+os.path.sep+'diff_aligned'
+    
+    if os.path.exists(alignmap_dir):
+        rmtree(alignmap_dir)
+    
+    os.mkdir(alignmap_dir)
+        
+    subdest_fname_tpl = alignmap_dir+os.path.sep+'{}'+os.path.sep+'single_map_{:08d}.h5'
+
+    phi_h5path = 'axes/phi'
+    
+    with h5py.File(dest_fname) as dest_h5:
+
+        diff_g = dest_h5['merged_data'].create_group('diffraction')
+        shift = list(np.asarray(dest_h5['merged_data/alignment/shift']))
+
+        troi_list=[]
+        for troi_name, troi in troi_dict.items():
+            troi_g = diff_g.create_group(troi_name)
+            troi_g.create_dataset('troi',data=troi)
+            troi_list.append([troi_name, troi, troi_g])
+
+            
+        with h5py.File(source_fname,'r') as source_h5:
+            
+            phi_list = phi_list = [[data_g[phi_h5path].value, key] for key, data_g in source_h5.items()]
+            phi_list.sort()
+            # Theta_list = [[float(key), value.value] for key, value in dest_h5['integrated_files'].items()]
+            shift_dict = dict(zip([phi_pos for phi_pos,_ in  phi_list],np.asarray(shift)))
+            print(shift_dict)
+
+            axes_g = dest_h5['merged_data/axes']
+            map_shape = (axes_g['y'].shape[0],axes_g['x'].shape[0])
+
+            for troi_name, troi, troi_g in troi_list:
+                single_g = troi_g.create_group('single_scans')                
+                troi_dir = alignmap_dir+os.path.sep+troi_name
+
+                if not os.path.exists(troi_dir):
+                    os.mkdir(troi_dir)
+                    
+                for phi_pos, source_grouppath in phi_list:                 
+                    # new dest_fname needs to be made to circumvent parrallelism issues
+                    subdest_fname = subdest_fname_tpl.format(troi_name,int(1000*phi_pos))
+
+                    single_g.create_dataset(name = subdest_fname, data=phi_pos)
+
+                    total_datalength += map_shape[0]*map_shape[1]
+
+                    todo_list.append([subdest_fname,
+                                      source_fname,
+                                      source_grouppath,
+                                      troi,
+                                      phi_pos,
+                                      map_shape,
+                                      shift_dict[phi_pos],
+                                      verbose])       
+
+    print('setup parallel proccesses to write to {}'.format(alignmap_dir))
+
+    instruction_list = []
+    for i,todo in enumerate(todo_list):
+        #DEBUG:
+        print('todo #{:2d}:\n  -> {}'.format(i,todo[0]))
+        instruction_fname = pu.pickle_to_file(todo, caller_id=os.getpid(), verbose=verbose, counter=i)
+        instruction_list.append(instruction_fname)
+
+    if no_processes==1:
+        for instruction in instruction_list:
+            badw.bliss_align_data_worker(instruction)
+        ## non parrallel version for one dataset and timing:
+        #fdw.fit_data_worker(instruction_list[0])
+    else:
+        pool = Pool(no_processes, worker_init(os.getpid()))
+        pool.map_async(badw.bliss_align_data_employer,instruction_list)
+        pool.close()
+        pool.join()
+
+            
+    align_endtime = time.time()
+    align_time = (align_endtime - align_starttime)
+    print('='*25)
+    print('\ntime taken for aligning of {} frames = {}'.format(total_datalength, align_time))
+    print(' = {} Hz\n'.format(total_datalength/align_time))
+    print('='*25) 
+
+def collect_align_diffraction_data(dest_fname,verbose):
+    
+    collect_starttime = time.time()
+    print('collecting all the parallely processed data in {}'.format(dest_fname))
+    curr_dir = os.path.dirname(dest_fname)
+    alignmap_dir = curr_dir+os.path.sep+'diff_aligned/'
+
+    with h5py.File(dest_fname) as dest_h5:
+        diff_g = dest_h5['merged_data/diffraction']
+        troi_list = [[key, value] for key, value in diff_g.items()]
+        axes_g = dest_h5['merged_data/axes']
+
+        for troi_name, dest_troi_g in troi_list:
+            source_list = [[source_fname, phi_pos.value] for source_fanme, phi_pos in dest_troi_g['single_scans'].items()]
+
+            first = True
+            for source_fname, phi_pos in source_list:
+                
+                if verbose:
+                    print('reading {}'.format(source_fname))
+                with h5py.File(source_fname, 'r') as source_h5:
+                    
+                    dest_g = dest_troi_g.create_group('source_fname')
+                    source_data = source_h5['shifted_data']
+                    
+                    dest_g.create_dataset('phi_pos',data=source_data['phi'].value)
+                    data = np.asarray(source_data['data'])
+                    data_sum = np.asarray(source_data['sum'])
+                    data_max = np.asarray(source_data['max'])
+                    
+                    dest_g.create_dataset('data',data=data)
+                    dest_g.create_dataset('sum',data=data_sum)
+                    dest_g.create_dataset('max',data=data_max)
+                    dest_g['x'] = axes_g['x']
+                    dest_g['x'] = axes_g['y']
+                    dest_g.attrs['NX_class'] = 'NXdata'
+                    dest_g.attrs['signal'] = 'sum'
+
+                    if first:
+                        first=False
+                        curr_max = np.zeros_like(data_max)
+                        curr_sum = np.zeros_like(data_sum, dtype=np.int64)
+
+                    curr_max = np.where(curr_max>data_max, data_max, curr_max)
+                    curr_sum += data_sum
+            dest_troi_g.create_dataset('sum', data=curr_sum)
+            dest_troi_g.create_dataset('max', data=curr_max)
+                        
+        dest_h5.flush()
+
+            
+    collect_endtime = time.time()
+    collect_time = (collect_endtime - collect_starttime)
+    print('='*25)
+    print('\ntime taken for collecting all frames = {}'.format(collect_time))
+    print('='*25) 
+        
+    
+    
+def main(preview_fname, saving_name, dest_path, troi_dict):
+    verbose = True
+    dest_fname =  init_h5_file(dest_path, saving_name, verbose=verbose)
+    
+    do_fluo_merge(dest_fname, source_fname=preview_fname, verbose=verbose)
+
+    #do_align_diffraction_data(dest_fname, source_fname=preview_fname, troi_dict=troi_dict, no_processes=4, verbose=False)
+
+    parallel_align_diffraction(dest_fname, source_fname=preview_fname, troi_dict=troi_dict, no_processes=4, verbose=False)
+    
+    collect_align_diffraction(dest_fname, verbose)
+    
+
+if __name__ == '__main__':
+        
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking'
+    # map_shape = (140,80)
+
+
+    session_name = 'day_two'
+    saving_name = 'kmap_and_cen_3b'
+
+    troi_dict = {'one':np.asarray([[0,0],[10,10]]),
+                 'two':np.asarray([[10,10],[15,15]])}
+    
+    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/'
+
+    dest_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/'+session_name +'/'
+    
+    preview_file = dest_path + saving_name + '_preview.h5'
+    
+    main(preview_file, saving_name, dest_path, troi_dict)

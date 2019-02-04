@@ -224,18 +224,20 @@ def data_stack_shift(data, shift, lines_shift):
     preserves dtype, careful with ints and rounding!
     '''
 
+
     # had weird results after ndshift if data in and data out were the same object!
     dytpe = data.dtype
     shifted_data=np.zeros_like(data)
     ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
     data=np.copy(shifted_data)
-    shifted_data=np.zeros_like(data)
+
     if type(lines_shift)!=type(None):
+        shifted_data=np.zeros_like(data)
         for i, map_lines in enumerate(data):
             line_shift = lines_shift[i]
             if line_shift!=0:
                 ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
             else:
                 shifted_data[i] = data[i]
-        return shifted_data
+    return shifted_data
 

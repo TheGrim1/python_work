@@ -1,0 +1,77 @@
+import h5py
+import sys, os
+import numpy as np
+import time
+import glob
+from multiprocessing import Pool
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+
+
+
+
+
+def init_h5_file(dest_path, saving_name, verbose =False):
+
+    dest_fname = os.path.realpath(masterfolder + saving_name + '_merged.h5')
+    
+    if os.path.exists(dest_fname):
+        os.remove(dest_fname)
+        print('removing {}'.format(dest_fname))
+
+    print('\nwriting to file')
+    print(dest_fname)
+        
+    with h5py.File(dest_fname,'w') as dest_h5:
+        dest_h5.attrs['file_name']        = dest_h5.filename
+        dest_h5.attrs['creator']          = os.path.basename(__file__)
+        dest_h5.attrs['HDF5_Version']     = h5py.version.hdf5_version
+        dest_h5.attrs['NX_class']         = 'NXroot'
+        dest_h5.create_group('entry')
+        dest_h5['entry'].attrs['NX_class'] = 'NXentry'
+        dest_h5.attrs['file_time']  = "T".join(str(datetime.datetime.now()).split())
+
+        merged_data=dest_h5['entry'].create_group('merged_data')
+        merged_data.attrs['NX_class'] = 'NXcollection'
+        fluo_merged = merged_data.create_group('fluorescence')
+        fluo_merged.attrs['NX_class'] = 'NXcollection'
+        
+        integrated_files = dest_h5['entry'].create_group('integrated_files')
+        integrated_files.attrs['NX_class'] = 'NXcollection'
+                
+    
+        dest_h5.flush()
+
+    return dest_fname
+
+                
+
+def main(preview_file, saving_name, dest_path, troi_dict):
+    verbose = True
+    dest_fname =  init_h5_file(dest_path, saving_name, verbose=verbose)
+    
+    
+
+
+
+
+if __name__ == '__main__':
+        
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking'
+    # map_shape = (140,80)
+
+
+    session_name = 'day_two'
+    saving_name = 'kmap_and_cen_3b'
+
+    troi_dict = {'one':[[0,0],[10,10]],
+                 'two':[[10,10],[15,15]]}
+    
+    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/'
+
+    dest_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/'+session_name +'/'
+    
+    preview_file = dest_path + saving_name + '_preview.h5'
+    
+    main(preview_file, saving_name, dest_path, troi_dict)

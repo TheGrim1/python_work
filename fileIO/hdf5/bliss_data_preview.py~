@@ -1,0 +1,159 @@
+import h5py
+import sys, os
+import numpy as np
+import time
+import glob
+from multiprocessing import Pool
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+
+import fileIO.images.image_tools as it
+
+
+def parse_mapshape(title_str):
+    return tuple([int(x) for x in title_str.split(',')[7], title_str.split(',')[3]])
+
+def find_kmaps_h5(session_path, saving_name):
+
+    kmaps_fname_dict = {}
+
+    saving_list = [x for x in glob.glob(session_path + '/*'+saving_name+'*') if os.path.isdir(x)]
+
+    for sname_path in saving_list:
+
+        scan_dict = {}
+        scanpath_list = [x for x in glob.glob(sname_path + '/*kmap*') if os.path.isdir(x)]
+        # throw out kmap_lut scans
+        scanpath_list = [x for x in scanpath_list if x.split(os.path.sep)[-1].find('lut')==-1]
+        for scanpath in scanpath_list:
+            scan_name = scanpath.split(os.path.sep)[-1]
+            try:
+                scan_dict.update({scan_name:glob.glob(scanpath+'/*.h5')[0]})
+            except IndexError:
+                pass
+                
+        sname = sname_path.split(os.path.sep)[-1]
+        kmaps_fname_dict.update({sname:{'path':sname_path,
+                                        'data_fname':sname_path+'/data.h5',
+                                        'kmaps':scan_dict}})
+
+    
+    return kmaps_fname_dict
+
+
+def do_scans_in_datafile(data_h5, dest_h5, sname, sname_dict, map_shape):
+    for scan_name, source_fname in sname_dict['kmaps'].items():
+        group_name = ('_').join([sname, scan_name])
+        try:
+            scan_g = data_h5[scan_name]
+            mesh_g = scan_g['measurement/mesh_nnp5_nnp6']
+            positioners_g = scan_g['measurement/instrument/positioners']
+            dest_path = os.path.dirname(dest_h5.filename)
+
+            print(group_name)
+
+            raw_data_path = 'entry_0000/instrument/E-08-0106/image_data'
+            try:
+                found_shape = parse_mapshape(scan_g['title'].value)
+            except KeyError:
+                found_shape = map_shape
+            data_length = mesh_g['mesh_nnp5_nnp6:nnp5_position'].shape[0]
+
+            # print(' found_shape ', found_shape, 'data_length ', data_length)
+
+            if found_shape != map_shape or data_length != map_shape[0]*map_shape[1]:
+
+                print(' -- wrong shape or data_length, not keeping')
+
+            else:
+                print(' -- creating preview entry')
+
+                dg = dest_h5.create_group(group_name)
+                dg['data'] = h5py.ExternalLink(source_fname,raw_data_path)
+                dg.create_dataset(name='scan_name',data=scan_name)
+                dg.create_dataset(name='data_path',data=source_fname)
+                try:
+                    dg.create_dataset(name='start_time',data=scan_g['start_time'])
+                except KeyError:
+                    dg.create_dataset(name='was_corrupted',data=1)
+
+
+                xrf_data = np.asarray(mesh_g['xmap1:loka02']).reshape(map_shape)
+                dg.create_dataset(name='XRF',
+                                  data=xrf_data)
+
+
+                axes_g = dg.create_group('axes')
+
+                axes_g.create_dataset(name='nnp5',
+                                  data=np.asarray(mesh_g['mesh_nnp5_nnp6:nnp5_position']).reshape(map_shape))
+                axes_g.create_dataset(name='nnp6',
+                                  data=np.asarray(mesh_g['mesh_nnp5_nnp6:nnp6_position']).reshape(map_shape))
+
+                phi_pos = positioners_g['smphi'].value
+                axes_g.create_dataset('kappa',data=positioners_g['smkappa'])
+                axes_g.create_dataset('phi',data=phi_pos)
+
+                img_fname = dest_path + '/images/' + group_name + '_phi{:06d}.png'.format(int(round(phi_pos*100)))
+                print(phi_pos)
+                print(img_fname)
+                it.array_to_imagefile(xrf_data, img_fname)
+        except KeyError:
+            print('lost to corruption {}'.format(scan_name))
+            
+def main(session_path, dest_path, saving_name, session, map_shape):
+
+    # find the files (can't use data.h5 as some of these are corrpted!)
+    kmaps_fname_dict = find_kmaps_h5(session_path, saving_name)
+
+    # make the dest_h5
+    dest_fname = dest_path + saving_name + '_preview.h5'
+
+    with h5py.File(dest_fname,'w') as dest_h5:
+        for sname, sname_dict in kmaps_fname_dict.items():
+            data_fname = sname_dict['data_fname']
+            try:
+                with h5py.File(data_fname,'r') as data_h5:
+                    _ = data_h5.items()
+
+                    print('\n')
+                    print('='*10)
+                    print('reading data_file {}'.format(data_fname))
+             
+                    do_scans_in_datafile(data_h5, dest_h5, sname, sname_dict, map_shape)
+
+                    
+            except RuntimeError:
+                print('\n')
+                print('='*10)
+                print('corrupted data_file {}'.format(data_fname))
+                print('\n')
+
+if __name__ == '__main__':
+        
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking'
+    # map_shape = (140,80)
+
+    session_name = 'day_two'
+    saving_name = 'kmap_and_cen_3b'
+    map_shape = (150,80)
+    
+    # session_name = 'day_two'
+    # saving_name = 'kmap_and_cen_4b'
+    # map_shape = (120,80)
+ 
+    
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking4'
+    # map_shape = (140,80)
+   
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking5'
+    # map_shape = (140,80)
+
+    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/'
+    dest_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/'+session_name +'/'+saving_name+'/'
+
+    
+    main(session_path, dest_path, saving_name, session_name, map_shape)

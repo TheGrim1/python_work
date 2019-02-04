@@ -1,0 +1,47 @@
+import glob
+import h5py
+import os
+import sys
+
+
+def recursive_find_datah5(curr_path, data_fname_list):
+
+    found_data_h5 = glob.glob(curr_path+'/data.h5')
+    for fname in found_data_h5:
+        data_fname_list.append(fname)
+    next_path_list = [os.path.sep.join([curr_path,x]) for x in os.listdir(curr_path) if os.path.isdir(os.path.sep.join([curr_path,x]))]
+
+    for next_path in next_path_list:
+        data_fname_list = recursive_find_datah5(next_path, data_fname_list)
+    return data_fname_list
+    
+def main(path):
+
+    data_fname_list = []
+    data_fname_list = recursive_find_datah5(path, data_fname_list)
+
+    good_files = []
+    bad_files = []
+    
+    for data_fname in data_fname_list:
+        try:
+            with h5py.File(data_fname,'r') as data_h5:
+                _ = data_h5.items()
+            good_files .append(data_fname)
+        except RuntimeError:
+            bad_files.append(data_fname)
+
+    print('\nfound {} good files:\n'.format(len(good_files)))
+    for fname in good_files:
+        print(fname)
+
+    print('\nfound {} corrupted files:\n'.format(len(bad_files)))
+    for fname in bad_files:
+        print(fname)
+
+    print('\nyou can try to use fsck.py by Sebastian Petitdemange to recover some lost data')
+    print('/data/id13/inhouse2/AJ/skript/COMMON/pythonstuff/fsck.py')
+
+if __name__=='__main__':
+    path = os.getcwd()
+    main(path)
