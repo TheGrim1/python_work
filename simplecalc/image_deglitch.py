@@ -45,7 +45,7 @@ def homogenize_imagestack_lines_contrast(imagestack, reference_percentile=80):
 def find_edge(line,verbose=False):
     '''
     aligns on to an edge found (there should only be one!)
-    edge = position where SG-filtered line crosses 0.5
+    edge = position where logistic fit crosses 0.5
     '''
     data = np.copy(line)
     data = gaussian_filter(data,sigma=2)
@@ -77,7 +77,7 @@ def find_edge(line,verbose=False):
     
     return edge_pos
 
-def imagestack_correct_lines_edge(imagestack, reference_percentile=80, reference_frame_no=None , verbose = False):
+def imagestack_correct_lines_edge(imagestack, reference_percentile=80, reference_frame_no=None , edge = 'left', verbose = False):
     '''
     corrects the lines in images in imagestack(no_images, height, width)
     along axis 2 so that they best fit with the reference_percentile of imagestack (or frame given by reference_frame_no)
@@ -92,12 +92,16 @@ def imagestack_correct_lines_edge(imagestack, reference_percentile=80, reference
     if type(reference_frame_no)==type(None):
         reference = np.percentile(imagestack,reference_percentile,axis=0)
     else:
-        referecne = np.copy(imagestack[reference_frame_no])
+        reference = np.copy(imagestack[reference_frame_no])
     
     shift_list=[]
 
     ref_edge_list = []
     for j, ref_line in enumerate(reference):
+        if edge=='right':
+            ref_line[np.argmax(ref_line):] = ref_line.max()
+        else:
+            ref_line[:np.argmax(ref_line)] = ref_line.max()
         ref_edge_list.append(find_edge(ref_line))
 
     for i, image in enumerate(data):
@@ -108,12 +112,16 @@ def imagestack_correct_lines_edge(imagestack, reference_percentile=80, reference
         shift = []
         for j, ref_line in enumerate(image):
             img_line = image[j]
+            if edge=='right':
+                img_line[np.argmax(img_line):] = img_line.max()
+            else:
+                img_line[:np.argmax(img_line)] = img_line.max()
 
             ref_edge_position = ref_edge_list[j]
             img_edge_position = find_edge(img_line)
             j_shift = img_edge_position-ref_edge_position
             shift.append(j_shift)
-            ndshift(data[i][j],j_shift,output=data[i][j])
+            ndshift(data[i][j],-j_shift,output=data[i][j])
 
             
         shift_list.append(shift)
@@ -144,7 +152,7 @@ def imagestack_correlate_lines(imagestack, reference_percentile=80, reference_fr
     if type(reference_frame_no)==type(None):
         reference = np.percentile(imagestack,reference_percentile,axis=0)
     else:
-        referecne = np.copy(imagestack[reference_frame_no])
+        reference = np.copy(imagestack[reference_frame_no])
     
     shift_list=[]
 
@@ -175,7 +183,7 @@ def imagestack_correlate_lines(imagestack, reference_percentile=80, reference_fr
             
             correlation = correlate1d(img_line2, ref_line2, axis=0, mode='constant')
             maxcorrelation = np.argmax(correlation)
-
+            
             # refine with gaussian fit to maximum:
             try:
                 gauss_data = np.asarray(zip(np.arange(11),correlation[maxcorrelation-5:maxcorrelation+6]))
@@ -187,8 +195,8 @@ def imagestack_correlate_lines(imagestack, reference_percentile=80, reference_fr
                 pass
             
             j_shift = 0.5*len(correlation) - maxcorrelation
-            shift.append(j_shift)
-            ndshift(data[i][j],j_shift,output=data[i][j])
+            shift.append(-j_shift)
+            ndshift(data[i][j],-j_shift,output=data[i][j])
 
             
         shift_list.append(shift)
@@ -213,31 +221,51 @@ def imagestack_shift_lines(imagestack, shift_list, in_place=False):
 
     return(data)
 
-def data_stack_shift(data, shift, lines_shift):
+def data_stack_shift(data, shift, lines_shift, order='normal'):
     '''
     arbitrary shape > 2
     idea:
     shift.shape <= data.shape
     lines_shift = list/array of floats len = data.shape[0]
     always shifts first axes
-    first shift, then lines_shift
+    order == 'normal':
+        first shift, then lines_shift
+    else:
+        first lines_shift then shift
     preserves dtype, careful with ints and rounding!
     '''
 
 
     # had weird results after ndshift if data in and data out were the same object!
+
     dytpe = data.dtype
     shifted_data=np.zeros_like(data)
-    ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
-    data=np.copy(shifted_data)
+    
+    if order == 'normal':
+        ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
+        data=np.copy(shifted_data)
 
-    if type(lines_shift)!=type(None):
-        shifted_data=np.zeros_like(data)
-        for i, map_lines in enumerate(data):
-            line_shift = lines_shift[i]
-            if line_shift!=0:
-                ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
-            else:
-                shifted_data[i] = data[i]
+        if type(lines_shift)!=type(None):
+            shifted_data=np.zeros_like(data)
+            for i, map_lines in enumerate(data):
+                line_shift = lines_shift[i]
+                if line_shift!=0:
+                    ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
+                else:
+                    shifted_data[i] = data[i]
+
+    else:
+        shifted_data = np.zeros_like(data)
+        if type(lines_shift)!=type(None):
+            for i, map_lines in enumerate(data):
+                line_shift = lines_shift[i]
+                if line_shift!=0:
+                    ndshift(map_lines, [line_shift]+[0]*(map_lines.ndim-1), output=shifted_data[i], order=1)
+                else:
+                    shifted_data[i] = data[i]
+            data=np.copy(shifted_data)
+            
+        ndshift(data, shift=list(shift)+[0]*(data.ndim-len(shift)), output=shifted_data, order=1)
+
     return shifted_data
 

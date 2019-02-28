@@ -7,6 +7,7 @@ def initiate_ponidict():
     ponidict = {}
     for param in parameterlist:
         ponidict.update({param:'empty'})
+        
     return ponidict
 
 def ponidict_full(ponidict):
@@ -19,8 +20,18 @@ def ponidict_full(ponidict):
 def read_ponilines(line):
 
     param = line.lstrip().rstrip().split(':')[0]
-    if not param in ['Detector','SplineFile']:
+    print line
+    if not param in ['Detector','SplineFile','Detector_config']:
         value = float(line.lstrip().rstrip().split(':')[1])
+    elif param == 'Detector':
+        value = line.lstrip().rstrip().split(':')[1]
+        print('found detector {}'.format(value))
+
+        if value.lstrip() == 'Eiger4M':
+
+            return {'Detector':value,
+                    'PixelSize1':0.000075,
+                    'PixelSize2':0.000075}
     else:
         value = line.lstrip().rstrip().split(':')[1]
 
@@ -81,12 +92,14 @@ def poni_for_troi(filename,troi=((0, 0), (2165, 2070)),troiname = 'troi1', troip
         print('new rebinned pixel size:')
         print(ponidict['PixelSize1'])
         print(ponidict['PixelSize1'])
-    
+
+        ponidict['troiname':troiname]
     
     if troipath == None:
         savefilename = filename[:filename.find('.poni')] + '_%s.poni' % troiname
     else:
         savefilename = troipath + os.path.sep +  '_%s.poni' % troiname
+        
         write_poni(ponidict,savefilename)
     return (ponidict, savefilename)
 

@@ -1,0 +1,46 @@
+import h5py
+import sys, os
+import numpy as np
+import time
+import glob
+import datetime
+from shutil import rmtree
+
+
+from silx.io.spech5 import SpecH5 as spech5
+
+sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
+import simplecalc.image_align as ia
+import simplecalc.image_deglitch as idg
+
+
+
+def do_align(working_dir, aligment_counter):
+    dest_path = working_dir + '/aligned/'
+    dest_fname = dest_path + working_dir.plit(os.path.sep)[-1] + '_{}_aligned.h5'.format(alignment_counter)
+
+    if os.path.exists(dest_path):
+        rmtree(dest_path)
+        print('removed {}'.format(dest_path))
+
+    os.mkdir(dest_path)
+
+    source_spec_file = glob.glob(working_dir+'/spec/*_fast_*')[0]
+    
+    with spech5(spec_f) as spec_f:
+    
+    with h5py.File(dest_fname, 'w') as dest_h5:
+        
+
+            
+
+
+
+if __name__=='__main__':
+
+
+    working_dir = '/data/id13/inhouse2/AJ/data/ma3576/id01/analysis/fluence/KMAPS/KMAP_2018_02_12_191535_test/'
+    alignment_counter = 'roi2'
+    
+    do_align(working_dir=working_dir,
+             aligment_counter=aligment_counter)

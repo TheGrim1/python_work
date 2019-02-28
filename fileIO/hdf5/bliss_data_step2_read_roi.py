@@ -29,7 +29,7 @@ def parallel_align_diffraction(dest_fname, source_fname, troi_dict, mask_fname, 
     print('aligning diffraction data from\n{}'.format(dest_fname))
     todo_list = []
     curr_dir = os.path.dirname(dest_fname)
-    alignmap_dir = curr_dir+os.path.sep+'diff_aligned'
+    alignmap_dir = curr_dir+os.path.sep+os.path.splitext(os.path.basename(source_fname))[0]
     
     if os.path.exists(alignmap_dir):
         rmtree(alignmap_dir)
@@ -44,6 +44,7 @@ def parallel_align_diffraction(dest_fname, source_fname, troi_dict, mask_fname, 
 
         diff_g = dest_h5['merged_data'].create_group('diffraction')
         shift = list(np.asarray(dest_h5['merged_data/alignment/shift']))
+        lines_shift = list(np.asarray(dest_h5['merged_data/alignment/lines_shift']))
 
         troi_list=[]
         for troi_name, troi in troi_dict.items():
@@ -58,6 +59,7 @@ def parallel_align_diffraction(dest_fname, source_fname, troi_dict, mask_fname, 
             phi_list.sort()
             # Theta_list = [[float(key), value.value] for key, value in dest_h5['integrated_files'].items()]
             shift_dict = dict(zip([phi_pos for phi_pos,_ in  phi_list],np.asarray(shift)))
+            lines_shift_dict = dict(zip([phi_pos for phi_pos,_ in  phi_list],np.asarray(lines_shift)))
             print(shift_dict)
 
             axes_g = dest_h5['merged_data/axes']
@@ -88,6 +90,7 @@ def parallel_align_diffraction(dest_fname, source_fname, troi_dict, mask_fname, 
                                       phi_pos,
                                       map_shape,
                                       shift_dict[phi_pos],
+                                      lines_shift_dict[phi_pos],
                                       verbose])       
 
     print('setup parallel proccesses to write to {}'.format(alignmap_dir))
@@ -116,14 +119,15 @@ def parallel_align_diffraction(dest_fname, source_fname, troi_dict, mask_fname, 
     print('='*25)
     print('\ntime taken for aligning of {} frames = {}'.format(total_datalength, align_time))
     print(' = {} Hz\n'.format(total_datalength/align_time))
-    print('='*25) 
+    print('='*25)
 
-def collect_align_diffraction_data(dest_fname,verbose):
+    return alignmap_dir
+
+def collect_align_diffraction_data(dest_fname, alignmap_dir, verbose):
     
     collect_starttime = time.time()
     print('collecting all the parallely processed data in {}'.format(dest_fname))
     curr_dir = os.path.dirname(dest_fname)
-    alignmap_dir = curr_dir+os.path.sep+'diff_aligned/'
 
     with h5py.File(dest_fname) as dest_h5:
         diff_g = dest_h5['merged_data/diffraction']
@@ -133,11 +137,16 @@ def collect_align_diffraction_data(dest_fname,verbose):
         for troi_name, dest_troi_g in troi_list:
 
             first = True
-            for source_bname, phi_g in dest_troi_g['single_scans'].items():
+
+            sorted_single_scans = dest_troi_g['single_scans'].items()
+            sorted_single_scans.sort()
+            phi_len = len(sorted_single_scans)
+            
+            for i,[source_bname, phi_g] in enumerate(sorted_single_scans):
+
                 source_fname = phi_g['path'].value
                 phi_pos = float(phi_g['phi'].value)
                 
-            
                 if verbose:
                     print('reading {}'.format(source_bname))
                 with h5py.File(source_fname, 'r') as source_h5:
@@ -145,6 +154,7 @@ def collect_align_diffraction_data(dest_fname,verbose):
                     source_data = source_h5['shifted_data']
                     
                     data = np.asarray(source_data['data'])
+                    data_shape = list(data.shape)
                     data_sum = np.asarray(source_data['sum'])
                     data_max = np.asarray(source_data['max'])
                     
@@ -160,9 +170,19 @@ def collect_align_diffraction_data(dest_fname,verbose):
                         first=False
                         curr_max = np.zeros_like(data_max)
                         curr_sum = np.zeros_like(data_sum)
-
+                        full_shape = tuple([phi_len]+list(data_shape))
+                        full_ds = dest_troi_g.create_dataset('data', shape=(full_shape), compression='lzf', dtype=np.int32, chunks=tuple([1]+data_shape))
+                        phi_ds = dest_troi_g.create_dataset('phi', shape=([phi_len]), dtype = np.float32)
+                        sum_ds = dest_troi_g.create_dataset('sum_stack', shape=tuple([phi_len]+list(data_sum.shape)),dtype=np.int64)
+                        max_ds = dest_troi_g.create_dataset('max_stack', shape=tuple([phi_len]+list(data_sum.shape)),dtype=np.int32)
+                    
+                    phi_ds[i] = phi_pos
+                    full_ds[i] = data
+                    sum_ds[i] = data_sum
+                    max_ds[i] = data_max
                     curr_max = np.where(curr_max<data_max, data_max, curr_max)
                     curr_sum += data_sum
+
             dest_troi_g.create_dataset('sum', data=curr_sum)
             dest_troi_g.create_dataset('max', data=curr_max)
                         
@@ -182,37 +202,34 @@ def main(preview_fname, saving_name, dest_path, mask_fname, troi_dict):
 
     dest_fname = os.path.realpath(dest_path + saving_name + '_merged.h5')
     
-    parallel_align_diffraction(dest_fname, source_fname=preview_fname, troi_dict=troi_dict, mask_fname=mask_fname, no_processes=10, verbose=False)
+    alignmap_dir = parallel_align_diffraction(dest_fname, source_fname=preview_fname, troi_dict=troi_dict, mask_fname=mask_fname, no_processes=10, verbose=False)
     
-    collect_align_diffraction_data(dest_fname, verbose)
+    collect_align_diffraction_data(dest_fname, alignmap_dir, verbose)
     
 
 if __name__ == '__main__':
         
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking'
-    # map_shape = (140,80)
+    session_name = 'alignment'
+    saving_name = 'kmap_rocking'
+    map_shape = (140,80)
+    troi_dict = {'red':np.asarray([[2105,645],[30,30]]),
+                 'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
+
     
     # session_name = 'day_two'
     # saving_name = 'kmap_and_cen_4b'
-
     # troi_dict = {'red':np.asarray([[995,210],[1018-995,235-210]]),
     #              'blue':np.asarray([[497,1192],[513-497,1232-1192]]),
-    #     	 'green':np.asarray([[760,1800],[800-760,1840-1800]])}
+    #              'green':np.asarray([[760,1800],[800-760,1840-1800]])}
 
-    session_name = 'day_two'
-    saving_name = 'kmap_and_cen_3b'
-    troi_dict = {'black':np.asarray([[1306,600],[1327-1306,636-600]]),
-                 'yellow':np.asarray([[1505,1404],[1523-1505,1422-1404]]),
-        	 'cyan':np.asarray([[392,1685],[409-392, 1702-1685]])}
+    # session_name = 'day_two'
+    # saving_name = 'kmap_and_cen_3b'
+    # troi_dict = {'black':np.asarray([[1306,600],[1327-1306,636-600]]),
+    #              'yellow':np.asarray([[1505,1404],[1523-1505,1422-1404]]),
+    #              'cyan':np.asarray([[392,1685],[409-392, 1702-1685]])}
 
-    
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking4'
-    # troi_dict = {'red':np.asarray([[1997,645],[2133-1997,675-645]]),
-    #              'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
 
-    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/'
+    session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/' 
 
     dest_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/'+session_name +'/'
     mask_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/jupyter_output/mask_neg.edf'

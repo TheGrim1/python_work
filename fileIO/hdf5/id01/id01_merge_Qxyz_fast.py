@@ -99,6 +99,7 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
 
         
     with h5py.File(Qmerged_fname) as dest_h5:
+        print('writing to {}'.format(Qmerged_fname))
         q_group = dest_h5.create_group('entry/merged_data/Qxyz/')
         s_group = dest_h5.create_group('entry/merged_data/Sxys/')
         sum_group = dest_h5.create_group('entry/merged_data/sum')
@@ -107,7 +108,7 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         
         # get dtype, axis        
         with h5py.File(result_fname_list[0],'r') as source_h5:
-            raw_ds_dtype = np.float64
+            raw_ds_dtype = np.int64
             axes_dict = {'qx':'',
                          'qy':'',
                          'qz':''}
@@ -138,11 +139,10 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
         roll_ar = np.zeros(shape=map_shape, dtype = np.float64)
         pitch_ar = np.zeros(shape=map_shape, dtype = np.float64)
                         
-
         curr_qmax = np.zeros(shape=Qdata_shape[2:], dtype=raw_ds_dtype)
-        curr_qsum = np.zeros(shape=Qdata_shape[2:], dtype=np.float64)
+        curr_qsum = np.zeros(shape=Qdata_shape[2:], dtype=raw_ds_dtype)
         
-        curr_rsum = np.zeros(shape=map_shape, dtype=np.float64)
+        curr_rsum = np.zeros(shape=map_shape, dtype=raw_ds_dtype)
         curr_rmax = np.zeros(shape=map_shape, dtype=raw_ds_dtype)
         
         for fname in result_fname_list:
@@ -214,6 +214,7 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
     print(' = {} Hz\n'.format(total_datalength/total_merge_time))
     print('='*25) 
 
+    print('written to {}'.format(Qmerged_fname))
     
     endtime = time.time()
     total_time = (end_merge_time - starttime)
@@ -225,10 +226,35 @@ def do_regrouping(merged_fname, Q_dim, map_shape, par_dict, interp_factor, prefi
 
 def main():
 
-    merged_fname = '/data/id13/inhouse2/AJ/data/ma3576/id01/analysis/dose_mica/dose_mica.h5'
-    
+    # dose_mica;
 
-    map_shape = [100,100]
+    # merged_fname = '/data/id13/inhouse2/AJ/data/ma3576/id01/analysis/dose_mica/dose_mica.h5'
+    
+    # map_shape = [100,100]
+    # # troi = [[261,106],[160,320]]
+    # troi = [[0,0],[512,512]]
+    # # troi = [[0,0],[10,10]]
+    # bin_size = 2
+    # interp_factor = 5
+    # Q_disc = 20
+    # Q_dim = [nQx, nQy, nQz] = [Q_disc]*3
+    
+    # prefix = 'q{}_bin{}_int{}_'.format(Q_disc,bin_size,interp_factor)
+    
+    # par_dict = {'cch1':350.0,
+    #             'cch2':350.5,
+    #             'distance':570.8,
+    #             'pixel_width':0.055,
+    #             'troi':troi,
+    #             'bin_size':bin_size,
+    #             'energy_keV':8.0}
+
+
+    # res3_T40:
+    
+    merged_fname = '/data/id13/inhouse2/AJ/data/ma3576/id01/analysis/res3_T40/res3_t40.h5'
+    
+    map_shape = [200,200]
     # troi = [[261,106],[160,320]]
     troi = [[0,0],[512,512]]
     # troi = [[0,0],[10,10]]
@@ -239,14 +265,15 @@ def main():
     
     prefix = 'q{}_bin{}_int{}_'.format(Q_disc,bin_size,interp_factor)
     
-    par_dict = {'cch1':350.0,
-                'cch2':350.5,
+    par_dict = {'cch1':262.,
+                'cch2':354.,
                 'distance':570.8,
                 'pixel_width':0.055,
                 'troi':troi,
                 'bin_size':bin_size,
                 'energy_keV':8.0}
 
+    
     # check size of rebinned data:
     dummy=np.empty(shape=(4000,4000),dtype=np.uint8)
     Nch1, Nch2 = rebin(dummy[troi_to_slice(troi)],[bin_size]*2).shape

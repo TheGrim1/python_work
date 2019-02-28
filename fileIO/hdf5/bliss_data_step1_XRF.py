@@ -3,16 +3,12 @@ import sys, os
 import numpy as np
 import time
 import glob
-from multiprocessing import Pool
 import datetime
 from shutil import rmtree
 
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
-import simplecalc.image_align_elastix as ia
-from pythonmisc.worker_suicide import worker_init
-import fileIO.hdf5.workers.bliss_align_data_worker as badw
-import pythonmisc.pickle_utils as pu
-
+import simplecalc.image_align as ia
+import simplecalc.image_deglitch as idg
 
 def init_h5_file(dest_path, saving_name, verbose =False):
 
@@ -53,7 +49,9 @@ def do_fluo_merge(dest_fname, source_fname, verbose=False):
 
             axes = dest_h5['merged_data'].create_group('axes')
             axes.attrs['NX_class'] = 'NXcollection'
-            axes.create_dataset('phi', dtype= np.float32, shape = (phi_pts,))
+            axes.create_dataset('phi', dtype=np.float32, shape = (phi_pts,))
+            kappa = source_h5.values()[0]['axes/kappa']
+            axes.create_dataset('kappa', data=kappa)
             axes.create_dataset('x' ,data=range(x_pts))
             axes.create_dataset('y', data=range(y_pts))
 
@@ -89,23 +87,41 @@ def do_fluo_merge(dest_fname, source_fname, verbose=False):
             print('aligning')
 
             fluo_data=np.asarray(fluo_ori['XRF'])
-            fixed_image = int(phi_pts/2)
-            resolutions =  ['4','2','1']
-            aligned, shift = ia.elastix_align(fluo_data, mode ='translation', fixed_image_no=fixed_image, NumberOfResolutions = resolutions)
+
+            XRF_al = np.copy(fluo_data)
+            ref_frame = np.zeros_like(XRF_al[0])
+            ref_frame[:,ref_frame.shape[1]/2] = XRF_al.max()
+            XRF_al = np.stack([ref_frame]+list(XRF_al))
+
+            # remove first,glitchy point per line
+            XRF_al[:,:,0] = 0
+
+            XRF_al, lines_shift = idg.imagestack_correct_lines_edge(imagestack=XRF_al,reference_frame_no=0, edge='right')
+            
+            res = idg.imagestack_shift_lines(fluo_data,-np.asarray(lines_shift[1:]))
+            
+            aligned, shift = ia.com_and_mask_align(res, com_axis=1, mask_direction=-1, threshold=np.percentile(fluo_data,90))
 
             fluo_aligned.create_dataset(name='XRF',data=aligned, compression='lzf')
-
+            aligned_sum = aligned.sum(axis=0)
+            aligned_sum_mean = aligned_sum.mean()
+            mask = np.where(aligned_sum<aligned_sum_mean,0,1)
+            fluo_aligned.create_dataset(name='mask',data=mask, compression='lzf')
+            
+            
             alignment = merged_data.create_group('alignment')
             alignment.attrs['NXprocess'] = 'NXprocess'
             alignment.create_dataset(name='shift',data=shift)
+            alignment.create_dataset(name='lines_shift',data=np.asarray(lines_shift[1:]))
             alignment_parameters = alignment.create_group('alignment_parameters')
             alignment_parameters.attrs['script'] = ia.__file__
-            alignment_parameters.attrs['function'] = 'elastix_align'
+            alignment_parameters.attrs['function'] = 'com_and_mask_align'
             alignment_parameters.attrs['signal'] = fluo_ori.name
-            alignment_parameters.attrs['mode'] = 'translation'
-            alignment_parameters.attrs['fixed_image_no'] = fixed_image
-            alignment_parameters.attrs['NumberOfResolutions'] = resolutions
-
+            alignment_parameters.attrs['com_axis'] = 1
+            alignment_parameters.attrs['mask_direction'] = 1
+            alignment_parameters.attrs['threshold'] = fluo_data.mean()
+            alignment_parameters.attrs['alignment_order'] = 'inverted'
+            
             dest_h5.flush()
         print('written to {}'.format(dest_fname))             
 
@@ -120,9 +136,11 @@ def main(preview_fname, saving_name, dest_path, troi_dict):
 
 if __name__ == '__main__':
         
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking'
-    # map_shape = (140,80)
+    session_name = 'alignment'
+    saving_name = 'kmap_rocking'
+    map_shape = (140,80)
+    troi_dict = {'red':np.asarray([[2105,645],[30,30]]),
+                 'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
 
     # session_name = 'day_two'
     # saving_name = 'kmap_and_cen_4b'
@@ -130,22 +148,11 @@ if __name__ == '__main__':
     #              'blue':np.asarray([[497,1192],[513-497,1232-1192]]),
     #     	 'green':np.asarray([[760,1800],[800-760,1840-1800]])}
 
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking5'
-    # troi_dict = {'red':np.asarray([[1997,645],[2133-1997,675-645]]),
-    #              'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
-
-
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking4'
-    # troi_dict = {'red':np.asarray([[1997,645],[2133-1997,675-645]]),
-    #              'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
-
-    session_name = 'day_two'
-    saving_name = 'kmap_and_cen_3b'
-    troi_dict = {'black':np.asarray([[1306,600],[1327-1306,636-600]]),
-                 'yellow':np.asarray([[1505,1404],[1523-1505,1422-1404]]),
-        	 'cyan':np.asarray([[392,1685],[409-392, 1702-1685]])}
+    # session_name = 'day_two'
+    # saving_name = 'kmap_and_cen_3b'
+    # troi_dict = {'black':np.asarray([[1306,600],[1327-1306,636-600]]),
+    #              'yellow':np.asarray([[1505,1404],[1523-1505,1422-1404]]),
+    #     	 'cyan':np.asarray([[392,1685],[409-392, 1702-1685]])}
 
     session_path = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/DATA/'+session_name+ '/eh3/'
 

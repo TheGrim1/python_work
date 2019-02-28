@@ -131,13 +131,13 @@ def main(session_path, dest_path, saving_name, session, map_shape):
 
 if __name__ == '__main__':
         
-    # session_name = 'alignment'
-    # saving_name = 'kmap_rocking'
-    # map_shape = (140,80)
+    session_name = 'alignment'
+    saving_name = 'kmap_rocking'
+    map_shape = (140,80)
 
-    session_name = 'day_two'
-    saving_name = 'kmap_and_cen_3b'
-    map_shape = (150,80)
+    # session_name = 'day_two'
+    # saving_name = 'kmap_and_cen_3b'
+    # map_shape = (150,80)
     
     # session_name = 'day_two'
     # saving_name = 'kmap_and_cen_4b'

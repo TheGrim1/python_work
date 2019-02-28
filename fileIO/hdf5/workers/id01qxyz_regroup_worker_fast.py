@@ -114,10 +114,10 @@ def id01qxyz_regroup_worker(pickledargs_fname):
                 index = i*map_shape[1]+j
 
                 # read data and bin:
-                raw_data = np.asarray([rebin(x[index][troi_to_slice(troi)],[bin_size]*2) for x in data_list], dtype=np.float64)
-                print('raw_data.shape = ',raw_data.shape)
-                print('qx.shape =  ', qx.shape)
-                dtype=raw_data.dtype
+                dtype = np.uint64
+                raw_data = np.asarray([rebin(x[index][troi_to_slice(troi)],[bin_size]*2) for x in data_list], dtype=np.dtype)
+
+                
                 if verbose:
                     print('interpolating factor {}'.format(interp_factor))
                     print(len(eta_list),raw_data.shape, dtype)
@@ -158,11 +158,17 @@ def id01qxyz_regroup_worker(pickledargs_fname):
                 s = (sigma**2).sum()**0.5
                 
                 # angles
+                # Theta is form the pole down
                 theta = np.arccos(abs(qz_com)/q)
                 pitch = np.arccos(qx_com/q)
                 roll = np.arccos(qy_com/q)
-                phi = np.arctan(qx_com/qy_com)
+                # get the 360deg version of phi
 
+                phi = np.arctan(qy_com/qx_com)
+                if qy_com<0:
+                    phi+=np.pi
+                theta = np.abs(theta)
+                                                                       
                 # save realspace point values
                 data_group.create_dataset(name='max',data=data_max)
                 data_group.create_dataset(name='sum',data=data_sum)

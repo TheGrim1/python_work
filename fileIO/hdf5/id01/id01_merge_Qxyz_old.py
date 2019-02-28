@@ -227,7 +227,7 @@ def main():
 
     # check size of rebinned data:
     dummy=np.empty(shape=(4000,4000),dtype=np.uint8)
-    Nch1, Nch2 = rebin(dummy[troi_to_slice(troi)],[bin_size]*2).shape
+    Nch1, Nch2 = rebin(dummy[troi_to_slice(troi)],[bin_size]*2).shape 
     par_dict['Nch1'] = Nch1
     par_dict['Nch2'] = Nch2
     

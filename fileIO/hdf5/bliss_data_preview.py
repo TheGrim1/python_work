@@ -18,7 +18,9 @@ def find_kmaps_h5(session_path, saving_name):
     kmaps_fname_dict = {}
 
     saving_list = [x for x in glob.glob(session_path + '/*'+saving_name+'*') if os.path.isdir(x)]
+    # saving_list = [x for x in saving_list if x.find('kmap_rocking5') >0 or x.find('kmap_rocking4') >0]
 
+    
     for sname_path in saving_list:
 
         scan_dict = {}

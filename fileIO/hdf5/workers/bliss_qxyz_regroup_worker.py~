@@ -7,6 +7,7 @@ from scipy.interpolate import interp1d
 from xrayutilities import FuzzyGridder3D
 from scipy.ndimage.measurements import center_of_mass as com
 
+
 sys.path.append(os.path.abspath("/data/id13/inhouse2/AJ/skript"))
 import pythonmisc.pickle_utils as pu
 import pythonmisc.my_xrayutilities as my_xu
@@ -48,28 +49,22 @@ def qxyz_regroup_worker(pickledargs_fname):
 
     
     source_fname = unpickled_args[0]
-    source_ds_path = unpickled_args[1]
-    target_fname_list = unpickled_args[2]
-    troi = np.asarray(unpickled_args[3])
-    troi_poni = unpickled_args[4]
-    i_list = [int(x) for x in list(unpickled_args[5])]
-    j_list = [int(x) for x in list(unpickled_args[6])]
-    nx,ny,nz = [int(x) for x in unpickled_args[7]]
-    Theta_index_list = [int(x) for x in unpickled_args[8]]
-    Theta_list = [float(x) for x in unpickled_args[9]]
-    fine_Theta_list = [float(x) for x in unpickled_args[10]]
-    [kappa,phi] = [float(x) for x in unpickled_args[11]]
-    verbose = unpickled_args[12]
+    troi_dict = unpickled_args[1]
+    target_fname = unpickled_args[2]
+    i_list = [int(x) for x in list(unpickled_args[3])]
+    j_list = [int(x) for x in list(unpickled_args[4])]
+    nx,ny,nz = [int(x) for x in unpickled_args[5]]
+    kappa = float(unpickled_args[6])
+    interp_factor = float(unpickled_args[7])
+    verbose = unpickled_args[8]
 
-    for key, value in troi_poni.items():
+
+    troiname = troi_dict['troiname']
+    troi = troi_dict['troi']
+    
+    for key, value in troi_dict.items():
         print(key+' '+ str(value) + str(type(value)))
 
-    
-    # find Q regrouping, memory heavy!
-    xu_exp = my_xu.get_id13_experiment(troi, troi_poni)
-    qx, qy, qz = xu_exp.Ang2Q.area(fine_Theta_list,kappa,phi)
-    gridder = FuzzyGridder3D(nx,ny,nz)
-    
     if verbose:
         print('='*25)
         print('process {} is regrouping'.format(os.getpid()))
@@ -78,25 +73,49 @@ def qxyz_regroup_worker(pickledargs_fname):
         print('='*25)
     
     with h5py.File(source_fname,'r') as source_file:
-        with h5py.File(target_fname_list[0],'w') as target_file:
+        Theta = 0
+        troi_g = source_file['merged_data/diffraction/'+troiname]
+        
+        phi_list = []
+        data_list = []
+        for key, scan in  troi_g['single_scans'].items():
+            phi_list.append(float(scan['phi'].value))
+            data_list.append(scan['data'])
+        # sort by phi value
+        sort_list = zip(phi_list, data_list)
+        sort_list.sort()
+        phi_list = [x for x,y in sort_list]
+        data_list = [y for x,y in sort_list]
+
+        # this is dodgy: interpolation frames between sample position (phi)
+        fine_phi_list = list(np.linspace(phi_list[0],phi_list[-1],(len(phi_list)-1)*interp_factor +1))
+    
+        # find Q regrouping, memory heavy!
+        xu_exp = my_xu.get_id13_experiment(troi, troi_dict)
+        qx, qy, qz = xu_exp.Ang2Q.area(Theta,kappa,fine_phi_list)
+        gridder = FuzzyGridder3D(nx,ny,nz)
+    
+        
+        with h5py.File(target_fname,'w') as target_file:
             data_supergroup = target_file.create_group('entry/data')
             axes_group_exists = False
             
-            for i, j, ij_fname in zip(i_list, j_list, target_fname_list):
-                data_group = data_supergroup.create_group(os.path.splitext(os.path.basename(ij_fname))[0])
+            for i, j in zip(i_list, j_list):
+                data_group = data_supergroup.create_group('qxyz_{}_{:06d}_{:06d}'.format(troiname,i,j))
                 
                 if verbose:
                     print('getting data from {}'.format(source_fname))
-                    print(Theta_index_list[0])
-                    print(Theta_index_list[-1])
-                raw_data = np.asarray(source_file[source_ds_path][i,j][slice(Theta_index_list[0], Theta_index_list[-1]+1,1)])
-                dtype=raw_data.dtype
+                # read data and bin:
+                raw_ds_dtype=np.uint64
+                raw_data = np.asarray([x[i,j] for x in data_list],dtype = np.uint64)
+                dtype=raw_ds_dtype
+                                      
                 if verbose:
                     print('interpolating {}'.format(source_fname))
-                    print(len(Theta_list),raw_data.shape, dtype)
+                    print(len(phi_list),raw_data.shape, dtype)
 
-                f = interp1d(Theta_list, raw_data, axis=0, assume_sorted=True)
-                interp_data = f(fine_Theta_list)
+                f = interp1d(phi_list, raw_data, axis=0, assume_sorted=True)
+                interp_data = f(fine_phi_list)
 
                 if verbose:
                     print('regridding {}\n saving {}'.format(source_fname, target_fname))
@@ -116,29 +135,36 @@ def qxyz_regroup_worker(pickledargs_fname):
                     axes_group.create_dataset(name='qx', data = qx_ax, compression='lzf')
                     axes_group.create_dataset(name='qy', data = qy_ax, compression='lzf')
                     axes_group.create_dataset(name='qz', data = qz_ax, compression='lzf')
-                    axes_group.create_dataset(name='Theta', data = np.asarray(fine_Theta_list))
+                    axes_group.create_dataset(name='Theta', data = Theta)
                     axes_group.create_dataset(name='kappa', data = kappa)
-                    axes_group.create_dataset(name='phi', data = phi)
+                    axes_group.create_dataset(name='phi', data = np.asarray(fine_phi_list))
+                    axes_group.create_dataset(name='troi',data=troi)
                     axes_group_exists = True
 
                 # calc realspace point values
                 data_sum = data.sum()
                 data_max = data.max()
                 i_COM = com(data)
-                qx_com, qy_com, qz_com = q_com = np.asarray([np.interp(x,range(len(q_axes[i])),q_axes[i]) for i,x in enumerate(i_COM)])
+                qx_com, qy_com, qz_com = q_com = np.asarray([np.interp(x,range(len(q_axes[l])),q_axes[l]) for l,x in enumerate(i_COM)])
                 q = (q_com**2).sum()**0.5
                 sx, sy, sz = sigma = calc_sd(data, data_sum, q_com, q_axes)
                 s = (sigma**2).sum()**0.5
-                
+
                 # angles
-                theta = np.arccos(qz_com/q)
+                # Theta is form the pole down
+                theta = np.arccos(abs(qz_com)/q)
                 pitch = np.arccos(qx_com/q)
                 roll = np.arccos(qy_com/q)
-                phi = np.arctan(qx_com/qy_com)
-
+                # get the 360deg version of phi
+                phi = np.arctan(qy_com/qx_com)
+                if qy_com<0:
+                    phi+=np.pi
+                theta = theta
+                
                 # save realspace point values
                 data_group.create_dataset(name='max',data=data_max)
                 data_group.create_dataset(name='sum',data=data_sum)
+
 
                 data_group.create_dataset(name='qx',data=qx_com)
                 data_group.create_dataset(name='qy',data=qy_com)

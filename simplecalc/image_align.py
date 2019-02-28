@@ -203,7 +203,7 @@ def correlation_task(args):
     reflen    = args[4]
     return (reference*nd.shift(image,shift*(i - reflen))).sum()
 
-def single_correlation_alirgn_1d(reference, image, axis = 1):
+def single_correlation_align_1d(reference, image, axis = 1):
     '''
     cross correlation between reference and image along <axis>
     shifts image to the maximum

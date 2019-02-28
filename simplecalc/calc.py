@@ -24,10 +24,10 @@ def calc_sd(data, data_sum, COM, axes):
     '''
     weights = np.meshgrid(*np.stack([axes[i]-COM[i] for i in range(len(COM))]))
 
-    weighted_data = (data * weights) 
+    weighted_data = (data/data_sum * weights) 
     
-    s = [2*((weighted_data[i]**2).sum()/data_sum)**0.5 for i in
-         range(len(COM))]
+    s = [((weighted_data[i]**2).sum()*2)**0.5 for i in range(len(COM))]
+    
     
     return np.asarray(s)
 

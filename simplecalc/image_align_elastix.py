@@ -3,6 +3,8 @@ from __future__ import division
 import numpy as np
 import SimpleITK as sitk
 
+from image_align import *
+
 def elastix_align(imagestack, mode = 'rigid', thetas= None, COR = None, fixed_image_no=0 , **parameterMapkwargs):
     '''
     uses elastix recognition to find the affine transform between imagesstack[0] and all others

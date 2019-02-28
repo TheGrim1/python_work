@@ -13,6 +13,19 @@ import os
 from PyQt4.QtGui import QImage, qRgb
 import cv2
 
+
+
+def normalize_to_border(imagestack):
+    'preserves dtype, careful with rounding and neg values!' 
+    normalized = np.zeros_like(imagestack)
+    for i, image in enumerate(imagestack):
+        offset = image[0].sum() + image[-1].sum() + image[:,0].sum() + image[:,-1].sum()
+        offset *= 1./(2*image.shape[0] + 2*image.shape[1])
+
+        normalized[i] = np.asarray(image-offset, normalized.dtype)
+    return normalized
+
+
 def images_to_video(source_folder, save_fname=None, fps=40):
     '''
     finds_all files in a folder and writes then to a .avi viedo file

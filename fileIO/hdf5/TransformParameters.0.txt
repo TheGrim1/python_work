@@ -1,6 +1,6 @@
 (Transform "TranslationTransform")
 (NumberOfParameters 2)
-(TransformParameters -0.285033 -2.552630)
+(TransformParameters -0.042720 -1.303000)
 (InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
@@ -9,7 +9,7 @@
 (MovingImageDimension 2)
 (FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
-(Size 80 120)
+(Size 130 85)
 (Index 0 0)
 (Spacing 1.0000000000 1.0000000000)
 (Origin 0.0000000000 0.0000000000)
