@@ -86,6 +86,19 @@ def array_as_list(array):
     return xyz
 
 
+def check_in_border(vals_list, min_max_list):
+    '''
+    min max is a list of [min, max]
+    '''
+
+    for val, min_max  in zip(vals_list, min_max_list):
+        if val < min_max[0]:
+            return False
+        if val > min_max[1]:
+            return False
+    return True
+    
+
 
 def test():
 

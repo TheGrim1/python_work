@@ -15,6 +15,10 @@ from simplecalc import fitting
 
 
 
+def make_troi(coord=[0,0], size=20):
+    
+    return ((coord[0]-int(0.5*size),coord[1]-int(0.5*size)),(size,size))
+
 def calc_sd(data, data_sum, COM, axes):
     '''
     shape data has to be 'shape' of the list axes
@@ -22,7 +26,7 @@ def calc_sd(data, data_sum, COM, axes):
     COM is the index of the com, data_sum its mass
     return sx, sy, sz, s
     '''
-    weights = np.meshgrid(*np.stack([axes[i]-COM[i] for i in range(len(COM))]))
+    weights = np.meshgrid(*[axes[i]-COM[i] for i in range(len(COM))], indexing='ij')
 
     weighted_data = (data/data_sum * weights) 
     

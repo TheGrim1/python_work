@@ -147,6 +147,18 @@ def conservative_peak_guess(data,
         widths.append(width)
         peaks = find_peaks(data[1],widths = np.asarray(widths))
         width *= 0.5
+    # fix error when no peaks are found:
+    if len(peaks)<nopeaks:
+        if verbose:
+            print('only found {} peaks, extending list with evenly placed peaks to {}'.format(len(peaks),nopeaks))
+        missing_nopeaks = nopeaks - len(peaks)
+        default_peaks = np.zeros(nopeaks,dtype = np.int32)
+        for i,peak in enumerate(peaks):
+            default_peaks[i]=peak
+        for i,j in enumerate(range(len(peaks),nopeaks)):
+            default_peaks[j] = int((0.5+i)*len(data[0])/missing_nopeaks)
+        peaks = default_peaks
+
 
     if verbose:
         print('with minwidth = %s, guess found peaks at :'%width)
@@ -525,6 +537,7 @@ def test_2d_gaussfit():
     ax.invert_yaxis()
     plt.show()
 
+
 def main():
 
     # generate some data
@@ -538,6 +551,8 @@ def main():
     do_multi_gauss_fit(data,nopeaks = 2,verbose = True)
     
 
+
+    
     
 
 if __name__ == "__main__":

@@ -136,11 +136,11 @@ def main(preview_fname, saving_name, dest_path, troi_dict):
 
 if __name__ == '__main__':
         
-    session_name = 'alignment'
-    saving_name = 'kmap_rocking'
-    map_shape = (140,80)
-    troi_dict = {'red':np.asarray([[2105,645],[30,30]]),
-                 'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
+    # session_name = 'alignment'
+    # saving_name = 'kmap_rocking'
+    # map_shape = (140,80)
+    # troi_dict = {'red':np.asarray([[2105,645],[30,30]]),
+    #              'blue':np.asarray([[1262,1780],[1284-1262,1800-1780]])}
 
     # session_name = 'day_two'
     # saving_name = 'kmap_and_cen_4b'

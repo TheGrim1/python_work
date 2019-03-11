@@ -88,7 +88,10 @@ def qxyz_regroup_worker(pickledargs_fname):
         data_list = [y for x,y in sort_list]
 
         # this is dodgy: interpolation frames between sample position (phi)
-        fine_phi_list = list(np.linspace(phi_list[0],phi_list[-1],(len(phi_list)-1)*interp_factor +1))
+        if not interp_factor == 1:
+            fine_phi_list = list(np.linspace(phi_list[0],phi_list[-1],(len(phi_list)-1)*interp_factor +1))
+        else:
+            fine_phi_list = phi_list
     
         # find Q regrouping, memory heavy!
         xu_exp = my_xu.get_id13_experiment(troi, troi_dict)
@@ -100,7 +103,9 @@ def qxyz_regroup_worker(pickledargs_fname):
         out_plane = np.arccos(qz/q_3d)*180/np.pi
                 
         qxyz_gridder = FuzzyGridder3D(nx,ny,nz)
+        qxyz_gridder.dataRange(qx.min(), qx.max(), qy.min(), qy.max(), qz.min(), qz.max(), fixed=True)
         qio_gridder = FuzzyGridder3D(nx,ny,nz)
+        qio_gridder.dataRange(q_3d.min(), q_3d.max(), in_plane.min(), in_plane.max(), out_plane.min(), out_plane.max(), fixed=True)
         
         with h5py.File(target_fname,'w') as target_file:
             data_supergroup = target_file.create_group('entry/data')

@@ -122,7 +122,9 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
             troi_g = dest_h5.create_group('diffraction/'+troiname)
             troi_qaxes_group = axes_group.create_group(troiname) 
             q_group = troi_g.create_group('Qxyz')
+            q_group.attrs['axes'] = ['y','x','qx','qz','qz']
             qio_group = troi_g.create_group('Qio')
+            qio_group.attrs['axes'] = ['y','x','q','ia','oa']
             
             s_group = troi_g.create_group('Sxys')
             sum_group = troi_g.create_group('sum')
@@ -176,9 +178,21 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
             q_all_ds = q_group.create_dataset(name='data_all', shape=Qdata_shape, dtype=np.uint64, compression='lzf', chunks=chunks)
             qio_all_ds = qio_group.create_dataset(name='data_all', shape=Qdata_shape, dtype=np.uint64, compression='lzf', chunks=chunks)
 
-            q_profile_ds = qio_group.create_dataset(name='q_profile', shape=profile_shape, dtype=np.uint64, compression='lzf', chunks=(1,1,fine_phi_points, Qdata_shape[3]))
-            ia_profile_ds = qio_group.create_dataset(name='ia_profile', shape=profile_shape, dtype=np.uint64, compression='lzf', chunks=(1,1,fine_phi_points, Qdata_shape[3]))
-            oa_profile_ds = qio_group.create_dataset(name='oa_profile', shape=profile_shape, dtype=np.uint64, compression='lzf', chunks=(1,1,fine_phi_points, Qdata_shape[3]))
+            q_profile_ds = qio_group.create_dataset(name='q_profile',
+                                                    shape=(map_shape[0],map_shape[1],fine_phi_points, Qdata_shape[-3]),
+                                                    dtype=np.uint64,
+                                                    compression='lzf',
+                                                    chunks=(1,1,fine_phi_points, Qdata_shape[-3]))
+            ia_profile_ds = qio_group.create_dataset(name='ia_profile',
+                                                     shape=(map_shape[0],map_shape[1],fine_phi_points, Qdata_shape[-2]),
+                                                     dtype=np.uint64,
+                                                     compression='lzf',
+                                                     chunks=(1,1,fine_phi_points, Qdata_shape[-2]))
+            oa_profile_ds = qio_group.create_dataset(name='oa_profile',
+                                                     shape=(map_shape[0],map_shape[1],fine_phi_points, Qdata_shape[-1]),
+                                                     dtype=np.uint64,
+                                                     compression='lzf',
+                                                     chunks=(1,1,fine_phi_points, Qdata_shape[-1]))
 
             qx_ar = np.zeros(shape=map_shape, dtype = np.float64)
             qy_ar = np.zeros(shape=map_shape, dtype = np.float64)
@@ -213,8 +227,8 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
                 with h5py.File(fname,'r') as source_h5:
 
                     for i_j, dg in source_h5['entry/data'].items():
-
-                        print('collecting group {}'.format(i_j))
+                        if verbose > 2:
+                            print('collecting group {}'.format(i_j))
                         r_i,r_j = parse_ij(i_j)
                         frame_no = r_i*map_shape[1]+r_j
 
@@ -258,24 +272,24 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
                         pitch_ar[r_i,r_j] = np.float(dg['roll'].value)
 
 
-            qx_ds = q_group.create_dataset(name='qx', data = qx_ar)
-            qy_ds = q_group.create_dataset(name='qy', data = qy_ar)
-            qz_ds = q_group.create_dataset(name='qz', data = qz_ar)
-            q_ds = q_group.create_dataset(name='q', data = q_ar)
-            q_ds = qio_group.create_dataset(name='q', data = q_qio_ar)
+            qx_ds = q_group.create_dataset(name='qx_com', data = qx_ar)
+            qy_ds = q_group.create_dataset(name='qy_com', data = qy_ar)
+            qz_ds = q_group.create_dataset(name='qz_com', data = qz_ar)
+            q_ds = q_group.create_dataset(name='q_com', data = q_ar)
+            q_ds = qio_group.create_dataset(name='q_com', data = q_qio_ar)
 
             sx_ds = s_group.create_dataset(name='sx', data = sx_ar)
             sy_ds = s_group.create_dataset(name='sy', data = sy_ar)
             sz_ds = s_group.create_dataset(name='sz', data = sz_ar)
             s_ds = s_group.create_dataset(name='s', data = s_ar)
 
-            oa_ds = q_group.create_dataset(name='oa', data = oa_ar * 180./np.pi)
-            ia_ds = q_group.create_dataset(name='ia', data = ia_ar * 180./np.pi)
-            oa_qio_ds = qio_group.create_dataset(name='oa', data = oa_qio_ar)
-            ia_qio_ds = qio_group.create_dataset(name='ia', data = ia_qio_ar)
+            oa_ds = q_group.create_dataset(name='oa_com', data = oa_ar * 180./np.pi)
+            ia_ds = q_group.create_dataset(name='ia_com', data = ia_ar * 180./np.pi)
+            oa_qio_ds = qio_group.create_dataset(name='oa_com', data = oa_qio_ar)
+            ia_qio_ds = qio_group.create_dataset(name='ia_com', data = ia_qio_ar)
             
-            roll_ds = q_group.create_dataset(name='roll', data = roll_ar * 180./np.pi)
-            pitch_ds = q_group.create_dataset(name='pitch', data = pitch_ar * 180./np.pi)
+            roll_ds = q_group.create_dataset(name='roll_com', data = roll_ar * 180./np.pi)
+            pitch_ds = q_group.create_dataset(name='pitch_com', data = pitch_ar * 180./np.pi)
 
             max_ds = max_group.create_dataset(name='q_space', data=curr_qmax)
             sum_ds = sum_group.create_dataset(name='q_space', data=curr_qsum)
@@ -288,21 +302,21 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
             nan_mask = np.asarray(dest_h5['fluorescence/fluo_aligned/mask'],dtype = np.float32)
             nan_mask[np.logical_not(nan_mask)] = np.nan
 
-            qx_ds = q_masked_g.create_dataset(name='qx', data = qx_ar*nan_mask)
-            qy_ds = q_masked_g.create_dataset(name='qy', data = qy_ar*nan_mask)
-            qz_ds = q_masked_g.create_dataset(name='qz', data = qz_ar*nan_mask)
-            q_ds = q_masked_g.create_dataset(name='q', data = q_qio_ar*nan_mask)
+            qx_ds = q_masked_g.create_dataset(name='qx_com', data = qx_ar*nan_mask)
+            qy_ds = q_masked_g.create_dataset(name='qy_com', data = qy_ar*nan_mask)
+            qz_ds = q_masked_g.create_dataset(name='qz_com', data = qz_ar*nan_mask)
+            q_ds = q_masked_g.create_dataset(name='q_com', data = q_qio_ar*nan_mask)
 
             sx_ds = q_masked_g.create_dataset(name='sx', data = sx_ar*nan_mask)
             sy_ds = q_masked_g.create_dataset(name='sy', data = sy_ar*nan_mask)
             sz_ds = q_masked_g.create_dataset(name='sz', data = sz_ar*nan_mask)
             s_ds = q_masked_g.create_dataset(name='s', data = s_ar*nan_mask)
 
-            oa_ds = q_masked_g.create_dataset(name='oa', data = oa_ar * 180./np.pi*nan_mask)
-            ia_ds = q_masked_g.create_dataset(name='ia', data = ia_ar * 180./np.pi*nan_mask)
+            oa_ds = q_masked_g.create_dataset(name='oa_com', data = oa_ar * 180./np.pi*nan_mask)
+            ia_ds = q_masked_g.create_dataset(name='ia_com', data = ia_ar * 180./np.pi*nan_mask)
             
-            roll_ds = q_masked_g.create_dataset(name='roll', data = roll_ar * 180./np.pi*nan_mask)
-            pitch_ds = q_masked_g.create_dataset(name='pitch', data = pitch_ar * 180./np.pi*nan_mask)
+            roll_ds = q_masked_g.create_dataset(name='roll_com', data = roll_ar * 180./np.pi*nan_mask)
+            pitch_ds = q_masked_g.create_dataset(name='pitch_com', data = pitch_ar * 180./np.pi*nan_mask)
 
             q_masked_g.create_dataset(name='max_rspace', data=curr_rmax*nan_mask)
             q_masked_g.create_dataset(name='sum_rspace', data=curr_rsum*nan_mask*nan_mask)
@@ -338,13 +352,11 @@ def main():
 
     
     interp_factor = 1
-    Q_disc = 20
-    Q_dim = [nQx, nQy, nQz] = [Q_disc]*3
+    Q_disc = 21
+    Q_dim = [nQx, nQy, nQz] = [21,22,23]
     
     prefix = 'q{}_int{}_'.format(Q_disc,interp_factor)
-    
-    # check size of rebinned data:
-    
+        
     
     do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor=interp_factor, prefix=prefix, verbose=True)
 

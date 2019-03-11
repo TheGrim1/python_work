@@ -46,16 +46,22 @@ def conservative_peak_guess(data,
     else:
         width = maxwidth
     widths = []
-    peaks  = []
-
-    
+    peaks = []
     while len(peaks) < nopeaks and width > minwidth:
         widths.append(width)
         peaks = find_peaks(data[1],widths = np.asarray(widths))
         width *= 0.5
     # fix error when no peaks are found:
-    if len(peaks)==0:
-        peaks = np.asarray([len(data[0])/2])
+    if len(peaks)<nopeaks:
+        if verbose:
+            print('only found {} peaks, extending list with evenly placed peaks to {}'.format(len(peaks),nopeaks))
+        missing_nopeaks = nopeaks - len(peaks)
+        default_peaks = np.zeros(nopeaks,dtype = np.int32)
+        for i,peak in enumerate(peaks):
+            default_peaks[i]=peak
+        for i,j in enumerate(range(len(peaks),nopeaks)):
+            default_peaks[j] = int((0.5+i)*len(data[0])/missing_nopeaks)
+        peaks = default_peaks
 
         
     if verbose:
