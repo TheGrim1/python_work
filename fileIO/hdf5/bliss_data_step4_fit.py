@@ -19,9 +19,9 @@ def parse_ij(fname):
     troiname = os.path.splitext(fname)[0].split('_')[-3]
     return i,j
 
-def do_fit(qmerged_fname, verbose=False):
+def do_fit(qmerged_fname, binning, verbose=False):
 
-    fit_fname = os.path.dirname(qmerged_fname) + os.path.sep + 'fit_'+os.path.basename(qmerged_fname)
+    fit_fname = os.path.dirname(qmerged_fname) + os.path.sep + 'fit_bin{}_'.format(binning)+os.path.basename(qmerged_fname)
     dest_dir = os.path.dirname(qmerged_fname)+ '/' + os.path.splitext(os.path.basename(fit_fname))[0] + '/'
     if os.path.exists(fit_fname):
         os.remove(fit_fname)
@@ -59,6 +59,7 @@ def do_fit(qmerged_fname, verbose=False):
                       i_list,
                       j_list,
                       mask,
+                      binning,
                       4]
                 todo_list.append(todo)
 
@@ -118,13 +119,15 @@ def do_fit(qmerged_fname, verbose=False):
                             if type(member) == h5py._hl.group.Group:
                                 parameters = member.attrs['parameters']
                                 data_shape = tuple(list(map_shape)+[len(parameters)])
+                                residual_shape = tuple(list(map_shape)+ list(member['residual'].shape))
                                 fitname = '/'.join(member.name.split('/')[-2::])
                                 print('fitname ' + fitname) 
                                 fit_data_dict.update({fitname:
                                                       {'parameters':
                                                        parameters,
                                                        'peak0':np.zeros(shape=data_shape),
-                                                       'peak1':np.zeros(shape=data_shape)}})
+                                                       'peak1':np.zeros(shape=data_shape),
+                                                       'residual':np.zeros(shape=residual_shape)}})
 
                 print('found fit data:')
                 print(fit_data_dict.keys())
@@ -141,10 +144,14 @@ def do_fit(qmerged_fname, verbose=False):
                             frame_no = r_i*map_shape[1]+r_j
 
                             for fitname, fit_data in fit_data_dict.items():
-                                data = np.asarray(dg[fitname].values()[0])
+                                keys = dg[fitname].keys()
+                                
+                                residual = np.asarray(dg[fitname]['residual'])
+                                data_key = [x for x in keys if x!= 'residual'][0]
+                                data = np.asarray(dg[fitname][data_key])
                                 fit_data['peak0'][r_i,r_j] = data[0]
                                 fit_data['peak1'][r_i,r_j] = data[1]
-
+                                fit_data['residual'][r_i,r_j] = residual
 
                 # write the collected data into the dest file:
                 for fitname, fit_data in fit_data_dict.items():
@@ -154,10 +161,18 @@ def do_fit(qmerged_fname, verbose=False):
                     print(parameters)
                     peak1 = fit_data['peak0']
                     peak2 = fit_data['peak1']
+                    residual = np.asarray(fit_data['residual'])
+                    ds_g.create_dataset(name='residual', data=residual)
+                    ndim = residual.ndim
+                    residual_sum = residual
+                    for i in range(2,ndim):
+                        residual_sum = residual_sum.sum(axis=-1)
+                    ds_g.create_dataset(name='residual_sum', data=residual_sum)
                     for i, parameter in enumerate(parameters):
                         ds_g.create_dataset(name='peak0_' + parameter, data=peak1[:,:,i])
                         ds_g.create_dataset(name='peak1_' + parameter, data=peak2[:,:,i])
-
+                        
+                        
 
     endtime = time.time()
     total_time = (endtime - starttime)
@@ -171,9 +186,12 @@ def do_fit(qmerged_fname, verbose=False):
         
 def main():
 
-    qmerged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/day_two/q21_int1_qxyz_kmap_and_cen_3b_merged.h5'
-        
-    do_fit(qmerged_fname, verbose=True)
+    # qmerged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/day_two/q15_int1_qxyz_kmap_and_cen_3b_merged.h5'
+    qmerged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/alignment/q23_int1_qxyz_kmap_rocking_merged.h5'
+
+    pre_fit_binning = 3
+    
+    do_fit(qmerged_fname, binning=pre_fit_binning, verbose=True)
 
     
 if __name__ == "__main__":

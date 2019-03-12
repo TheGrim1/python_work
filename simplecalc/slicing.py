@@ -11,6 +11,10 @@ def rebin(a, shape):
     sh = len0,shape[0],len1,shape[1]
     return b.reshape(sh).sum(-1).sum(1)
 
+def make_troi(coord=[0,0], size=20):
+    return ((coord[0]-int(0.5*size),coord[1]-int(0.5*size)),(size,size))
+
+
 def troi_to_range(troi):
     (ystart, yend, xstart, xend) = troi_to_xy(troi)
 

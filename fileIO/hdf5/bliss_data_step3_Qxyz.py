@@ -340,22 +340,21 @@ def do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor, prefix='', ver
 
 def main():
 
-    # merged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/alignment/kmap_rocking_merged.h5'
-    # poni_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/calib/calib1.poni'
+    merged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/alignment/kmap_rocking_merged.h5'
+    poni_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/calib/calib1.poni'
     
     # # 
     # poni_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/calib2/calib2.poni'
     # merged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/day_two/kmap_and_cen_4b_merged.h5'
 
-    poni_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/calib2/calib2.poni'
-    merged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/day_two/kmap_and_cen_3b_merged.h5'
+    # poni_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/calib2/calib2.poni'
+    # merged_fname = '/data/id13/inhouse11/THEDATA_I11_1/d_2018-11-13_inh_ihma67_pre/PROCESS/previews/day_two/kmap_and_cen_3b_merged.h5'
 
     
     interp_factor = 1
-    Q_disc = 21
-    Q_dim = [nQx, nQy, nQz] = [21,22,23]
+    Q_dim = [nQx, nQy, nQz] = [23,23,23]
     
-    prefix = 'q{}_int{}_'.format(Q_disc,interp_factor)
+    prefix = 'q{}_int{}_'.format(nQx,interp_factor)
         
     
     do_regrouping(merged_fname, poni_fname, Q_dim, interp_factor=interp_factor, prefix=prefix, verbose=True)

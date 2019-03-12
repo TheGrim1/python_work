@@ -102,7 +102,15 @@ def right_sign(p, force_positive=False):
     return p
 
 
-def do_iterative_two_gauss3d_fit(data, xx=None, yy=None,zz=None, force_positive=False, diff_threshold=1, max_iteration=10000, verbose=False):
+def do_iterative_two_gauss3d_fit(data,
+                                 xx=None,
+                                 yy=None,
+                                 zz=None,
+                                 force_positive=False,
+                                 diff_threshold=1,
+                                 return_residual=False,
+                                 max_iteration=10000,
+                                 verbose=False):
     '''
     fit 2 gauss untill the sum of the movement of the two peaks (in xx/yy units) is less than diff_threshold
     does o medial filter befor fitting second peak - this greatly stabelizes fitting
@@ -135,7 +143,7 @@ def do_iterative_two_gauss3d_fit(data, xx=None, yy=None,zz=None, force_positive=
         result1 = do_gauss3d_fit(data=residual2, xx=xx, yy=yy, zz=zz, guess=result1_list[-1], force_positive=force_positive)[0]
         gauss1 = gauss3d_func(result1,xx,yy,zz)
 
-        residual1 = median_filter(data-gauss1, size=2)
+        residual1 = median_filter(data-gauss1, size=1)
 
         result2 = do_gauss3d_fit(data=residual1, xx=xx, yy=yy, zz=zz, guess=result2_list[-1], force_positive=force_positive)[0]
         gauss2 = gauss3d_func(result2,xx,yy,zz)
@@ -163,7 +171,13 @@ def do_iterative_two_gauss3d_fit(data, xx=None, yy=None,zz=None, force_positive=
             if any(np.isnan(result1)):
                 result1.fill(np.nan)
             result2.fill(np.nan)
-            return np.asarray([result1,result2])
+            if return_residual:
+                residual = (data - gauss3d_func(result1,xx,yy,zz)) / data.sum()
+                return np.asarray([result1,result2]),residual
+            else:
+                return np.asarray([result1,result2])
+
+            
 
 
         # sort peaks accoring to Area
@@ -189,5 +203,8 @@ def do_iterative_two_gauss3d_fit(data, xx=None, yy=None,zz=None, force_positive=
 
     if verbose:
         print('found peaks {:2.2f}:{:2.2f} and {:2.2f}:{:2.2f}'.format(result1_list[-1][0],result1_list[-1][1],result2_list[-1][0],result2_list[-1][1]))
-        
-    return np.asarray([result1_list[-1],result2_list[-1]])
+    if return_residual:
+        residual = (data - gauss2 - gauss1) / data.sum()
+        return np.asarray([result1,result2]),residual
+    else:
+        return np.asarray([result1_list[-1],result2_list[-1]])

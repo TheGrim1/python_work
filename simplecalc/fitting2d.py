@@ -173,7 +173,14 @@ def right_sign(p, force_positive=False):
         p[i::6] = np.abs(p[i::6])
     return p
 
-def do_iterative_two_gauss2d_fit(data, xx=None, yy=None, force_positive=False, diff_threshold=1, max_iteration=10000, verbose=False):
+def do_iterative_two_gauss2d_fit(data,
+                                 xx=None,
+                                 yy=None,
+                                 force_positive=False, 
+                                 diff_threshold=1,
+                                 max_iteration=10000,
+                                 return_residual=False,
+                                 verbose=False):
     '''
     fit 2 gauss untill the sum of the movement of the two peaks (in xx/yy units) is less than diff_threshold
     '''
@@ -199,7 +206,7 @@ def do_iterative_two_gauss2d_fit(data, xx=None, yy=None, force_positive=False, d
         result1 = do_gauss2d_fit(data=residual2, xx=xx, yy=yy, guess=result1_list[-1], force_positive=force_positive)[0]
         gauss1 = gauss2d_func(result1_list[-1],xx,yy)
         
-        residual1 = median_filter(data-gauss1, size=3)
+        residual1 = median_filter(data-gauss1, size=1)
 
         result2 = do_gauss2d_fit(data=residual1, xx=xx, yy=yy, guess=result2_list[-1], force_positive=force_positive)[0]
         gauss2 = gauss2d_func(result2_list[-1],xx,yy)
@@ -231,7 +238,11 @@ def do_iterative_two_gauss2d_fit(data, xx=None, yy=None, force_positive=False, d
                     print('immediate nan on fist fit that what you ll get')
                 result1.fill(np.nan)
             result2.fill(np.nan)
-            return np.asarray([result1,result2])
+            if return_residual:
+                residual = (data - gauss2d_func(result1,xx,yy)) / data.sum()
+                return np.asarray([result1,result2]),residual
+            else:
+                return np.asarray([result1,result2])
 
         # sort peaks accoring to Area
         if result2[-1] > result1[-1]:
@@ -249,7 +260,12 @@ def do_iterative_two_gauss2d_fit(data, xx=None, yy=None, force_positive=False, d
         i += 1
         if i>max_iteration:
             break
-    return np.asarray([result1_list[-1],result2_list[-1]])
+    if return_residual:
+        residual = (data - gauss2 - gauss1) / data.sum()
+        return np.asarray([result1,result2]),residual
+    else:
+        return np.asarray([result1,result2])  
+
 
         
 

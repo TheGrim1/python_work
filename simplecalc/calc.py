@@ -15,9 +15,7 @@ from simplecalc import fitting
 
 
 
-def make_troi(coord=[0,0], size=20):
-    
-    return ((coord[0]-int(0.5*size),coord[1]-int(0.5*size)),(size,size))
+
 
 def calc_sd(data, data_sum, COM, axes):
     '''
